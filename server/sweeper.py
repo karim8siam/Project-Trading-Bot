@@ -7,6 +7,7 @@ Supports:
 
 from typing import Dict, Any, Optional
 from web3 import Web3
+from web3.middleware import ExtraDataToPOAMiddleware
 from datetime import datetime
 import json
 
@@ -35,7 +36,7 @@ BEP20_ABI = [
             {"name": "_value", "type": "uint256"},
         ],
         "name": "transfer",
-        "outputs": [{"name": "success", "type": "bool"}],
+        "outputs": [{"name": "", "type": "bool"}],
         "type": "function",
     },
     {
@@ -67,10 +68,12 @@ class WalletSweeper:
                 provider = Web3(Web3.HTTPProvider(rpc, request_kwargs={"timeout": 6}))
                 if provider.is_connected():
                     self.w3 = provider
+                    self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
                     return
             except Exception:
                 continue
         self.w3 = Web3(Web3.HTTPProvider("https://bsc-dataseed.binance.org/"))
+        self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
     def get_wallet_balances(self) -> Dict[str, Any]:
         """

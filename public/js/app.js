@@ -478,7 +478,15 @@ window.App = {
       return;
     }
 
-    this.showToast("Verifying transaction on BSC blockchain...");
+    const btn = document.querySelector("#modalDeposit .btn-emerald");
+    const origText = btn ? btn.innerText : "";
+    if (btn) {
+      btn.innerText = "🔍 Checking BSC Blockchain...";
+      btn.disabled = true;
+      btn.style.opacity = "0.75";
+    }
+
+    this.showToast("Verifying on-chain transaction on BSC...");
 
     try {
       const res = await fetch("/api/deposits/verify", {
@@ -501,6 +509,12 @@ window.App = {
       }
     } catch (e) {
       this.showToast("Verification error: " + e.message, true);
+    } finally {
+      if (btn) {
+        btn.innerText = origText;
+        btn.disabled = false;
+        btn.style.opacity = "1";
+      }
     }
   },
 

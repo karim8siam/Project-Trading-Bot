@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 from web3 import Web3
+from web3.middleware import ExtraDataToPOAMiddleware
 import requests
 
 from config import (
@@ -41,6 +42,7 @@ class OnChainDepositVerifier:
                 provider = Web3(Web3.HTTPProvider(rpc, request_kwargs={"timeout": 6}))
                 if provider.is_connected():
                     self.w3 = provider
+                    self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
                     print(f"[On-Chain Verifier] ✅ Connected to BSC Mainnet via {rpc} (Block: {self.w3.eth.block_number})")
                     return
             except Exception:
@@ -48,6 +50,7 @@ class OnChainDepositVerifier:
 
         # Fallback to public endpoint
         self.w3 = Web3(Web3.HTTPProvider("https://bsc-dataseed.binance.org/"))
+        self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
     def verify_transaction_hash(
         self,
@@ -147,7 +150,13 @@ class OnChainDepositVerifier:
 
         except Exception as e:
             conn.close()
-            return {"valid": False, "error": f"On-chain verification error: {str(e)}"}
+            err_str = str(e)
+            if "not found" in err_str.lower():
+                return {
+                    "valid": False,
+                    "error": "Transaction not found on BSC blockchain yet. If you just sent it, please wait 3–5 seconds for the block to confirm and click Verify again."
+                }
+            return {"valid": False, "error": f"On-chain verification error: {err_str}"}
 
     def credit_verified_deposit(
         self,
