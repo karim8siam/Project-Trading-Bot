@@ -123,19 +123,20 @@ def init_platform_db():
         last_login_at TEXT
     )
     """)
+    conn.commit()
 
-    # Try adding columns if existing DB
-    for col_def in [
-        "pending_rollover_balance REAL DEFAULT 0.0",
-        "is_compounding INTEGER DEFAULT 1",
-        "compounding_status TEXT DEFAULT 'ACTIVE'"
-    ]:
-        try:
-            cursor.execute(f"ALTER TABLE users ADD COLUMN {col_def}")
-            conn.commit()
-        except Exception:
-            if is_pg:
-                conn.rollback()
+    if not is_pg:
+        # Try adding columns if existing SQLite DB
+        for col_def in [
+            "pending_rollover_balance REAL DEFAULT 0.0",
+            "is_compounding INTEGER DEFAULT 1",
+            "compounding_status TEXT DEFAULT 'ACTIVE'"
+        ]:
+            try:
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {col_def}")
+                conn.commit()
+            except Exception:
+                pass
 
     # 2. Deposits Table
     cursor.execute(f"""

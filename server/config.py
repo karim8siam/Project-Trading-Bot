@@ -5,10 +5,13 @@ Constants for Web3 On-Chain Verification, Master Vault, Admin Control, and 2-of-
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 SERVER_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
+
 DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 DB_PATH = DATA_DIR / "orbital_platform.db"
