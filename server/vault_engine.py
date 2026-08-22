@@ -12,7 +12,8 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Tuple
 from config import (
     EPOCH_ROLLOVER_HOUR_UTC,
-    PLATFORM_PERFORMANCE_FEE_PCT
+    PLATFORM_PERFORMANCE_FEE_PCT,
+    USER_PROFIT_SHARE_PCT
 )
 from database import get_db
 
