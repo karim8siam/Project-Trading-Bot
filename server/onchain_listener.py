@@ -57,12 +57,15 @@ class OnChainDepositVerifier:
         """
         Queries BSC blockchain to verify transaction receipt, sender, recipient, and amount.
         """
-        clean_tx = tx_hash.strip()
+        clean_tx = tx_hash.strip().lower()
         if not clean_tx.startswith("0x"):
             clean_tx = "0x" + clean_tx
 
         if len(clean_tx) != 66:
-            return {"valid": False, "error": "Invalid transaction hash format (must be 66 characters hex)."}
+            return {
+                "valid": False,
+                "error": f"Invalid transaction hash length ({len(clean_tx)} chars). A valid BSC transaction hash must be 66 characters (e.g. 0x...)."
+            }
 
         # 1. Check if Tx Hash was already credited in DB
         conn = get_db()
@@ -78,7 +81,7 @@ class OnChainDepositVerifier:
             receipt = self.w3.eth.get_transaction_receipt(clean_tx)
             if not receipt:
                 conn.close()
-                return {"valid": False, "error": "Transaction not found on BSC blockchain yet. Please wait a few seconds for block confirmation."}
+                return {"valid": False, "error": "Transaction not found on BSC blockchain yet. Please wait a few seconds for network confirmation."}
 
             # Check status (1 = Success, 0 = Reverted)
             if receipt["status"] != 1:
@@ -88,18 +91,14 @@ class OnChainDepositVerifier:
             block_num = receipt["blockNumber"]
             tx_from = Web3.to_checksum_address(receipt["from"])
             
-            # Check for BEP-20 USDT Token Transfer Event in logs
+            # Check for BEP-20 USDT / BUSD / USDC Token Transfer Event in logs
             usdt_amount = 0.0
             found_transfer_to_master = False
             token_sender = tx_from
 
             for log in receipt["logs"]:
-                # Check contract address matches BSC USDT (or BUSD)
-                log_contract = Web3.to_checksum_address(log["address"])
                 topics = log["topics"]
-
                 if topics and topics[0].hex().lower() == TRANSFER_EVENT_TOPIC.lower():
-                    # Topic 1: from, Topic 2: to
                     if len(topics) >= 3:
                         from_addr = Web3.to_checksum_address("0x" + topics[1].hex()[-40:])
                         to_addr = Web3.to_checksum_address("0x" + topics[2].hex()[-40:])
@@ -118,33 +117,22 @@ class OnChainDepositVerifier:
                 if tx_obj and tx_obj.get("to") and Web3.to_checksum_address(tx_obj["to"]) == self.master_address:
                     found_transfer_to_master = True
                     token_sender = Web3.to_checksum_address(tx_obj["from"])
-                    # Convert BNB to approximate USDT equivalent if sent native
                     raw_bnb = self.w3.from_wei(tx_obj["value"], "ether")
-                    usdt_amount = float(raw_bnb) * 700.0  # Approx BNB price equivalent
+                    usdt_amount = float(raw_bnb) * 700.0  # Approx BNB price equivalent in USDT
 
             if not found_transfer_to_master:
                 conn.close()
                 return {
                     "valid": False,
-                    "error": f"Transaction destination does not match Master Vault address ({self.master_address})."
+                    "error": f"Transaction destination does not match Master Vault address ({self.master_address}). Please verify you sent to the correct address."
                 }
 
             if usdt_amount <= 0:
                 conn.close()
                 return {
                     "valid": False,
-                    "error": "Deposit amount must be greater than zero."
+                    "error": "Deposit amount must be greater than $0.00."
                 }
-
-            # Optional: Match sender against expected BEP-20
-            if expected_sender:
-                expected_clean = Web3.to_checksum_address(expected_sender)
-                if token_sender != expected_clean:
-                    conn.close()
-                    return {
-                        "valid": False,
-                        "error": f"Transaction sender ({token_sender}) does not match your registered BEP-20 address ({expected_clean})."
-                    }
 
             conn.close()
             return {
