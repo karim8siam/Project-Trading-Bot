@@ -166,27 +166,27 @@
               💡 Enter <strong>ANY TWO</strong> of your three credentials to unlock your account:
             </p>
 
-            <form id="formLogin" onsubmit="return false;">
+            <form id="formLogin" onsubmit="window.App.handleLogin(); return false;">
               <div class="form-group">
                 <label class="form-label" for="loginEmail">Factor 1: Email Address</label>
-                <input type="email" id="loginEmail" class="form-input" placeholder="Enter your email (Optional if using BEP20+Pass)">
+                <input type="email" id="loginEmail" class="form-input" placeholder="Enter your email (Optional if using BEP20+Pass)" onkeydown="if(event.key==='Enter') window.App.handleLogin();">
               </div>
 
               <div class="form-group">
                 <label class="form-label" for="loginPassword">Factor 2: Password</label>
-                <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password (Optional if using Email+BEP20)">
+                <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password (Optional if using Email+BEP20)" onkeydown="if(event.key==='Enter') window.App.handleLogin();">
               </div>
 
               <div class="form-group">
                 <label class="form-label" for="loginBep20">Factor 3: BEP-20 Wallet Address</label>
-                <input type="text" id="loginBep20" class="form-input mono" placeholder="0x... (Optional if using Email+Pass)">
+                <input type="text" id="loginBep20" class="form-input mono" placeholder="0x... (Optional if using Email+Pass)" onkeydown="if(event.key==='Enter') window.App.handleLogin();">
               </div>
 
               <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 1rem;">
                 🔒 <strong>Device Auto-Save:</strong> Your session will be automatically saved on this device so you won't have to log in repeatedly.
               </div>
 
-              <button type="button" class="btn btn-emerald btn-lg" style="width: 100%;" onclick="window.App.handleLogin();">
+              <button type="button" id="btnLoginSubmit" class="btn btn-emerald btn-lg" style="width: 100%; cursor: pointer;" onclick="window.App.handleLogin();">
                 🔓 Verify 2-of-3 & Enter Dashboard
               </button>
             </form>
