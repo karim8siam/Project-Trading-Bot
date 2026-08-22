@@ -57,18 +57,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.middleware("http")
-async def vercel_url_normalization(request: Request, call_next):
-    path = request.url.path
-    forwarded = request.headers.get("x-matched-path") or request.headers.get("x-forwarded-uri")
-    if forwarded and forwarded.startswith("/api/"):
-        request.scope["path"] = forwarded.replace("/api", "", 1) or "/"
-    elif path.startswith("/api/index.py"):
-        request.scope["path"] = path.replace("/api/index.py", "", 1) or "/"
-    elif path.startswith("/api/"):
-        request.scope["path"] = path.replace("/api", "", 1) or "/"
-    return await call_next(request)
-
 api_router = APIRouter()
 
 
