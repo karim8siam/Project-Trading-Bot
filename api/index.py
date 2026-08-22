@@ -5,12 +5,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR / "server"))
 
 from fastapi import Request
-from main import app
+from fastapi.responses import JSONResponse
+from main import app, api_router
 
-@app.middleware("http")
-async def vercel_path_resolver(request: Request, call_next):
-    # If Vercel rewrote path to /api/index.py or stripped path, restore from headers
-    matched_path = request.headers.get("x-matched-path")
-    if matched_path:
-        request.scope["path"] = matched_path
-    return await call_next(request)
+# Ensure all routes are directly on app as well
+app.include_router(api_router, prefix="")
+app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api/index.py")
+
+@app.get("/debug-path")
+@app.get("/api/debug-path")
+def debug_path(request: Request):
+    return {
+        "url_path": str(request.url.path),
+        "scope_path": request.scope.get("path"),
+        "raw_path": str(request.scope.get("raw_path")),
+        "headers": dict(request.headers)
+    }
