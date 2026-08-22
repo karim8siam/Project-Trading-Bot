@@ -257,6 +257,29 @@ def init_platform_db():
     )
     """)
 
+    # 7. Bot Trades Table (Neon Cloud Synchronized)
+    cursor.execute(f"""
+    CREATE TABLE IF NOT EXISTS bot_trades (
+        id {pk_def},
+        trade_id TEXT UNIQUE NOT NULL,
+        symbol TEXT NOT NULL,
+        direction TEXT NOT NULL,
+        entry_time TEXT NOT NULL,
+        entry_price REAL NOT NULL,
+        exit_price REAL,
+        stop_loss REAL,
+        take_profit REAL,
+        exit_time TEXT,
+        exit_reason TEXT,
+        pnl_usd REAL DEFAULT 0.0,
+        pnl_percent REAL DEFAULT 0.0,
+        ml_predicted_prob REAL DEFAULT 0.75,
+        leverage INTEGER DEFAULT 5,
+        status TEXT DEFAULT 'ACTIVE',
+        created_at TEXT NOT NULL
+    )
+    """)
+
     # Create Indexes
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_bep20 ON users(bep20_address)")
