@@ -4,21 +4,30 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR / "server"))
 
-from fastapi import Request
-from fastapi.responses import JSONResponse
-from main import app, api_router
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from main import api_router
 
-# Ensure all routes are directly on app as well
-app.include_router(api_router, prefix="")
+# Create dedicated Vercel ASGI Application
+app = FastAPI(title="Orbital Trading Vercel API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.middleware("http")
+async def restore_vercel_path(request: Request, call_next):
+    # Restore original client path from Vercel headers if rewritten
+    orig_path = request.headers.get("x-matched-path") or request.headers.get("x-forwarded-uri")
+    if orig_path:
+        request.scope["path"] = orig_path
+    return await call_next(request)
+
+# Mount all API routes under /api, /api/index.py, and root
 app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="")
 app.include_router(api_router, prefix="/api/index.py")
-
-@app.get("/debug-path")
-@app.get("/api/debug-path")
-def debug_path(request: Request):
-    return {
-        "url_path": str(request.url.path),
-        "scope_path": request.scope.get("path"),
-        "raw_path": str(request.scope.get("raw_path")),
-        "headers": dict(request.headers)
-    }
