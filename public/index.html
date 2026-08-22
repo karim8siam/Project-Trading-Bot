@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#050811">
+  <title>Orbital Trading | Web3 Quantitative Automated Vault</title>
+  <meta name="description" content="Decentralized quantitative futures vault platform powered by 200-Point Confluence ML Bot.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       NAVBAR
+       ========================================================================= -->
+  <header class="navbar">
+    <div class="container nav-wrapper">
+      <a href="#" class="brand-logo" onclick="window.App.showDashboard(); return false;">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 3a9 9 0 0 0-9 9m18 0a9 9 0 0 0-9-9"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </div>
+        <span>ORBITAL<span style="color: var(--primary-cyan)">.TRADING</span></span>
+        <span class="brand-badge">BSC BEP-20</span>
+      </a>
+
+      <!-- Center Navigation Tabs (Logged-in only) -->
+      <nav class="nav-center-tabs" id="navCenterTabs" style="display: none;">
+        <button class="nav-tab-btn active" id="btnTabDashboard" onclick="window.App.switchView('dashboard');">
+          📊 Vault Dashboard
+        </button>
+        <button class="nav-tab-btn" id="btnTabTrades" onclick="window.App.switchView('trades');">
+          ⚡ Bot Trade Stream
+        </button>
+        <button class="nav-tab-btn" id="btnTabHistory" onclick="window.App.switchView('history');">
+          📜 Transactions
+        </button>
+        <button class="nav-tab-btn" id="btnTabAdmin" onclick="window.App.handleAdminClick();" style="color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08);">
+          👑 Admin Control
+        </button>
+      </nav>
+
+      <!-- Nav Actions -->
+      <div class="nav-actions">
+        <!-- Guest State -->
+        <div id="navGuestBar" style="display: flex; align-items: center; gap: 0.5rem;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="window.App.setAuthMode('login');">
+            🔑 Member Login
+          </button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="window.App.setAuthMode('register');">
+            ✨ Join Vault
+          </button>
+        </div>
+
+        <!-- Authenticated State -->
+        <div id="navUserBar" style="display: none; align-items: center; gap: 0.5rem;">
+          <div class="user-id-chip">
+            <span style="font-size: 0.7rem; color: var(--text-secondary)">ID:</span>
+            <span id="navUserUniqueId">---</span>
+          </div>
+
+          <button class="wallet-badge-btn" id="navWalletBadge" onclick="window.App.copyUserAddress();" title="Click to copy BEP-20 address">
+            <span class="wallet-status-dot"></span>
+            <span id="navWalletAddressShort">0x...</span>
+          </button>
+
+          <button type="button" class="btn btn-secondary btn-sm" onclick="window.App.handleLogout();" title="Logout" style="color: var(--accent-rose);">
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       MAIN CONTENT CONTAINER
+       ========================================================================= -->
+  <main class="container" style="padding-top: 1.5rem; padding-bottom: 3rem;">
+
+    <!-- =======================================================================
+         VIEW 1: ONBOARDING & 2-OF-3 AUTHENTICATION (Guest View)
+         ======================================================================= -->
+    <section id="onboardingView" class="hero-section" style="display: block;">
+      <div class="hero-pill">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--primary-emerald);"></span>
+        Binance Smart Chain (BEP-20) • 200-Point Confluence ML Trading Bot • 24h Epoch Vaults
+      </div>
+
+      <h1 class="hero-title">
+        Automated Quantitative<br>Trading Vault
+      </h1>
+      <p class="hero-subtitle">
+        Deposit <strong>USDT (BEP-20)</strong> into the Orbital Trading Vault. Our institutional ML algorithm executes 24/7 futures trades on <strong>BTC, ETH, BNB, and SOL</strong> with strict 1% risk management and daily yield distribution.
+      </p>
+
+      <div class="onboarding-card-grid">
+        <div class="glass-card highlight-cyan">
+          
+          <!-- Auth Mode Toggle Tabs -->
+          <div style="display: flex; background: var(--bg-surface-1); border-radius: var(--radius-md); padding: 4px; margin-bottom: 1.25rem; border: 1px solid var(--border-subtle);">
+            <button type="button" id="toggleBtnRegister" class="btn btn-sm" style="flex: 1; border-radius: var(--radius-sm); font-weight: 700; background: var(--primary-cyan); color: #fff;" onclick="window.App.setAuthMode('register');">
+              📝 Join Vault
+            </button>
+            <button type="button" id="toggleBtnLogin" class="btn btn-sm" style="flex: 1; border-radius: var(--radius-sm); font-weight: 700; background: transparent; color: var(--text-secondary);" onclick="window.App.setAuthMode('login');">
+              🔑 Member Login
+            </button>
+          </div>
+
+          <!-- ==========================================
+               MODE 1: REGISTRATION FORM
+               ========================================== -->
+          <div id="authRegisterContainer">
+            <h3 style="margin-bottom: 0.5rem;">Create Your Account</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+              Set your 3 permanent account identifiers (Email, Password, BEP-20 Address).
+            </p>
+
+            <form id="formRegister" onsubmit="return false;">
+              <div class="form-group">
+                <label class="form-label" for="regEmail">Email Address</label>
+                <input type="email" id="regEmail" class="form-input" placeholder="name@gmail.com" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regPassword">Security Password</label>
+                <input type="password" id="regPassword" class="form-input" placeholder="Create a strong password" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="regBep20">
+                  <span>BEP-20 Wallet Address</span>
+                  <span style="color: var(--primary-emerald); font-size: 0.75rem;">BNB Smart Chain</span>
+                </label>
+                <input type="text" id="regBep20" class="form-input mono" placeholder="0x... (MetaMask / TrustWallet)" required>
+                <p class="form-hint">All payouts and deposits will be linked to this BEP-20 address.</p>
+              </div>
+
+              <button type="button" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.5rem;" onclick="window.App.handleRegister();">
+                ✨ Create Account & Enter Vault
+              </button>
+            </form>
+          </div>
+
+          <!-- ==========================================
+               MODE 2: 2-OF-3 LOGIN FORM
+               ========================================== -->
+          <div id="authLoginContainer" style="display: none;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+              <h3>2-of-3 Multi-Factor Login</h3>
+              <span class="badge badge-active">MFA 2-OF-3</span>
+            </div>
+            <p style="font-size: 0.78rem; color: var(--primary-cyan); margin-bottom: 1.25rem;">
+              💡 Enter <strong>ANY TWO</strong> of your three credentials to unlock your account:
+            </p>
+
+            <form id="formLogin" onsubmit="return false;">
+              <div class="form-group">
+                <label class="form-label" for="loginEmail">Factor 1: Email Address</label>
+                <input type="email" id="loginEmail" class="form-input" placeholder="Enter your email (Optional if using BEP20+Pass)">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="loginPassword">Factor 2: Password</label>
+                <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password (Optional if using Email+BEP20)">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="loginBep20">Factor 3: BEP-20 Wallet Address</label>
+                <input type="text" id="loginBep20" class="form-input mono" placeholder="0x... (Optional if using Email+Pass)">
+              </div>
+
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 1rem;">
+                🔒 <strong>Device Auto-Save:</strong> Your session will be automatically saved on this device so you won't have to log in repeatedly.
+              </div>
+
+              <button type="button" class="btn btn-emerald btn-lg" style="width: 100%;" onclick="window.App.handleLogin();">
+                🔓 Verify 2-of-3 & Enter Dashboard
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VIEW 2: USER VAULT DASHBOARD (Authenticated)
+         ======================================================================= -->
+    <section id="dashboardView" style="display: none;">
+      
+      <!-- Top Metrics Grid -->
+      <div class="grid-3" style="margin-bottom: 1.5rem;">
+        
+        <!-- Metric 1: Total Portfolio & Withdrawable Amount -->
+        <div class="glass-card highlight-cyan">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">TOTAL PORTFOLIO VALUE</div>
+            <span class="badge badge-win">LIVE VAULT</span>
+          </div>
+          <div class="mono" style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0.4rem 0;">
+            $<span id="dashUserBalance">0.00</span> <span style="font-size: 1rem; color: var(--primary-cyan)">USDT</span>
+          </div>
+          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.55rem 0.85rem; margin-bottom: 0.85rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Withdrawable Amount</div>
+            <div class="mono" style="font-size: 1.15rem; font-weight: 800; color: var(--primary-emerald); margin-top: 1px;">
+              $<span id="dashWithdrawableBal">0.00</span> <span style="font-size: 0.75rem; color: var(--text-secondary)">USDT</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-primary btn-sm" style="flex: 1;" onclick="window.App.openDepositModal();">
+              📥 Deposit USDT
+            </button>
+            <button class="btn btn-secondary btn-sm" style="flex: 1;" onclick="window.App.openWithdrawModal();">
+              📤 Withdraw
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric 2: Total Earned from System & Active Capital -->
+        <div class="glass-card highlight-emerald">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">TOTAL EARNED FROM SYSTEM</div>
+            <span class="badge badge-win">LIFETIME</span>
+          </div>
+          <div class="mono" style="font-size: 2rem; font-weight: 800; color: var(--primary-emerald); margin: 0.4rem 0;">
+            +$<span id="dashTotalEarned">0.00</span> <span style="font-size: 1rem; color: var(--primary-emerald)">USDT</span>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem;">
+            Active in Bot: <strong class="mono" style="color: var(--primary-cyan);">$<span id="dashActiveTradingBal">0.00</span></strong> • 
+            Queued for 12 AM: <strong class="mono" style="color: var(--accent-amber);">$<span id="dashPendingRolloverBal">0.00</span></strong>
+          </div>
+          <div style="margin-top: 0.85rem; font-size: 0.75rem; color: var(--text-muted);">
+            Next 12 AM Rollover: <span class="mono" style="color: var(--primary-cyan);" id="dashEpochCountdown">--:--:--</span>
+          </div>
+        </div>
+
+        <!-- Metric 3: 24-Hour Trading Round & Bot Performance -->
+        <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">24-HOUR TRADING POOL</div>
+            <span class="badge badge-active" id="dashBotStatus">Binance Mainnet Live 🟢</span>
+          </div>
+          <div class="mono" style="font-size: 1.75rem; font-weight: 800; color: #fff; margin: 0.4rem 0;">
+            $<span id="dashPoolTotal">0.00</span> <span style="font-size: 0.85rem; color: var(--text-secondary)">POOLED</span>
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-secondary);">
+            My Pool Share: <strong class="mono" style="color: #fff;" id="dashMyShare">0.00%</strong> • <span id="dashActiveInvestors">0</span> Investors
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.6rem;">
+            Bot Win Rate: <strong class="mono" style="color: var(--primary-emerald);" id="dashWinRate">0.0%</strong> • 
+            Total PnL: <strong class="mono" style="color: var(--primary-emerald);" id="dashTotalPnL">+$0.00</strong>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Auto-Compounding Controller Card -->
+      <div class="glass-card highlight-cyan" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(16, 24, 43, 0.95), rgba(6, 182, 212, 0.12));">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-size: 1.75rem;">🔄</div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3 style="margin: 0; font-size: 1.05rem; color: #fff;">Automated Daily Compounding</h3>
+                <span class="badge badge-win" id="dashCompoundingBadge">ACTIVE</span>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;" id="dashCompoundingDesc">
+                Your daily profits/losses and principal automatically re-invest into the next 24-hour rollover cycle without needing manual deposits.
+              </p>
+            </div>
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <button type="button" id="btnToggleCompounding" class="btn btn-secondary" style="border-color: var(--primary-cyan); color: var(--primary-cyan);" onclick="window.App.handleToggleCompounding();">
+              ⏸️ Stop Compounding
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Orbital Bot Trade Stream Card -->
+      <div class="glass-card" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div>
+            <h3>⚡ Live Orbital Bot Trade Stream</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted)">Real-time execution feed across BTC, ETH, BNB, and SOL.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="window.App.loadLiveTrades();">
+            🔄 Refresh
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Trade ID</th>
+                <th>Pair</th>
+                <th>Side</th>
+                <th>Entry Price</th>
+                <th>Exit Price</th>
+                <th>Realized PnL ($)</th>
+                <th>PnL (%)</th>
+                <th>ML AI Prob</th>
+                <th>Outcome</th>
+              </tr>
+            </thead>
+            <tbody id="tradeStreamTableBody">
+              <tr>
+                <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading live trades...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- =======================================================================
+         VIEW 3: USER TRANSACTION HISTORY
+         ======================================================================= -->
+    <section id="historyView" style="display: none;">
+      <div class="glass-card">
+        <h3 style="margin-bottom: 1rem;">📜 Your Deposit & Withdrawal History</h3>
+        
+        <h4 style="font-size: 0.9rem; color: var(--primary-cyan); margin: 1rem 0 0.5rem 0;">On-Chain Deposits</h4>
+        <div class="table-responsive" style="margin-bottom: 1.5rem;">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Deposit ID</th>
+                <th>Amount</th>
+                <th>Sender (BEP-20)</th>
+                <th>Tx Hash</th>
+                <th>Status</th>
+                <th>Date (UTC)</th>
+              </tr>
+            </thead>
+            <tbody id="depositHistoryTableBody">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No deposits yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 style="font-size: 0.9rem; color: var(--accent-amber); margin: 1rem 0 0.5rem 0;">Withdrawal Requests</h4>
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Withdrawal ID</th>
+                <th>Amount</th>
+                <th>Recipient (BEP-20)</th>
+                <th>Status</th>
+                <th>Date (UTC)</th>
+              </tr>
+            </thead>
+            <tbody id="withdrawHistoryTableBody">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No withdrawals yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- =======================================================================
+         VIEW 4: ADMIN MASTER CONTROL CENTER & FUND SWEEPER
+         ======================================================================= -->
+    <section id="adminView" style="display: none;">
+      
+      <!-- Top Epoch Collection Summary Banner -->
+      <div class="glass-card highlight-emerald" style="max-width: 1040px; margin: 0 auto 1.5rem auto; background: linear-gradient(135deg, rgba(16, 24, 43, 0.9), rgba(16, 185, 129, 0.1));">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-emerald);">
+            📊 TODAY'S 24-HOUR USER COLLECTION & POOL OVERVIEW
+          </div>
+          <span class="badge badge-win" id="adminEpochIdBadge">Epoch Active</span>
+        </div>
+
+        <div class="grid-3" style="margin-bottom: 0.5rem;">
+          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Today's Total New Deposits</div>
+            <div class="mono" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-emerald); margin-top: 2px;">
+              $<span id="adminTodayCollection">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
+              <span id="adminTodayDepositCount">0</span> Deposits (<span id="adminTodayUniqueUsers">0</span> Users)
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Total Active Vault Pool</div>
+            <div class="mono" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-cyan); margin-top: 2px;">
+              $<span id="adminTotalActivePool">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
+              Across <span id="adminTotalInvestors">0</span> Active Depositors
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Next Rollover (12:00 AM Midnight)</div>
+            <div class="mono" style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-top: 2px;">
+              <span id="adminCountdownTimer">--:--:--</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--accent-amber); margin-top: 2px;">
+              Funds will trade starting 12:00 AM
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="max-width: 1040px; margin: 0 auto; gap: 1.5rem;">
+        
+        <!-- Panel 1: MetaMask to Binance Fund Sweeper -->
+        <div class="glass-card highlight-cyan">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h3 style="color: var(--accent-amber);">👑 Move Funds: MetaMask ➔ Binance</h3>
+            <span class="badge badge-win" id="adminGasStatusBadge">Querying Gas...</span>
+          </div>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+            When users deposit on the website, USDT lands in your MetaMask. Transfer it to Binance before 12:00 AM midnight so the bot can trade with it tomorrow!
+          </p>
+
+          <!-- Master Wallet Balance Box -->
+          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Master MetaMask Wallet</div>
+            <div class="mono" style="font-size: 0.8rem; color: var(--primary-cyan); word-break: break-all; margin: 2px 0 8px 0;">
+              0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0
+            </div>
+            <div style="display: flex; gap: 1rem; font-size: 0.82rem;">
+              <div>USDT Balance: <strong class="mono" style="color: var(--primary-emerald);">$<span id="adminMetaMaskUsdt">0.00</span></strong></div>
+              <div>BNB Gas: <strong class="mono" style="color: #fff;"><span id="adminMetaMaskBnb">0.0000</span> BNB</strong></div>
+            </div>
+          </div>
+
+          <!-- Target Binance Box -->
+          <div class="form-group">
+            <label class="form-label">Official Binance BEP-20 Deposit Destination</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="text" id="adminBinanceAddress" class="form-input mono" value="0xf13c3ce17b921ddff8d7057e2363fc79cac1fb2b" readonly style="font-size: 0.75rem;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.App.copyBinanceAddress();">📋 Copy</button>
+            </div>
+          </div>
+
+          <!-- Action 1: 1-Click Automated Web3 Sweep -->
+          <div style="margin-bottom: 1.25rem; padding-top: 0.5rem; border-top: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem;">Method A: 1-Click Automated Web3 Transfer</div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.6rem;">
+              Automatically builds, signs with private key, and broadcasts BEP-20 transfer to Binance (Requires ~0.0005 BNB gas).
+            </p>
+            <button type="button" class="btn btn-primary" style="width: 100%;" onclick="window.App.handleAutoSweep();">
+              ⚡ 1-Click Send All to Binance (Web3)
+            </button>
+          </div>
+
+          <!-- Action 2: Manual Transfer Confirmation -->
+          <div style="padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 0.3rem;">Method B: Manual MetaMask App Transfer</div>
+            <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.6rem;">
+              If zero BNB gas is in MetaMask, transfer manually in your MetaMask App to Binance, then record it below:
+            </p>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <input type="number" step="0.01" id="manualSweepAmount" class="form-input mono" placeholder="Amount (USDT)" style="flex: 1;">
+              <input type="text" id="manualSweepTx" class="form-input mono" placeholder="Optional Tx Hash" style="flex: 1.5; font-size: 0.75rem;">
+            </div>
+            <button type="button" class="btn btn-secondary" style="width: 100%; border-color: rgba(245, 158, 11, 0.4); color: var(--accent-amber);" onclick="window.App.handleManualSweep();">
+              📋 Confirm Manual Transfer to Binance
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Panel 2: 24-Hour Profit & Loss Distribution (Live Connected to Binance Bot) -->
+        <div class="glass-card highlight-emerald">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h3 style="color: var(--primary-emerald);">📈 24h Profit & Loss Distribution</h3>
+            <span class="badge badge-win" id="adminBotLiveStatusBadge">Binance Bot Connected 🟢</span>
+          </div>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Distribute the Binance bot's real 24-hour trading results across all active depositors (60% to users / 40% to admin).
+          </p>
+
+          <!-- Live Bot PnL Auto-Sync Box -->
+          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Real Binance Bot 24h PnL</span>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.App.loadLiveBotDailyPnL(true);" style="font-size: 0.72rem; padding: 2px 8px;">
+                🔄 Auto-Sync Bot PnL
+              </button>
+            </div>
+            <div style="display: flex; gap: 1rem; font-size: 0.82rem;">
+              <div>Closed Trades: <strong class="mono" style="color: #fff;" id="adminBotTodayTrades">0</strong></div>
+              <div>Net PnL: <strong class="mono" style="color: var(--primary-emerald);" id="adminBotTodayPnl">$0.00</strong></div>
+              <div>ROI: <strong class="mono" style="color: var(--primary-cyan);" id="adminBotTodayRoi">0.00%</strong></div>
+            </div>
+          </div>
+
+          <form id="formAdminSettle" onsubmit="return false;">
+            <div class="form-group">
+              <label class="form-label" for="adminDailyRoi">Daily Bot ROI Percentage (%)</label>
+              <input type="number" step="0.01" id="adminDailyRoi" class="form-input mono" placeholder="0.00" value="0.00" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="adminDailyPnl">Daily Bot Net PnL in Dollars ($)</label>
+              <input type="number" step="0.01" id="adminDailyPnl" class="form-input mono" placeholder="0.00" value="0.00" required>
+            </div>
+
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--border-glow-emerald); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 1.25rem; font-size: 0.75rem; color: var(--primary-emerald);">
+              ✨ <strong>Profit-Sharing Rule:</strong> 40% Admin Cut deducted on profit days; 60% net profit credited directly to depositors. 0% fee on loss days (exact loss % applied).
+            </div>
+
+            <button type="button" class="btn btn-emerald btn-lg" style="width: 100%;" onclick="window.App.handleAdminSettle();">
+              🚀 Finalize 24h Settlement & Credit Depositors
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Section: User Withdrawal Approvals & Payout Station -->
+      <div class="glass-card highlight-cyan" style="max-width: 1040px; margin: 1.5rem auto 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+          <div>
+            <h3 style="color: var(--accent-amber);">📤 User Withdrawal Approvals & Payout Station</h3>
+            <p style="font-size: 0.78rem; color: var(--text-secondary);">
+              Review pending user withdrawals and pay out via 1-Click Automated Web3 transfer OR manual MetaMask confirmation.
+            </p>
+          </div>
+          <span class="badge badge-active" id="adminPendingWithdrawalsCountBadge">0 Pending Payouts</span>
+        </div>
+
+        <div id="adminPendingWithdrawalsList">
+          <div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+            ✅ No pending withdrawal requests. All payouts up to date.
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Previous Day Reconciliation & Outgoing Overview -->
+      <div class="glass-card" style="max-width: 1040px; margin: 1.5rem auto 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div>
+            <h3 style="color: var(--primary-cyan);">📅 Previous Day Reconciliation & Outgoing Archive</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted);">
+              Audited summary of previous day's user collection, transfers to Binance, and user payouts.
+            </p>
+          </div>
+          <span class="badge badge-active" id="adminPrevEpochDate">Previous Day Record</span>
+        </div>
+
+        <div class="grid-3" style="margin-bottom: 1.25rem;">
+          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">1. Previous Day Collection (In)</div>
+            <div class="mono" style="font-size: 1.4rem; font-weight: 800; color: var(--primary-emerald); margin-top: 2px;">
+              $<span id="adminPrevCollection">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
+              Total user deposits collected
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">2. Previous Outgoing to Binance</div>
+            <div class="mono" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-amber); margin-top: 2px;">
+              $<span id="adminPrevOutgoingBinance">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
+              Capital sent to Binance for bot trading
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">3. Previous Outgoing User Payouts</div>
+            <div class="mono" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-rose); margin-top: 2px;">
+              $<span id="adminPrevOutgoingWithdrawals">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
+              Total withdrawals paid to users
+            </div>
+          </div>
+        </div>
+
+        <!-- History Ledger Table -->
+        <h4 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.6rem;">📜 24-Hour Epoch Accounting Ledger</h4>
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Epoch #</th>
+                <th>Start Time (UTC)</th>
+                <th>Collection (In)</th>
+                <th>Sent to Binance</th>
+                <th>User Payouts</th>
+                <th>Bot ROI (%)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="adminEpochLedgerTableBody">
+              <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No historical epochs yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- =========================================================================
+       MASTER ADMIN MULTI-LAYER SECURITY MODAL
+       ========================================================================= -->
+  <div id="modalAdminAuth" class="modal-overlay" style="display: none;">
+    <div class="modal-card highlight-cyan" style="max-width: 460px;">
+      <button class="modal-close-btn" onclick="window.App.closeAdminAuthModal();">&times;</button>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.4rem;">
+        <span style="font-size: 1.25rem;">👑</span>
+        <h3 style="color: var(--accent-amber);">Master Admin Verification</h3>
+      </div>
+      <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+        Multi-layer security challenge required to unlock the Admin Control Center:
+      </p>
+
+      <form id="formAdminAuth" onsubmit="return false;">
+        <div class="form-group">
+          <label class="form-label" for="authAdminPin">1. Master Admin PIN</label>
+          <input type="password" id="authAdminPin" class="form-input mono" placeholder="Enter 6-digit Admin PIN (499011)" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="authAdminPass1">2. Master Password 1</label>
+          <input type="password" id="authAdminPass1" class="form-input" placeholder="Enter Master Password 1" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="authAdminPass2">3. Master Password 2</label>
+          <input type="password" id="authAdminPass2" class="form-input" placeholder="Enter Master Password 2" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="authAdminWord">4. Master Security Word</label>
+          <input type="text" id="authAdminWord" class="form-input mono" placeholder="Enter Security Word" required>
+        </div>
+
+        <button type="button" class="btn btn-emerald btn-lg" style="width: 100%; margin-top: 0.5rem;" onclick="window.App.submitMasterAdminAuth();">
+          🔓 Verify Security & Open Admin Control
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       DEPOSIT MODAL (On-Chain BEP-20 Verifier)
+       ========================================================================= -->
+  <div id="modalDeposit" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="window.App.closeDepositModal();">&times;</button>
+      <h3 style="margin-bottom: 0.3rem;">📥 Deposit USDT (BEP-20)</h3>
+      <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+        Send USDT on <strong>BNB Smart Chain (BEP-20)</strong> directly to our Master Vault address:
+      </p>
+
+      <!-- QR Code Container -->
+      <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+        <div id="depositQrCode" style="background: #fff; padding: 12px; border-radius: var(--radius-md);"></div>
+      </div>
+
+      <!-- Master Address Box -->
+      <div class="form-group">
+        <label class="form-label">Master Deposit Address (BEP-20)</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="depositMasterAddress" class="form-input mono" value="0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0" readonly>
+          <button type="button" class="btn btn-secondary" onclick="window.App.copyMasterAddress();">📋 Copy</button>
+        </div>
+      </div>
+
+      <!-- Submit Tx Hash -->
+      <div class="form-group">
+        <label class="form-label" for="depositTxHash">
+          <span>Transaction Hash (TxID)</span>
+          <span style="color: var(--primary-emerald); font-size: 0.72rem;">Instant On-Chain Verification</span>
+        </label>
+        <input type="text" id="depositTxHash" class="form-input mono" placeholder="0x... (Paste your BSC Transaction Hash)">
+        <p class="form-hint">Once you send the transaction from your wallet, paste the transaction hash here to verify immediately.</p>
+      </div>
+
+      <button type="button" class="btn btn-emerald btn-lg" style="width: 100%;" onclick="window.App.submitDepositTx();">
+        🔍 Verify On-Chain & Credit Vault
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       WITHDRAWAL MODAL
+       ========================================================================= -->
+  <div id="modalWithdraw" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="window.App.closeWithdrawModal();">&times;</button>
+      <h3 style="margin-bottom: 0.3rem;">📤 Withdraw USDT</h3>
+      <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+        Payouts will be sent directly to your registered BEP-20 address.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">Recipient BEP-20 Address</label>
+        <input type="text" id="withdrawUserAddress" class="form-input mono" value="0x..." readonly>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="withdrawAmount">Withdrawal Amount (USDT)</label>
+        <input type="number" step="0.01" id="withdrawAmount" class="form-input mono" placeholder="Enter amount (No Min / No Max Limit)">
+      </div>
+
+      <button type="button" class="btn btn-primary btn-lg" style="width: 100%;" onclick="window.App.submitWithdrawal();">
+        🚀 Confirm Withdrawal Request
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer"></div>
+
+  <!-- App Scripts -->
+  <script src="/js/app.js"></script>
+</body>
+</html>
