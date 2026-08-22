@@ -560,6 +560,77 @@ window.App = {
     }
   },
 
+  // =========================================================================
+  // RE-INVEST CONTROLLER (From Withdrawable to Active 24h Pool)
+  // =========================================================================
+  openReinvestModal: function () {
+    if (!this.currentUser) return;
+    const avail = parseFloat(this.currentUser.balance_usdt || 0);
+    document.getElementById("reinvestAvailableBal").innerText = avail.toFixed(2);
+    document.getElementById("reinvestAmount").value = avail > 0 ? avail.toFixed(2) : "";
+    document.getElementById("modalReinvest").style.display = "flex";
+  },
+
+  closeReinvestModal: function () {
+    document.getElementById("modalReinvest").style.display = "none";
+  },
+
+  setReinvestPercent: function (pct) {
+    if (!this.currentUser) return;
+    const avail = parseFloat(this.currentUser.balance_usdt || 0);
+    const amount = (avail * (pct / 100)).toFixed(2);
+    document.getElementById("reinvestAmount").value = amount;
+  },
+
+  submitReinvest: async function () {
+    const amount = parseFloat(document.getElementById("reinvestAmount").value);
+    if (isNaN(amount) || amount <= 0) {
+      this.showToast("Please enter a valid re-investment amount (greater than $0.00).", true);
+      return;
+    }
+
+    const avail = parseFloat(this.currentUser ? this.currentUser.balance_usdt : 0);
+    if (amount > avail) {
+      this.showToast(`Insufficient withdrawable balance (Available: $${avail.toFixed(2)} USDT).`, true);
+      return;
+    }
+
+    const btn = document.getElementById("btnConfirmReinvest");
+    const origText = btn ? btn.innerText : "";
+    if (btn) {
+      btn.innerText = "⏳ Re-Deploying Funds to Vault...";
+      btn.disabled = true;
+    }
+
+    try {
+      const res = await fetch("/api/vault/reinvest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.token}`
+        },
+        body: JSON.stringify({ amount_usdt: amount })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        this.closeReinvestModal();
+        document.getElementById("reinvestAmount").value = "";
+        this.showToast(data.message);
+        this.loadVaultSummary();
+      } else {
+        this.showToast(data.detail || data.error || "Re-investment failed.", true);
+      }
+    } catch (e) {
+      this.showToast("Server connection error: " + e.message, true);
+    } finally {
+      if (btn) {
+        btn.innerText = origText;
+        btn.disabled = false;
+      }
+    }
+  },
+
   handleAdminClick: function () {
     if (this.currentUser && this.currentUser.is_admin) {
       this.switchView("admin");

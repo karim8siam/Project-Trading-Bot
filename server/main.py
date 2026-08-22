@@ -107,6 +107,10 @@ class ToggleCompoundRequest(BaseModel):
     is_compounding: bool
 
 
+class ReinvestRequest(BaseModel):
+    amount_usdt: float
+
+
 # Auth Dependency
 def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, Any]:
     if not authorization:
@@ -250,6 +254,51 @@ def api_request_withdrawal(req: WithdrawRequest, user: Dict[str, Any] = Depends(
         "amount": amount,
         "recipient": user["bep20_address"],
         "message": f"Withdrawal request submitted! Payout will be sent to {user['bep20_address']}."
+    }
+
+
+@app.post("/api/vault/reinvest")
+def api_reinvest_funds(req: ReinvestRequest, user: Dict[str, Any] = Depends(get_current_user)):
+    """Reinvests funds from Withdrawable Balance directly back into the Active 24-Hour Trading Pool."""
+    user_uuid = user["user_uuid"]
+    amount = float(req.amount_usdt)
+
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Re-investment amount must be greater than $0.00.")
+
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT balance_usdt, active_vault_balance, pending_rollover_balance FROM users WHERE user_uuid = ?", (user_uuid,))
+    u = cursor.fetchone()
+
+    current_withdrawable = float(u["balance_usdt"] or 0.0)
+    if amount > current_withdrawable:
+        conn.close()
+        raise HTTPException(status_code=400, detail=f"Insufficient withdrawable balance (Available: ${current_withdrawable:.2f} USDT).")
+
+    # Deduct from withdrawable and credit to active vault & rollover pool
+    cursor.execute("""
+    UPDATE users SET 
+        balance_usdt = balance_usdt - ?,
+        active_vault_balance = active_vault_balance + ?,
+        pending_rollover_balance = pending_rollover_balance + ?
+    WHERE user_uuid = ?
+    """, (amount, amount, amount, user_uuid))
+
+    conn.commit()
+
+    # Fetch updated user balances
+    cursor.execute("SELECT balance_usdt, active_vault_balance, pending_rollover_balance FROM users WHERE user_uuid = ?", (user_uuid,))
+    updated_u = cursor.fetchone()
+    conn.close()
+
+    return {
+        "success": True,
+        "amount_reinvested": amount,
+        "withdrawable_balance": updated_u["balance_usdt"],
+        "active_vault_balance": updated_u["active_vault_balance"],
+        "pending_rollover_balance": updated_u["pending_rollover_balance"],
+        "message": f"Successfully re-invested +${amount:.2f} USDT into the active trading pool!"
     }
 
 
