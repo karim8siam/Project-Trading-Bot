@@ -519,3 +519,198 @@ body {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* =========================================================================
+   COMPREHENSIVE RESPONSIVE DESIGN (MOBILE, TABLET, LAPTOP, DESKTOP)
+   ========================================================================= */
+
+/* Table scrolling wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 0.5rem;
+}
+
+/* Base Form Input Zoom Prevention on iOS */
+@media (max-width: 768px) {
+  .form-input {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS */
+    min-height: 42px;
+  }
+}
+
+/* Tablet Breakpoint (768px to 1024px) */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 1.25rem;
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .nav-wrapper {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .nav-center-tabs {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 4px;
+  }
+}
+
+/* Mobile Breakpoint (max-width: 768px) */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 0.85rem;
+  }
+
+  .navbar {
+    padding: 0.6rem 0;
+  }
+
+  .brand-logo {
+    font-size: 1rem;
+  }
+
+  .brand-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .brand-badge {
+    display: none; /* Keep navbar clean on mobile */
+  }
+
+  .nav-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .nav-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .nav-center-tabs {
+    order: 2;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px;
+    gap: 0.35rem;
+  }
+
+  .nav-center-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-tab-btn {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+    flex-shrink: 0;
+  }
+
+  .user-id-chip {
+    font-size: 0.68rem;
+    padding: 3px 6px;
+    flex-shrink: 0;
+  }
+
+  .wallet-badge-btn {
+    font-size: 0.68rem;
+    padding: 3px 6px;
+    flex-shrink: 1;
+  }
+
+  .nav-actions {
+    width: 100%;
+  }
+
+  #navGuestBar, #navUserBar {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  /* Grid Stack on Mobile */
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .glass-card {
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+  }
+
+  .hero-section {
+    padding: 1.5rem 0;
+  }
+
+  .hero-title {
+    font-size: 1.65rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .hero-desc {
+    font-size: 0.85rem !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .btn-lg {
+    padding: 12px 18px;
+    font-size: 0.9rem;
+  }
+
+  /* Modals */
+  .modal-overlay {
+    padding: 1rem;
+    align-items: center;
+  }
+
+  .modal-card {
+    padding: 1.35rem;
+    border-radius: var(--radius-lg);
+    max-height: 90vh;
+    overflow-y: auto;
+    width: 95%;
+  }
+
+  /* Toast notification position */
+  #toastContainer {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  .toast {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Extra Small Mobile (<400px) */
+@media (max-width: 400px) {
+  .nav-tab-btn {
+    font-size: 0.7rem;
+    padding: 5px 8px;
+  }
+
+  .mono {
+    word-break: break-word;
+  }
+}
