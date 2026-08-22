@@ -388,15 +388,26 @@ class VaultEpochEngine:
         """, (round(ending_pool, 2), round(daily_pnl_usd, 2), round(daily_roi_pct, 2), round(platform_fee_collected, 2), now_str, epoch_id))
 
         # Initialize the next 24-hour epoch and merge all active balances
-        next_epoch_id = int(datetime.utcnow().strftime("%Y%m%d")) + 1
+        cursor.execute("SELECT MAX(epoch_id) FROM vault_epochs")
+        max_ep_row = cursor.fetchone()
+        max_ep = (max_ep_row[0] if max_ep_row and max_ep_row[0] else None) or int(datetime.utcnow().strftime("%Y%m%d"))
+        next_epoch_id = max_ep + 1
+
         cursor.execute("SELECT SUM(active_vault_balance) FROM users")
         new_starting_pool = cursor.fetchone()[0] or 0.0
 
-        cursor.execute("""
-        INSERT INTO vault_epochs (
-            epoch_id, start_time, starting_pool_usdt, status
-        ) VALUES (?, ?, ?, 'OPEN')
-        """, (next_epoch_id, now_str, round(new_starting_pool, 2)))
+        cursor.execute("SELECT epoch_id FROM vault_epochs WHERE epoch_id = ?", (next_epoch_id,))
+        existing_next = cursor.fetchone()
+        if not existing_next:
+            cursor.execute("""
+            INSERT INTO vault_epochs (
+                epoch_id, start_time, starting_pool_usdt, status
+            ) VALUES (?, ?, ?, 'OPEN')
+            """, (next_epoch_id, now_str, round(new_starting_pool, 2)))
+        else:
+            cursor.execute("""
+            UPDATE vault_epochs SET starting_pool_usdt = ?, status = 'OPEN' WHERE epoch_id = ?
+            """, (round(new_starting_pool, 2), next_epoch_id))
 
         conn.commit()
         conn.close()

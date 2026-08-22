@@ -17,7 +17,7 @@ def get_live_bot_trades(limit: int = 15) -> List[Dict[str, Any]]:
         return []
 
     try:
-        conn = sqlite3.connect(TRADING_BOT_DB)
+        conn = sqlite3.connect(TRADING_BOT_DB, timeout=3)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
@@ -87,7 +87,7 @@ def get_live_bot_performance_summary() -> Dict[str, Any]:
         }
 
     try:
-        conn = sqlite3.connect(TRADING_BOT_DB)
+        conn = sqlite3.connect(TRADING_BOT_DB, timeout=3)
         df = pd.read_sql("SELECT * FROM trades WHERE exit_price IS NOT NULL", conn)
         conn.close()
 
@@ -148,7 +148,7 @@ def get_live_24h_bot_pnl(epoch_start_time: Optional[str] = None) -> Dict[str, An
         }
 
     try:
-        conn = sqlite3.connect(TRADING_BOT_DB)
+        conn = sqlite3.connect(TRADING_BOT_DB, timeout=3)
         cursor = conn.cursor()
 
         if epoch_start_time:
