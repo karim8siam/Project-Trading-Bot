@@ -10,7 +10,7 @@ SERVER_DIR = Path(__file__).resolve().parent
 if str(SERVER_DIR) not in sys.path:
     sys.path.insert(0, str(SERVER_DIR))
 
-from fastapi import FastAPI, HTTPException, Header, Depends, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
@@ -56,6 +56,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+api_router = APIRouter()
 
 
 # =========================================================================
@@ -126,7 +128,7 @@ def get_current_user(authorization: Optional[str] = Header(None)) -> Dict[str, A
 # =========================================================================
 # 1. AUTHENTICATION & DEVICE PERSISTENCE ENDPOINTS
 # =========================================================================
-@app.post("/api/auth/register")
+@api_router.post("/auth/register")
 def api_register(req: RegisterRequest):
     res = register_user(
         email=req.email,
@@ -139,7 +141,7 @@ def api_register(req: RegisterRequest):
     return res
 
 
-@app.post("/api/auth/login")
+@api_router.post("/auth/login")
 def api_login(req: Login2of3Request):
     res = login_user_2_of_3(
         email=req.email,
@@ -151,7 +153,12 @@ def api_login(req: Login2of3Request):
     return res
 
 
-@app.get("/api/auth/me")
+@api_router.post("/auth/login-2of3")
+def api_login_alias(req: Login2of3Request):
+    return api_login(req)
+
+
+@api_router.get("/auth/me")
 def api_me(user: Dict[str, Any] = Depends(get_current_user)):
     user_uuid = user["user_uuid"]
     summary = vault_engine.get_user_vault_summary(user_uuid)
@@ -174,7 +181,7 @@ def api_me(user: Dict[str, Any] = Depends(get_current_user)):
     }
 
 
-@app.post("/api/vault/toggle-compound")
+@api_router.post("/vault/toggle-compound")
 def api_toggle_compound(req: ToggleCompoundRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Toggles automated daily compounding on/off for the user."""
     return vault_engine.toggle_compounding(user["user_uuid"], req.is_compounding)
@@ -183,7 +190,7 @@ def api_toggle_compound(req: ToggleCompoundRequest, user: Dict[str, Any] = Depen
 # =========================================================================
 # 2. ON-CHAIN DEPOSIT & WITHDRAWAL ENDPOINTS
 # =========================================================================
-@app.get("/api/vault/deposit-info")
+@api_router.get("/vault/deposit-info")
 def api_deposit_info():
     """Returns Master MetaMask deposit address and contract specifications."""
     return {
@@ -199,7 +206,7 @@ def api_deposit_info():
     }
 
 
-@app.post("/api/deposits/verify")
+@api_router.post("/deposits/verify")
 def api_verify_deposit(req: VerifyDepositRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Verifies transaction on BSC blockchain and credits user balance."""
     print(f"[Deposit Verification] User {user['email']} submitted Tx: '{req.tx_hash}'", flush=True)
@@ -214,7 +221,7 @@ def api_verify_deposit(req: VerifyDepositRequest, user: Dict[str, Any] = Depends
     return res
 
 
-@app.post("/api/withdrawals/request")
+@api_router.post("/withdrawals/request")
 def api_request_withdrawal(req: WithdrawRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Requests a withdrawal to user's registered BEP-20 address."""
     user_uuid = user["user_uuid"]
@@ -257,7 +264,7 @@ def api_request_withdrawal(req: WithdrawRequest, user: Dict[str, Any] = Depends(
     }
 
 
-@app.post("/api/vault/reinvest")
+@api_router.post("/vault/reinvest")
 def api_reinvest_funds(req: ReinvestRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Reinvests funds from Withdrawable Balance directly back into the Active 24-Hour Trading Pool."""
     user_uuid = user["user_uuid"]
@@ -305,7 +312,7 @@ def api_reinvest_funds(req: ReinvestRequest, user: Dict[str, Any] = Depends(get_
 # =========================================================================
 # 3. 24-HOUR EPOCH VAULT & BOT STREAM ENDPOINTS
 # =========================================================================
-@app.get("/api/vault/summary")
+@api_router.get("/vault/summary")
 def api_vault_summary():
     """Returns active 24-hour epoch status, pool total, and countdown."""
     epoch_info = vault_engine.get_or_create_active_epoch()
@@ -316,14 +323,14 @@ def api_vault_summary():
     }
 
 
-@app.get("/api/bot/trades")
+@api_router.get("/bot/trades")
 def api_bot_trades(limit: int = 15):
     """Streams live trades from the trading bot database."""
     trades = get_live_bot_trades(limit=limit)
     return {"trades": trades}
 
 
-@app.get("/api/bot/live-pnl")
+@api_router.get("/bot/live-pnl")
 def api_bot_live_pnl():
     """Returns the real-time 24-hour PnL ($) and ROI (%) directly from the live Binance Bot."""
     active_epoch = vault_engine.get_or_create_active_epoch()
@@ -331,7 +338,7 @@ def api_bot_live_pnl():
     return get_live_24h_bot_pnl(start_time)
 
 
-@app.get("/api/user/transactions")
+@api_router.get("/user/transactions")
 def api_user_transactions(user: Dict[str, Any] = Depends(get_current_user)):
     """Retrieves user's deposit and withdrawal history."""
     conn = get_db()
@@ -352,7 +359,7 @@ def api_user_transactions(user: Dict[str, Any] = Depends(get_current_user)):
 # =========================================================================
 # 4. ADMIN VAULT MANAGEMENT & SWEEPER ENDPOINTS
 # =========================================================================
-@app.post("/api/admin/verify-master")
+@api_router.post("/admin/verify-master")
 def api_verify_master_admin(req: VerifyMasterAdminRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Verifies Master Admin PIN, Passwords, and Security Word to grant full Admin Control."""
     if req.pin.strip() != MASTER_ADMIN_PIN:
@@ -377,7 +384,7 @@ def api_verify_master_admin(req: VerifyMasterAdminRequest, user: Dict[str, Any] 
     }
 
 
-@app.get("/api/admin/wallet-status")
+@api_router.get("/admin/wallet-status")
 def api_admin_wallet_status(user: Dict[str, Any] = Depends(get_current_user)):
     """Returns live BNB gas, USDT balances, today's epoch collection, and previous day reconciliation."""
     wallet_info = sweeper.get_wallet_balances()
@@ -391,7 +398,7 @@ def api_admin_wallet_status(user: Dict[str, Any] = Depends(get_current_user)):
     }
 
 
-@app.post("/api/admin/sweep-auto")
+@api_router.post("/admin/sweep-auto")
 def api_admin_sweep_auto(req: SweepAutoRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Executes 1-click automated on-chain transfer from MetaMask to Binance BEP-20."""
     res = sweeper.sweep_usdt_auto(amount_usdt=req.amount_usdt)
@@ -400,7 +407,7 @@ def api_admin_sweep_auto(req: SweepAutoRequest, user: Dict[str, Any] = Depends(g
     return res
 
 
-@app.post("/api/admin/sweep-manual")
+@api_router.post("/admin/sweep-manual")
 def api_admin_sweep_manual(req: SweepManualRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Confirms manual transfer made directly from MetaMask app to Binance BEP-20."""
     res = sweeper.confirm_manual_sweep(amount_usdt=req.amount_usdt, tx_hash=req.tx_hash)
@@ -409,7 +416,7 @@ def api_admin_sweep_manual(req: SweepManualRequest, user: Dict[str, Any] = Depen
     return res
 
 
-@app.post("/api/admin/settle-epoch")
+@api_router.post("/admin/settle-epoch")
 def api_admin_settle_epoch(req: SettleEpochRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Admin trigger to settle 24-hour epoch with daily bot performance."""
     res = vault_engine.settle_epoch_with_daily_bot_performance(
@@ -433,7 +440,7 @@ class RejectWithdrawalRequest(BaseModel):
     reason: Optional[str] = None
 
 
-@app.get("/api/admin/withdrawals/pending")
+@api_router.get("/admin/withdrawals/pending")
 def api_admin_pending_withdrawals(user: Dict[str, Any] = Depends(get_current_user)):
     """Returns all pending user withdrawal requests with user info."""
     conn = get_db()
@@ -450,7 +457,7 @@ def api_admin_pending_withdrawals(user: Dict[str, Any] = Depends(get_current_use
     return {"withdrawals": rows, "count": len(rows)}
 
 
-@app.post("/api/admin/withdrawals/payout-auto")
+@api_router.post("/admin/withdrawals/payout-auto")
 def api_admin_payout_auto(req: PayoutAutoRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Executes 1-click automated on-chain payout to user's BEP-20 address."""
     res = sweeper.payout_withdrawal_auto(req.withdrawal_id)
@@ -459,7 +466,7 @@ def api_admin_payout_auto(req: PayoutAutoRequest, user: Dict[str, Any] = Depends
     return res
 
 
-@app.post("/api/admin/withdrawals/payout-manual")
+@api_router.post("/admin/withdrawals/payout-manual")
 def api_admin_payout_manual(req: PayoutManualRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Records manual MetaMask payout to user."""
     res = sweeper.payout_withdrawal_manual(req.withdrawal_id, req.tx_hash)
@@ -468,13 +475,18 @@ def api_admin_payout_manual(req: PayoutManualRequest, user: Dict[str, Any] = Dep
     return res
 
 
-@app.post("/api/admin/withdrawals/reject")
+@api_router.post("/admin/withdrawals/reject")
 def api_admin_reject_withdrawal(req: RejectWithdrawalRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Rejects a withdrawal request and refunds user balance."""
     res = sweeper.reject_withdrawal(req.withdrawal_id, req.reason)
     if not res["success"]:
         raise HTTPException(status_code=400, detail=res["error"])
     return res
+
+
+# Mount api_router under both /api and root
+app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="")
 
 
 # =========================================================================
