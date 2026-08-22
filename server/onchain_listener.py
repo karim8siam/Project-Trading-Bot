@@ -98,19 +98,24 @@ class OnChainDepositVerifier:
             usdt_amount = 0.0
             found_transfer_to_master = False
             token_sender = tx_from
+            transfer_topic_clean = TRANSFER_EVENT_TOPIC.lstrip("0x").lower()
 
             for log in receipt["logs"]:
-                topics = log["topics"]
-                if topics and topics[0].hex().lower() == TRANSFER_EVENT_TOPIC.lower():
-                    if len(topics) >= 3:
-                        from_addr = Web3.to_checksum_address("0x" + topics[1].hex()[-40:])
-                        to_addr = Web3.to_checksum_address("0x" + topics[2].hex()[-40:])
+                topics = log.get("topics", [])
+                if topics and len(topics) >= 3:
+                    top0_hex = topics[0].hex().lstrip("0x").lower()
+                    if top0_hex == transfer_topic_clean:
+                        t1_hex = topics[1].hex()
+                        t2_hex = topics[2].hex()
+                        from_addr = Web3.to_checksum_address("0x" + t1_hex[-40:])
+                        to_addr = Web3.to_checksum_address("0x" + t2_hex[-40:])
                         
                         if to_addr == self.master_address:
                             found_transfer_to_master = True
                             token_sender = from_addr
                             # BEP-20 USDT has 18 decimals on BSC
-                            raw_val = int(log["data"].hex() if hasattr(log["data"], "hex") else log["data"], 16)
+                            raw_data = log.get("data")
+                            raw_val = int(raw_data.hex() if hasattr(raw_data, "hex") else raw_data, 16)
                             usdt_amount = raw_val / (10 ** 18)
                             break
 
@@ -144,7 +149,7 @@ class OnChainDepositVerifier:
                 "block_number": block_num,
                 "sender": token_sender,
                 "destination": self.master_address,
-                "amount_usdt": round(usdt_amount, 2),
+                "amount_usdt": round(usdt_amount, 4),
                 "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
             }
 

@@ -198,11 +198,13 @@ def api_deposit_info():
 @app.post("/api/deposits/verify")
 def api_verify_deposit(req: VerifyDepositRequest, user: Dict[str, Any] = Depends(get_current_user)):
     """Verifies transaction on BSC blockchain and credits user balance."""
+    print(f"[Deposit Verification] User {user['email']} submitted Tx: '{req.tx_hash}'", flush=True)
     res = deposit_verifier.credit_verified_deposit(
         user_uuid=user["user_uuid"],
         tx_hash=req.tx_hash,
         expected_sender=user["bep20_address"]
     )
+    print(f"[Deposit Verification] Result for Tx '{req.tx_hash}': {res}", flush=True)
     if not res["success"]:
         raise HTTPException(status_code=400, detail=res["error"])
     return res
