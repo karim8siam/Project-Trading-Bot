@@ -151,6 +151,14 @@ window.App = {
       return;
     }
 
+    const btn = document.getElementById("btnLoginSubmit");
+    const origText = btn ? btn.innerText : "";
+    if (btn) {
+      btn.innerText = "⏳ Verifying 2-of-3 Credentials...";
+      btn.disabled = true;
+      btn.style.opacity = "0.8";
+    }
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -172,6 +180,12 @@ window.App = {
       }
     } catch (e) {
       this.showToast("Server connection error: " + e.message, true);
+    } finally {
+      if (btn) {
+        btn.innerText = origText;
+        btn.disabled = false;
+        btn.style.opacity = "1";
+      }
     }
   },
 

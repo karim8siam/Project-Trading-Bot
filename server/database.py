@@ -55,11 +55,37 @@ class UniversalCursor:
         return self.cursor.close()
 
 
+import psycopg2.pool
+
+_pg_pool: Optional[psycopg2.pool.ThreadedConnectionPool] = None
+
+
+def get_pg_pool():
+    """Initializes and returns the persistent thread-safe connection pool."""
+    global _pg_pool
+    if _pg_pool is None and USE_POSTGRES and DATABASE_URL:
+        try:
+            _pg_pool = psycopg2.pool.ThreadedConnectionPool(
+                minconn=2,
+                maxconn=20,
+                dsn=DATABASE_URL,
+                keepalives=1,
+                keepalives_idle=30,
+                keepalives_interval=10,
+                keepalives_count=5
+            )
+            print("[Database] ⚡ Neon PostgreSQL Connection Pool initialized with keep-alive!")
+        except Exception as e:
+            print(f"[Database] ⚠️ Failed to initialize Postgres pool: {e}")
+    return _pg_pool
+
+
 class UniversalConnection:
-    """Universal database connection wrapping PostgreSQL or SQLite."""
-    def __init__(self, conn, is_postgres: bool = False):
+    """Universal database connection wrapping PostgreSQL (from pool) or SQLite."""
+    def __init__(self, conn, is_postgres: bool = False, pool=None):
         self.conn = conn
         self.is_postgres = is_postgres
+        self.pool = pool
 
     def cursor(self):
         if self.is_postgres:
@@ -75,17 +101,33 @@ class UniversalConnection:
         return self.conn.rollback()
 
     def close(self):
-        return self.conn.close()
+        if self.is_postgres and self.pool:
+            try:
+                self.pool.putconn(self.conn)
+            except Exception:
+                self.conn.close()
+        else:
+            self.conn.close()
 
 
 def get_db() -> UniversalConnection:
-    """Returns a Universal database connection."""
+    """Returns a pre-warmed Universal database connection from pool for instant execution."""
     if USE_POSTGRES and DATABASE_URL:
-        try:
-            raw_conn = psycopg2.connect(DATABASE_URL)
-            return UniversalConnection(raw_conn, is_postgres=True)
-        except Exception as e:
-            print(f"[Database] ⚠️ Neon Postgres connection failed ({e}), falling back to SQLite.")
+        pool = get_pg_pool()
+        if pool:
+            try:
+                raw_conn = pool.getconn()
+                # Ensure connection is alive
+                if raw_conn.closed != 0:
+                    raw_conn = psycopg2.connect(DATABASE_URL)
+                return UniversalConnection(raw_conn, is_postgres=True, pool=pool)
+            except Exception as e:
+                print(f"[Database] ⚠️ Pool error ({e}), connecting directly...")
+                try:
+                    raw_conn = psycopg2.connect(DATABASE_URL)
+                    return UniversalConnection(raw_conn, is_postgres=True)
+                except Exception as de:
+                    print(f"[Database] ⚠️ Direct fallback failed ({de})")
 
     raw_conn = sqlite3.connect(DB_PATH)
     raw_conn.row_factory = sqlite3.Row
