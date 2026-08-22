@@ -347,11 +347,14 @@ class VaultEpochEngine:
             # Auto-compounding handling
             is_comp = int(u["is_compounding"] if u["is_compounding"] is not None else 1)
             if is_comp == 1:
+                # Reinvest full principal + profit into next 24h trading round
                 next_active_vault = new_vault_bal
+                withdrawable_credit = 0.0
                 next_status = 'ACTIVE'
             else:
-                # User stopped compounding: Release capital to withdrawable balance!
+                # User stopped compounding: Release full principal + daily returns to Withdrawable Amount!
                 next_active_vault = 0.0
+                withdrawable_credit = new_vault_bal
                 next_status = 'STOPPED'
 
             # Record share allocation
@@ -359,9 +362,9 @@ class VaultEpochEngine:
             INSERT INTO epoch_shares (
                 epoch_id, user_uuid, deposited_amount, pool_share_pct, profit_loss_earned, created_at
             ) VALUES (?, ?, ?, ?, ?, ?)
-            """, (epoch_id, u_uuid, u_bal, round(share_pct, 4), round(user_profit_loss, 2), now_str))
+            """, (epoch_id, u_uuid, u_bal, round(share_pct, 4), round(user_profit_loss, 4), now_str))
 
-            # Update user balances: Add net profit (or subtract loss)
+            # Update user balances: Withdrawable balance only increases when compounding is STOPPED
             profit_delta = max(0.0, user_profit_loss)
             cursor.execute("""
             UPDATE users SET
@@ -371,7 +374,7 @@ class VaultEpochEngine:
                 compounding_status = ?,
                 total_profit_earned = total_profit_earned + ?
             WHERE user_uuid = ?
-            """, (round(user_profit_loss, 2), round(next_active_vault, 2), next_status, round(profit_delta, 2), u_uuid))
+            """, (round(withdrawable_credit, 4), round(next_active_vault, 4), next_status, round(profit_delta, 4), u_uuid))
             settled_count += 1
 
         # Settle active epoch

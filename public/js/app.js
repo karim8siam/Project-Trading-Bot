@@ -288,7 +288,8 @@ window.App = {
       if (userRes.ok) {
         const u = await userRes.json();
         this.currentUser = u;
-        document.getElementById("dashUserBalance").innerText = parseFloat(u.balance_usdt).toFixed(2);
+        const totalPortfolio = parseFloat(u.active_vault_balance || 0) + parseFloat(u.balance_usdt || 0);
+        document.getElementById("dashUserBalance").innerText = totalPortfolio.toFixed(2);
         
         const withdrawableBalEl = document.getElementById("dashWithdrawableBal");
         if (withdrawableBalEl) withdrawableBalEl.innerText = parseFloat(u.balance_usdt || 0).toFixed(2);

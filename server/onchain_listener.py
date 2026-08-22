@@ -194,15 +194,15 @@ class OnChainDepositVerifier:
             ) VALUES (?, ?, ?, ?, ?, ?, ?, 'VERIFIED', ?, ?)
             """, (deposit_id, user_uuid, sender, self.master_address, amount, tx_hash, block_num, now_str, now_str))
 
-            # 2. Update user's available balance and pending rollover balance (queued for 12:00 AM)
+            # 2. Deposits go directly into the active 24h trading vault pool (active_vault_balance & pending_rollover_balance).
+            # Withdrawable balance (balance_usdt) remains 0.00 until returns are settled without compounding.
             cursor.execute("""
             UPDATE users SET 
-                balance_usdt = balance_usdt + ?,
                 pending_rollover_balance = pending_rollover_balance + ?,
                 active_vault_balance = active_vault_balance + ?,
                 total_deposited = total_deposited + ?
             WHERE user_uuid = ?
-            """, (amount, amount, amount, amount, user_uuid))
+            """, (amount, amount, amount, user_uuid))
 
             conn.commit()
             
@@ -215,10 +215,10 @@ class OnChainDepositVerifier:
                 "success": True,
                 "deposit_id": deposit_id,
                 "amount_credited": amount,
-                "new_balance": u["balance_usdt"],
+                "withdrawable_balance": u["balance_usdt"],
                 "active_vault_balance": u["active_vault_balance"],
                 "pending_rollover_balance": u["pending_rollover_balance"],
-                "message": f"Successfully verified on-chain! +${amount:.2f} USDT credited and queued for next 12:00 AM trading rollover."
+                "message": f"Successfully verified on-chain! +${amount:.2f} USDT pooled into active trading vault."
             }
 
         except Exception as e:
