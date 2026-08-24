@@ -213,8 +213,8 @@ def calculate_logical_sl_tp(
         stop_loss = min(valid_sls) if valid_sls else (entry_price - max(atr * 1.8, entry_price * beta_min_pct))
 
         sl_distance = max(entry_price - stop_loss, min_sl_dist)
-        tp1 = entry_price + (sl_distance * 1.5)  # Stage 1: Fixed 1.5R Target (Positive Expectancy >= 1.5R)
-        tp2 = entry_price + (sl_distance * 2.0)  # Stage 2: Macro Trend Target @ 2.0R
+        tp1 = entry_price + (sl_distance * 0.5)  # Fast Scalp TP @ 0.5R Target
+        tp2 = entry_price + (sl_distance * 1.2)  # Stage 2: Macro Trend Target @ 1.2R
 
     else:  # SHORT
         if order_block_price and order_block_price > entry_price:
@@ -232,8 +232,8 @@ def calculate_logical_sl_tp(
         stop_loss = max(valid_sls) if valid_sls else (entry_price + max(atr * 1.8, entry_price * beta_min_pct))
 
         sl_distance = max(stop_loss - entry_price, min_sl_dist)
-        tp1 = entry_price - (sl_distance * 1.5)  # Stage 1: Fixed 1.5R Target (Positive Expectancy >= 1.5R)
-        tp2 = entry_price - (sl_distance * 2.0)  # Stage 2: Macro Trend Target @ 2.0R
+        tp1 = entry_price - (sl_distance * 0.5)  # Fast Scalp TP @ 0.5R Target
+        tp2 = entry_price - (sl_distance * 1.2)  # Stage 2: Macro Trend Target @ 1.2R
 
     rr_ratio = abs(tp1 - entry_price) / max(1e-6, abs(entry_price - stop_loss))
     return round(stop_loss, 4), round(tp1, 4), round(tp2, 4), round(rr_ratio, 2)
@@ -538,9 +538,9 @@ def update_breakeven_and_trailing_stops(
 ) -> Dict[str, Any]:
     """
     Rules 6 & 7:
-    - Breakeven Rule: When profit >= +0.8R, move Stop-Loss to Entry Price + Fees (+0.1%).
-    - Profit Lock Rule: When profit >= +1.2R, lock in +0.6R minimum green profit.
-    - Dynamic Chandelier Trail: When profit >= +1.5R, trail stop with 1.5x ATR cushion.
+    - Breakeven Rule: When profit >= +0.4R, move Stop-Loss to Entry Price + Fees (+0.05%).
+    - Profit Lock Rule: When profit >= +0.5R, lock in +0.3R minimum green profit.
+    - Dynamic Chandelier Trail: When profit >= +0.8R, trail stop with 1.2x ATR cushion.
     """
     entry_p = float(trade["entry_price"])
     current_sl = float(trade["stop_loss"])
@@ -558,19 +558,19 @@ def update_breakeven_and_trailing_stops(
     if direction == "LONG":
         current_profit_dist = current_price - entry_p
 
-        # Stage 1: Full Zero-Risk Breakeven Lock at +0.8R profit (+0.1% fee cushion)
-        if current_profit_dist >= (0.8 * sl_dist) and current_sl < entry_p:
-            updated_sl = entry_p * 1.001  # covers taker fees & slippage
+        # Stage 1: Full Zero-Risk Breakeven Lock at +0.4R profit (+0.05% fee cushion)
+        if current_profit_dist >= (0.4 * sl_dist) and current_sl < entry_p:
+            updated_sl = entry_p * 1.0005  # covers taker fees
             is_breakeven = True
 
-        # Stage 2: Lock in minimum +0.6R Green Profit once +1.2R is reached
-        if current_profit_dist >= (1.2 * sl_dist) and updated_sl < (entry_p + 0.6 * sl_dist):
-            updated_sl = entry_p + (0.6 * sl_dist)
+        # Stage 2: Lock in minimum +0.3R Green Profit once +0.5R is reached
+        if current_profit_dist >= (0.5 * sl_dist) and updated_sl < (entry_p + 0.3 * sl_dist):
+            updated_sl = entry_p + (0.3 * sl_dist)
             is_trailing = True
 
-        # Stage 3: Dynamic Macro Trailing Stop after +1.5R profit (1.5x ATR cushion)
-        if current_profit_dist >= (1.5 * sl_dist):
-            trail_level = current_price - (atr * 1.5)
+        # Stage 3: Dynamic Macro Trailing Stop after +0.8R profit (1.2x ATR cushion)
+        if current_profit_dist >= (0.8 * sl_dist):
+            trail_level = current_price - (atr * 1.2)
             if trail_level > updated_sl:
                 updated_sl = trail_level
                 is_trailing = True
@@ -578,19 +578,19 @@ def update_breakeven_and_trailing_stops(
     else:  # SHORT
         current_profit_dist = entry_p - current_price
 
-        # Stage 1: Full Zero-Risk Breakeven Lock at +0.8R profit (+0.1% fee cushion)
-        if current_profit_dist >= (0.8 * sl_dist) and current_sl > entry_p:
-            updated_sl = entry_p * 0.999  # covers taker fees & slippage
+        # Stage 1: Full Zero-Risk Breakeven Lock at +0.4R profit (+0.05% fee cushion)
+        if current_profit_dist >= (0.4 * sl_dist) and current_sl > entry_p:
+            updated_sl = entry_p * 0.9995  # covers taker fees
             is_breakeven = True
 
-        # Stage 2: Lock in minimum +0.6R Green Profit once +1.2R is reached
-        if current_profit_dist >= (1.2 * sl_dist) and updated_sl > (entry_p - 0.6 * sl_dist):
-            updated_sl = entry_p - (0.6 * sl_dist)
+        # Stage 2: Lock in minimum +0.3R Green Profit once +0.5R is reached
+        if current_profit_dist >= (0.5 * sl_dist) and updated_sl > (entry_p - 0.3 * sl_dist):
+            updated_sl = entry_p - (0.3 * sl_dist)
             is_trailing = True
 
-        # Stage 3: Dynamic Macro Trailing Stop after +1.5R profit (1.5x ATR cushion)
-        if current_profit_dist >= (1.5 * sl_dist):
-            trail_level = current_price + (atr * 1.5)
+        # Stage 3: Dynamic Macro Trailing Stop after +0.8R profit (1.2x ATR cushion)
+        if current_profit_dist >= (0.8 * sl_dist):
+            trail_level = current_price + (atr * 1.2)
             if trail_level < updated_sl:
                 updated_sl = trail_level
                 is_trailing = True
