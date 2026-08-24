@@ -534,6 +534,11 @@ if PUBLIC_DIR.exists():
     def serve_frontend():
         return FileResponse(PUBLIC_DIR / "index.html")
 
+    @app.get("/admin")
+    @app.get("/admin/")
+    def serve_admin():
+        return FileResponse(PUBLIC_DIR / "admin.html")
+
 
 if __name__ == "__main__":
     import uvicorn
