@@ -319,13 +319,15 @@ class BinanceFuturesExecutor:
         if not guardrails_ok:
             return {"success": False, "reason": f"Risk Guardrail Block: {guardrail_reason}"}
 
-        # 2. Dynamic Position Sizing (Strict <= 1.0% Risk)
+        # 2. Dynamic Position Sizing (5.0% Dedicated Risk for Delta Hedge, <= 1.0% Standard)
+        custom_risk = float(signal.get("risk_pct")) if signal.get("risk_pct") is not None else (5.0 if signal.get("strategy") == "DELTA_HEDGE_SNIPER" else None)
         risk_plan = calculate_position_size(
             symbol=symbol,
             entry_price=entry_price,
             stop_loss_price=stop_loss,
             account_balance_usdt=balance,
-            leverage=DEFAULT_LEVERAGE
+            leverage=DEFAULT_LEVERAGE,
+            custom_risk_pct=custom_risk
         )
         if not risk_plan["valid"]:
             return {"success": False, "reason": f"Risk sizing failed: {risk_plan['reason']}"}

@@ -272,10 +272,12 @@ def calculate_position_size(
     stop_loss_price: float,
     symbol: str,
     score: int = 250,
-    leverage: int = DEFAULT_LEVERAGE
+    leverage: int = DEFAULT_LEVERAGE,
+    custom_risk_pct: Optional[float] = None
 ) -> Dict[str, Any]:
     """
-    Rule 1, 2, 3: Calculates exact position size based on current score and 1% max risk rule.
+    Rule 1, 2, 3: Calculates exact position size based on current score and risk rules.
+    Allows custom_risk_pct (e.g. 5.0% dedicated risk for Delta Counter-Hedge).
     """
     validate_symbol(symbol)
     spec = SYMBOL_SPECS.get(symbol, {"amount_precision": 3, "min_qty": 0.001, "min_notional": 5.0})
@@ -283,22 +285,26 @@ def calculate_position_size(
     if account_balance_usdt <= 0:
         return {"valid": False, "reason": "Account balance must be positive."}
 
-    # 1. Get score-based risk percentage (Rule 2)
-    risk_pct, min_rr, tier_desc = get_score_based_risk_percentage(score, account_balance_usdt)
-    if risk_pct <= 0:
-        return {"valid": False, "reason": f"Score {score} is below minimum 50 required for trading."}
+    # 1. Get score-based risk percentage or custom override
+    if custom_risk_pct is not None:
+        risk_pct = float(custom_risk_pct)
+        tier_desc = f"TACTICAL DELTA HEDGE ({risk_pct:.1f}% Dedicated Risk Allocation)"
+    else:
+        risk_pct, min_rr, tier_desc = get_score_based_risk_percentage(score, account_balance_usdt)
+        if risk_pct <= 0:
+            return {"valid": False, "reason": f"Score {score} is below minimum 50 required for trading."}
 
-    # 2. Winning/Losing Streak Risk Adjustment (Rule 11)
-    streak_status = get_streak_status()
-    if streak_status["consecutive_losses"] == 2:
-        risk_pct *= 0.50  # Cut risk in half after 2 consecutive losses
-        tier_desc += " [STREAK: 50% Risk Reduction Active]"
+        # 2. Winning/Losing Streak Risk Adjustment (Rule 11)
+        streak_status = get_streak_status()
+        if streak_status["consecutive_losses"] == 2:
+            risk_pct *= 0.50  # Cut risk in half after 2 consecutive losses
+            tier_desc += " [STREAK: 50% Risk Reduction Active]"
 
-    # 3. Peak Drawdown Risk Adjustment (Rule 12)
-    dd_status = check_account_drawdown(account_balance_usdt)
-    if dd_status["is_protection_mode"]:
-        risk_pct = min(risk_pct, 0.50)  # Capped at 0.5% in protection mode
-        tier_desc += " [PROTECTION MODE: 10% Drawdown Active]"
+        # 3. Peak Drawdown Risk Adjustment (Rule 12)
+        dd_status = check_account_drawdown(account_balance_usdt)
+        if dd_status["is_protection_mode"]:
+            risk_pct = min(risk_pct, 0.50)  # Capped at 0.5% in protection mode
+            tier_desc += " [PROTECTION MODE: 10% Drawdown Active]"
 
     # 4. Total Dollar Risk for this Trade
     target_risk_usd = account_balance_usdt * (risk_pct / 100.0)
