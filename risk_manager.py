@@ -534,29 +534,63 @@ def is_symbol_in_cooldown(symbol: str, cooldown_seconds: int = 1800) -> Tuple[bo
 def update_breakeven_and_trailing_stops(
     trade: Dict[str, Any],
     current_price: float,
-    atr: float
+    atr: float,
+    btc_state: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    Rules 6 & 7:
-    - Breakeven Rule: When profit >= +0.4R, move Stop-Loss to Entry Price + Fees (+0.05%).
-    - Profit Lock Rule: When profit >= +0.5R, lock in +0.3R minimum green profit.
-    - Dynamic Chandelier Trail: When profit >= +0.8R, trail stop with 1.2x ATR cushion.
+    Sovereign Beta-Linked Dynamic SL/TP Engine:
+    - 1. Dynamic BTC Pump Expansion: When Bitcoin pumps (BTC_EXPANSION_BULL / ROC_3m > +0.25%),
+         expands Take-Profit from 0.5R -> 1.2R -> 1.5R to let winners ride with Bitcoin.
+    - 2. Dynamic BTC Dump Defensive Ratchet: When Bitcoin shows sudden exhaustion / micro-dump (ROC_3m < -0.20%),
+         tightens Stop-Loss to lock current green profit immediately before the dump reaches the altcoin.
+    - 3. Breakeven Rule: When profit >= +0.4R, move Stop-Loss to Entry Price + Fees (+0.05%).
+    - 4. Profit Lock Rule: When profit >= +0.5R, lock in +0.3R minimum green profit.
+    - 5. Dynamic Chandelier Trail: When profit >= +0.8R, trail stop with 1.2x ATR cushion.
     """
     entry_p = float(trade["entry_price"])
     current_sl = float(trade["stop_loss"])
+    current_tp = float(trade.get("take_profit", entry_p * 1.01))
     direction = trade["direction"]
     sl_dist = abs(entry_p - current_sl)
 
     updated_sl = current_sl
+    updated_tp = current_tp
     is_breakeven = False
     is_trailing = False
+    is_tp_expanded = False
+    tp_reason = ""
 
     # Get symbol price precision
     symbol = trade.get("symbol", "")
     p_prec = SYMBOL_SPECS.get(symbol, {}).get("price_precision", 4)
 
+    # Fetch real-time BTC metrics if available
+    btc_roc = 0.0
+    btc_bias = "NEUTRAL"
+    if btc_state:
+        btc_roc = float(btc_state.get("roc_3m", 0.0))
+        btc_bias = btc_state.get("bias", "NEUTRAL")
+
     if direction == "LONG":
         current_profit_dist = current_price - entry_p
+
+        # A. Bitcoin Pump Momentum Extension (0.5R -> 1.2R -> 1.5R)
+        if btc_roc >= 0.25 or btc_bias == "AGGRESSIVE_BULL":
+            expanded_tp = entry_p + (sl_dist * 1.5)
+            if expanded_tp > updated_tp:
+                updated_tp = expanded_tp
+                is_tp_expanded = True
+                tp_reason = f"BTC Pump Surge ({btc_roc:+.2f}% 3m): TP expanded to 1.5R runner (${updated_tp:,.{p_prec}f})"
+            if current_profit_dist >= (0.25 * sl_dist) and current_sl < entry_p:
+                updated_sl = entry_p * 1.0005
+                is_breakeven = True
+
+        # B. Bitcoin Dump / Sudden Deceleration Defensive Profit Snapping
+        elif btc_roc <= -0.20:
+            if current_profit_dist >= (0.35 * sl_dist) and updated_sl < (entry_p + 0.25 * sl_dist):
+                updated_sl = entry_p + (0.25 * sl_dist)
+                is_trailing = True
+                tp_reason = f"BTC Deceleration Alert ({btc_roc:+.2f}% 3m): SL tightened to lock profit."
 
         # Stage 1: Full Zero-Risk Breakeven Lock at +0.4R profit (+0.05% fee cushion)
         if current_profit_dist >= (0.4 * sl_dist) and current_sl < entry_p:
@@ -578,6 +612,17 @@ def update_breakeven_and_trailing_stops(
     else:  # SHORT
         current_profit_dist = entry_p - current_price
 
+        # A. Bitcoin Dump Momentum Extension for Shorts (0.5R -> 1.5R)
+        if btc_roc <= -0.25 or btc_bias == "AGGRESSIVE_BEAR":
+            expanded_tp = entry_p - (sl_dist * 1.5)
+            if expanded_tp < updated_tp:
+                updated_tp = expanded_tp
+                is_tp_expanded = True
+                tp_reason = f"BTC Dump Breakdown ({btc_roc:+.2f}% 3m): TP expanded to 1.5R macro runner."
+            if current_profit_dist >= (0.25 * sl_dist) and current_sl > entry_p:
+                updated_sl = entry_p * 0.9995
+                is_breakeven = True
+
         # Stage 1: Full Zero-Risk Breakeven Lock at +0.4R profit (+0.05% fee cushion)
         if current_profit_dist >= (0.4 * sl_dist) and current_sl > entry_p:
             updated_sl = entry_p * 0.9995  # covers taker fees
@@ -597,6 +642,9 @@ def update_breakeven_and_trailing_stops(
 
     return {
         "updated_sl": round(updated_sl, p_prec),
+        "updated_tp": round(updated_tp, p_prec),
         "is_breakeven": is_breakeven,
-        "is_trailing": is_trailing
+        "is_trailing": is_trailing,
+        "is_tp_expanded": is_tp_expanded,
+        "tp_reason": tp_reason
     }

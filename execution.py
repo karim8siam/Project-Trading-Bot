@@ -525,29 +525,36 @@ class BinanceFuturesExecutor:
                     except Exception:
                         pass
             else:
-                be_res = update_breakeven_and_trailing_stops(trade, current_price=close, atr=atr)
+                from btc_sentinel import btc_sentinel
+                btc_state = btc_sentinel.get_btc_state()
+                be_res = update_breakeven_and_trailing_stops(trade, current_price=close, atr=atr, btc_state=btc_state)
                 new_sl = be_res["updated_sl"]
+                new_tp = be_res["updated_tp"]
 
+                # 1. Update Stop-Loss if moved forward
                 if new_sl != sl:
                     cursor.execute("UPDATE trades SET stop_loss = ? WHERE trade_id = ?", (new_sl, trade_id))
                     conn.commit()
                     if be_res["is_breakeven"]:
-                        print(f"[Executor] 🛡️ Rule 6 BREAKEVEN Activated for {trade_id} ({symbol}) -> SL moved to ${new_sl:,.2f} (Zero Risk)")
+                        print(f"[Executor] 🛡️ Rule 6 BREAKEVEN Activated for {trade_id} ({symbol}) -> SL moved to ${new_sl:,.4f} (Zero Risk)")
                         try:
                             from telegram_notifier import notify_breakeven_activated
                             notify_breakeven_activated(trade_id, symbol, float(trade.get("entry_price", 0.0)), new_sl)
                         except Exception:
                             pass
                     elif be_res["is_trailing"]:
-                        print(f"[Executor] 📈 Rule 7 TRAILING STOP Updated for {trade_id} ({symbol}) -> New SL: ${new_sl:,.2f}")
+                        print(f"[Executor] 📈 Rule 7 TRAILING STOP Updated for {trade_id} ({symbol}) -> New SL: ${new_sl:,.4f}")
                         try:
                             from telegram_notifier import notify_trailing_stop_updated
                             notify_trailing_stop_updated(trade_id, symbol, new_sl, 1.0)
                         except Exception:
                             pass
 
-                # Post-entry trade lifecycle is strictly governed by pre-defined 0.5R TP, Rule 6 Breakeven (+0.4R), and Rule 7 Trailing Stop.
-                pass
+                # 2. Update Take-Profit if expanded by Bitcoin momentum
+                if be_res.get("is_tp_expanded") and new_tp != tp:
+                    cursor.execute("UPDATE trades SET take_profit = ? WHERE trade_id = ?", (new_tp, trade_id))
+                    conn.commit()
+                    print(f"[Executor] 🚀 DYNAMIC TP EXPANSION for {trade_id} ({symbol}): {be_res.get('tp_reason')} -> New TP: ${new_tp:,.4f}")
 
         conn.close()
 
