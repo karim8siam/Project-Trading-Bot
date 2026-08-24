@@ -394,7 +394,25 @@ window.App = {
       const closedTrades = data.closed_trades || [];
       const perf = data.performance || {};
 
-      // 1. Update Metrics
+      const startBal = Number(data.starting_balance_usdt || 13.25).toFixed(2);
+
+      // 1. Update Capital Flow & PnL Ledger Banner
+      const elStart = document.getElementById("binanceStartBal");
+      const elEnd = document.getElementById("binanceEndBal");
+      const elNetCalc = document.getElementById("binanceNetCalc");
+      const elCalcText = document.getElementById("binanceCalculationText");
+
+      if (elStart) elStart.innerHTML = `$${startBal} <span style="font-size: 0.75rem; color: var(--text-secondary);">USDT</span>`;
+      if (elEnd) elEnd.innerHTML = `$${bal} <span style="font-size: 0.75rem; color: var(--primary-cyan);">USDT</span>`;
+      if (elNetCalc) {
+        elNetCalc.innerHTML = `${profit >= 0 ? '+' : ''}$${profit.toFixed(2)} <span style="font-size: 0.75rem;">USDT (${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%)</span>`;
+        elNetCalc.style.color = profit >= 0 ? "var(--primary-emerald)" : "var(--accent-rose)";
+      }
+      if (elCalcText) {
+        elCalcText.innerHTML = `Net PnL = Ending Capital ($${bal}) - Starting Capital ($${startBal}) = <strong style="color: ${profit >= 0 ? 'var(--primary-emerald)' : 'var(--accent-rose)'};">${profit >= 0 ? '+' : ''}$${profit.toFixed(2)} USDT (${roi >= 0 ? '+' : ''}${roi.toFixed(2)}% ROI)</strong>`;
+      }
+
+      // 2. Update Metric Cards
       const elBal = document.getElementById("binanceLiveBal");
       const elRoi = document.getElementById("binanceLiveRoi");
       const elProf = document.getElementById("binanceLiveProfit");
