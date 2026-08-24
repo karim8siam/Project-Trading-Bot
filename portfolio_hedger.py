@@ -16,18 +16,20 @@ class PortfolioHedger:
     def __init__(self):
         self.max_hedges = 1  # Maximum 1 active hedge at a time
         self.min_skew_positions = 4  # Trigger when >= 4 positions in same direction
-        self.drawdown_threshold_usd = -0.08  # Trigger when unrealized PnL < -$0.08
+        self.drawdown_threshold_pct = 0.80  # Dynamic trigger: 0.80% portfolio drawdown
+        self.max_allowed_drawdown_pct = 5.00  # Hard ceiling: strictly <= 5.0%
         self.last_scan_time = 0.0
 
-    def evaluate_portfolio_state(self, open_trades: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def evaluate_portfolio_state(self, open_trades: List[Dict[str, Any]], total_balance: float = 13.0) -> Dict[str, Any]:
         """
-        Evaluates portfolio skew and unrealized health across all open positions.
+        Evaluates portfolio skew and dynamic percentage-based unrealized drawdown
+        relative to the live total wallet balance.
         """
         long_count = sum(1 for t in open_trades if t.get("direction") == "LONG")
         short_count = sum(1 for t in open_trades if t.get("direction") == "SHORT")
         hedge_count = sum(1 for t in open_trades if t.get("is_hedge", 0) == 1 or "HEDGE" in str(t.get("strategy", "")))
 
-        # Calculate live unrealized PnL
+        # Calculate live unrealized PnL in USD and in Percentage (%)
         total_unrealized_pnl = 0.0
         active_symbols = set()
 
@@ -48,6 +50,10 @@ class PortfolioHedger:
             except Exception:
                 pass
 
+        # Dynamic Drawdown Percentage of Live Account Balance
+        safe_bal = max(total_balance, 1.0)
+        drawdown_pct = (total_unrealized_pnl / safe_bal) * 100.0
+
         # Determine if Delta Hedge is needed
         hedge_needed = False
         hedge_direction = "SHORT"
@@ -60,17 +66,26 @@ class PortfolioHedger:
                 hedge_direction = "SHORT"
                 reason = f"Directional Long Skew ({long_count} Longs / 0 Shorts). Short Hedge needed."
 
-            # Condition 2: Portfolio Drawdown Retest
-            elif total_unrealized_pnl <= self.drawdown_threshold_usd and long_count >= 3 and short_count == 0:
+            # Condition 2: Dynamic Percentage Drawdown Trigger (e.g. -0.80% to max -5.0%)
+            elif (
+                drawdown_pct <= -self.drawdown_threshold_pct
+                and abs(drawdown_pct) <= self.max_allowed_drawdown_pct
+                and long_count >= 3
+                and short_count == 0
+            ):
                 hedge_needed = True
                 hedge_direction = "SHORT"
-                reason = f"Portfolio Drawdown Retest (${total_unrealized_pnl:+.2f} USD). Short Hedge needed to absorb pullback."
+                reason = (
+                    f"Dynamic Portfolio Drawdown ({drawdown_pct:.2f}% of balance <= -{self.drawdown_threshold_pct:.2f}%). "
+                    f"Short Hedge needed to absorb pullback."
+                )
 
         return {
             "long_count": long_count,
             "short_count": short_count,
             "hedge_count": hedge_count,
             "total_unrealized_pnl": round(total_unrealized_pnl, 4),
+            "drawdown_pct": round(drawdown_pct, 2),
             "active_symbols": list(active_symbols),
             "hedge_needed": hedge_needed,
             "hedge_direction": hedge_direction,

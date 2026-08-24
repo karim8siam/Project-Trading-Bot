@@ -124,7 +124,7 @@ def run_single_iteration(verbose: bool = True) -> Dict[str, Any]:
     try:
         from portfolio_hedger import portfolio_hedger
         open_trades_curr = get_open_trades()
-        hedge_status = portfolio_hedger.evaluate_portfolio_state(open_trades_curr)
+        hedge_status = portfolio_hedger.evaluate_portfolio_state(open_trades_curr, total_balance=balance)
         if hedge_status.get("hedge_needed"):
             if verbose:
                 print(f"\n[Delta Hedger] 🛡️ SKEW TRIGGER: {hedge_status['reason']}")
