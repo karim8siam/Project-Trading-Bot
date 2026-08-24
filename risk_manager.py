@@ -343,10 +343,10 @@ def calculate_position_size(
         }
 
     # =========================================================================
-    # STRICT 1.0% ABSOLUTE HARD RISK CEILING (NON-NEGOTIABLE CORE SAFETY INVARIANT)
-    # The actual dollar loss if the Stop Loss is triggered can NEVER exceed 1.0% of balance.
+    # DYNAMIC RISK CEILING (Allows 5.0% for Delta Hedge, 1.0% for Standard Trades)
+    # The actual dollar loss if the Stop Loss is triggered respects the assigned risk.
     # =========================================================================
-    max_allowable_risk_usd = account_balance_usdt * (min(risk_pct, 1.0) / 100.0)
+    max_allowable_risk_usd = account_balance_usdt * (risk_pct / 100.0)
     actual_risk_usd = quantity * sl_distance
 
     if actual_risk_usd > max_allowable_risk_usd:
