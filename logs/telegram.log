@@ -34,3 +34,9 @@
 [On-Chain Verifier] ✅ Connected to BSC Mainnet via https://bsc-dataseed.binance.org/ (Block: 117851473)
 [Telegram Bot] Starting Institutional Telegram Platform for @orbitaltradingbot_bot...
 [Database] ⚡ Neon PostgreSQL Connection Pool initialized with keep-alive!
+/Users/karimsiam/.gemini/antigravity/scratch/crypto_futures_trading_bot/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+[On-Chain Verifier] ✅ Connected to BSC Mainnet via https://bsc-dataseed.binance.org/ (Block: 117865985)
+[On-Chain Verifier] ✅ Connected to BSC Mainnet via https://bsc-dataseed.binance.org/ (Block: 117865988)
+[Telegram Bot] Starting Institutional Telegram Platform for @orbitaltradingbot_bot...
+[Database] ⚡ Neon PostgreSQL Connection Pool initialized with keep-alive!

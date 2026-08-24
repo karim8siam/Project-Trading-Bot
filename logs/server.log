@@ -40,3 +40,10 @@
 💰 [System Collector Address] 0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0
 🎯 [Binance Bot Hot Wallet] 0xf13c3ce17b921ddff8d7057e2363fc79cac1fb2b
 ⚡ [Min Deposit] >= 1.0 USDT (BSC BEP-20)
+/Users/karimsiam/.gemini/antigravity/scratch/crypto_futures_trading_bot/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+[Daily Sweep Scheduler] 🕒 Scheduler active. Automated daily sweep at 00:00 UTC.
+🚀 [ApexTrade AI Platform Server] Running at http://0.0.0.0:8000
+💰 [System Collector Address] 0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0
+🎯 [Binance Bot Hot Wallet] 0xf13c3ce17b921ddff8d7057e2363fc79cac1fb2b
+⚡ [Min Deposit] >= 1.0 USDT (BSC BEP-20)

@@ -285,6 +285,15 @@ def analyze_market(
 
     is_final_approved = claude_decision["is_approved"] and ml_result["is_approved"]
 
+    # 7. Sovereign Bitcoin Master Sentinel Check
+    from btc_sentinel import btc_sentinel
+    btc_aligned, btc_reason, btc_info = btc_sentinel.check_trade_alignment(symbol, direction)
+
+    if is_final_approved and not btc_aligned:
+        is_final_approved = False
+        claude_decision["verdict"] = f"VETO 🚫 ({btc_reason})"
+        claude_decision["thesis"] = btc_reason
+
     return {
         "has_signal": is_final_approved,
         "symbol": symbol,
@@ -303,7 +312,10 @@ def analyze_market(
         "ml_result": ml_result,
         "ml_approved": is_final_approved,
         "ml_confidence": ml_win_prob,
-        "ml_reason": ml_result["reason"],
+        "ml_reason": btc_reason if not btc_aligned else ml_result["reason"],
+        "btc_state": btc_info.get("state", "N/A"),
+        "btc_bias": btc_info.get("bias", "N/A"),
+        "btc_reason": btc_reason,
         "merge_result": merge_result,
         "claude_verdict": claude_decision["verdict"],
         "claude_thesis": claude_decision["thesis"],

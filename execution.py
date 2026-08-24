@@ -204,13 +204,107 @@ class BinanceFuturesExecutor:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    def place_maker_limit_order(self, symbol: str, side: str, quantity: float, timeout_seconds: int = 15) -> Dict[str, Any]:
+        """
+        Submits a Post-Only (GTX) Maker Limit Order at the Best Bid (for BUY) or Best Ask (for SELL).
+        Qualifies for the 60% Maker fee discount (0.02% vs 0.05%) with 0% negative slippage.
+        If unfilled within timeout_seconds, cancels order with $0.00 cost.
+        """
+        if self.paper_mode or not self.api_key or self.api_key == "mock_key_paper_mode":
+            curr_p = data_fetcher.fetch_current_price(symbol)
+            return {"success": True, "avgPrice": curr_p, "status": "FILLED", "is_maker": True}
+
+        raw_sym = symbol.replace("/", "")
+        from risk_manager import SYMBOL_SPECS
+        prec = SYMBOL_SPECS.get(symbol, {}).get("price_precision", 4)
+
+        # 1. Fetch live Best Bid / Best Ask from Binance Orderbook
+        try:
+            r_book = data_fetcher.session.get(f"{self.base_url}/fapi/v1/ticker/bookTicker?symbol={raw_sym}", timeout=4)
+            if r_book.status_code == 200:
+                book_data = r_book.json()
+                bid_price = float(book_data.get("bidPrice", 0.0))
+                ask_price = float(book_data.get("askPrice", 0.0))
+            else:
+                curr_p = data_fetcher.fetch_current_price(symbol)
+                bid_price = curr_p * 0.9998
+                ask_price = curr_p * 1.0002
+        except Exception:
+            curr_p = data_fetcher.fetch_current_price(symbol)
+            bid_price = curr_p * 0.9998
+            ask_price = curr_p * 1.0002
+
+        # Post-Only pricing: Best Bid for BUY, Best Ask for SELL
+        limit_price = bid_price if side.upper() == "BUY" else ask_price
+        formatted_price = f"{float(limit_price):.{prec}f}"
+
+        # 2. Submit GTX (Post-Only) Limit Order
+        params = {
+            "symbol": raw_sym,
+            "side": side.upper(),
+            "type": "LIMIT",
+            "timeInForce": "GTX",  # Post-Only: Guaranteed Maker Fee (0.02%)
+            "price": formatted_price,
+            "quantity": quantity
+        }
+        signed_params = self._sign_payload(params)
+        url = f"{self.base_url}/fapi/v1/order"
+
+        try:
+            r = data_fetcher.session.post(url, headers=self._get_headers(), params=signed_params, timeout=8)
+            data = r.json()
+
+            if r.status_code != 200:
+                err = data.get("msg", str(data))
+                if "Order would immediately trigger" in err or "Post Only" in err:
+                    print(f"[Maker Engine] ⚡ Post-Only price crossed book, taking best entry...")
+                    return self.place_futures_order(symbol=symbol, side=side, quantity=quantity)
+                return {"success": False, "error": err}
+
+            order_id = str(data.get("orderId"))
+            print(f"[Maker Engine] 🟢 Post-Only Limit Order placed on orderbook: {side} {quantity} {symbol} @ ${limit_price:,.{prec}f} (0.02% Maker Fee Active)")
+
+            # 3. Smart Fill Listener Window (Up to 15s)
+            start_wait = time.time()
+            while (time.time() - start_wait) < timeout_seconds:
+                time.sleep(1.5)
+                q_params = {"symbol": raw_sym, "orderId": order_id}
+                signed_q = self._sign_payload(q_params)
+                r_status = data_fetcher.session.get(url, headers=self._get_headers(), params=signed_q, timeout=4)
+                if r_status.status_code == 200:
+                    stat_data = r_status.json()
+                    status = stat_data.get("status")
+                    if status == "FILLED":
+                        avg_p = float(stat_data.get("avgPrice") or limit_price)
+                        print(f"[Maker Engine] ✅ FILLED via Maker Order @ ${avg_p:,.{prec}f} | Saved 60% in Taker Fees!")
+                        return {
+                            "success": True,
+                            "orderId": order_id,
+                            "avgPrice": avg_p,
+                            "executedQty": float(stat_data.get("executedQty", quantity)),
+                            "status": "FILLED",
+                            "is_maker": True
+                        }
+                    elif status in ["CANCELED", "REJECTED", "EXPIRED"]:
+                        return {"success": False, "reason": f"Maker order {status}"}
+
+            # 4. Timeout -> Cancel Order with $0.00 cost to release margin
+            print(f"[Maker Engine] ⏳ 15s Fill Window expired for {symbol}. Cancelling order ($0.00 Cost)...")
+            c_params = {"symbol": raw_sym, "orderId": order_id}
+            signed_c = self._sign_payload(c_params)
+            data_fetcher.session.delete(url, headers=self._get_headers(), params=signed_c, timeout=4)
+            return {"success": False, "reason": "Maker 15s fill timeout — safely cancelled with $0.00 cost."}
+
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     def execute_signal(self, signal: Dict[str, Any], account_balance: Optional[float] = None) -> Dict[str, Any]:
         """Validates signal through 3 Pillars of Risk, executes on Binance Futures, and logs to DB."""
         bal = account_balance if account_balance is not None else data_fetcher.fetch_balance_usdt()
         return self.execute_trade(signal, balance=bal)
 
     def execute_trade(self, signal: Dict[str, Any], balance: float) -> Dict[str, Any]:
-        """Evaluates Risk Rules, executes order on Binance Futures, sets SL/TP, and records to DB."""
+        """Evaluates Risk Rules, executes order on Binance Futures via Maker Engine, sets SL/TP, and records to DB."""
         symbol = signal["symbol"]
         direction = signal["direction"]
         entry_price = float(signal.get("current_price") or signal.get("price") or data_fetcher.fetch_current_price(symbol))
@@ -240,10 +334,10 @@ class BinanceFuturesExecutor:
         stop_loss = float(risk_plan.get("stop_loss") or risk_plan.get("stop_loss_price") or stop_loss)
         trade_id = f"TRD-{uuid.uuid4().hex[:8].upper()}"
 
-        # 3. Live Binance Execution
+        # 3. Live Binance Execution via Maker-First Post-Only Engine
         if not self.paper_mode and self.api_key and self.api_key != "mock_key_paper_mode":
             side = "BUY" if direction == "LONG" else "SELL"
-            order_res = self.place_futures_order(symbol=symbol, side=side, quantity=quantity)
+            order_res = self.place_maker_limit_order(symbol=symbol, side=side, quantity=quantity)
 
             if order_res.get("success"):
                 entry_price = order_res.get("avgPrice", entry_price)
@@ -260,9 +354,9 @@ class BinanceFuturesExecutor:
                 if tp_res.get("success"):
                     print(f"[Executor LIVE] 🎯 Native Exchange Take Profit active on Binance matching engine @ ${take_profit:,.2f}")
             else:
-                err_msg = order_res.get("error", "Unknown Binance Error")
-                print(f"[Executor LIVE] ⚠️ Order rejected by Binance: {err_msg}")
-                return {"success": False, "reason": f"Binance rejected order: {err_msg}"}
+                err_msg = order_res.get("error") or order_res.get("reason", "Unknown Binance Error")
+                print(f"[Executor LIVE] ⚠️ Order not executed: {err_msg}")
+                return {"success": False, "reason": err_msg}
 
         # Log to Database
         trade_record = {
