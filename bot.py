@@ -138,7 +138,7 @@ def run_single_iteration(verbose: bool = True) -> Dict[str, Any]:
                         f"  [DELTA HEDGE DETECTED] ⚔️ {hedge_cand['direction']} on {hedge_cand['symbol']} "
                         f"({hedge_cand['reason']}) | Score: {hedge_cand['score']}/100"
                     )
-                # Form signal payload for execution
+                # Form signal payload for execution with 5.0% dedicated risk
                 hedge_signal = {
                     "symbol": hedge_cand["symbol"],
                     "direction": hedge_cand["direction"],
@@ -148,6 +148,7 @@ def run_single_iteration(verbose: bool = True) -> Dict[str, Any]:
                     "stop_loss": hedge_cand["stop_loss"],
                     "take_profit": hedge_cand["take_profit"],
                     "atr": hedge_cand["atr"],
+                    "risk_pct": 5.0,
                     "ml_confidence": 0.70,
                     "ml_approved": True,
                     "has_signal": True,
@@ -156,7 +157,7 @@ def run_single_iteration(verbose: bool = True) -> Dict[str, Any]:
                 exec_res = executor.execute_signal(hedge_signal, account_balance=balance)
                 if verbose:
                     if exec_res.get("success"):
-                        print(f"    -> [HEDGE ORDER PLACED] Trade ID: {exec_res.get('trade_id')} | {hedge_cand['symbol']} {hedge_cand['direction']}")
+                        print(f"    -> [HEDGE ORDER PLACED] Trade ID: {exec_res.get('trade_id')} | {hedge_cand['symbol']} {hedge_cand['direction']} (5.0% Risk)")
                     else:
                         print(f"    -> [HEDGE ORDER REJECTED] {exec_res.get('reason')}")
     except Exception as e:
