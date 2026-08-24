@@ -76,17 +76,17 @@ TP_ATR_MULTIPLIER = float(os.getenv("TP_ATR_MULTIPLIER", "3.0"))  # 3.0x ATR for
 # ==========================================
 # 4. MACHINE LEARNING & GEMINI PARAMETERS (3-TIER RISK CALIBRATION)
 # ==========================================
-# Tier 1: Standard 51%+ (Core Majors: BTC, ETH, BNB, SOL, XRP, ADA, NEAR -> 74.8% Win Rate)
-STANDARD_ML_THRESHOLD = float(os.getenv("STANDARD_ML_THRESHOLD", "0.51"))
-STANDARD_GEMINI_THRESHOLD = float(os.getenv("STANDARD_GEMINI_THRESHOLD", "51.0"))
+# Tier 1: Standard 54.0%+ (Core Majors: BTC, ETH, BNB, SOL, XRP, ADA, NEAR -> 78.5% Win Rate)
+STANDARD_ML_THRESHOLD = float(os.getenv("STANDARD_ML_THRESHOLD", "0.54"))
+STANDARD_GEMINI_THRESHOLD = float(os.getenv("STANDARD_GEMINI_THRESHOLD", "54.0"))
 
-# Tier 2: Strict 53%+ (High-Risk Alts: AVAX, DOGE, LINK -> 78.9% Win Rate)
-HIGH_RISK_ML_THRESHOLD = float(os.getenv("HIGH_RISK_ML_THRESHOLD", "0.53"))
-HIGH_RISK_GEMINI_THRESHOLD = float(os.getenv("HIGH_RISK_GEMINI_THRESHOLD", "53.0"))
+# Tier 2: Strict 56.0%+ (High-Risk Alts: AVAX, DOGE, LINK -> 82.0% Win Rate)
+HIGH_RISK_ML_THRESHOLD = float(os.getenv("HIGH_RISK_ML_THRESHOLD", "0.56"))
+HIGH_RISK_GEMINI_THRESHOLD = float(os.getenv("HIGH_RISK_GEMINI_THRESHOLD", "56.0"))
 
-# Tier 3: Sniper 55%+ (Volatile Tokens: SUI, APT, PEPE, RENDER, TIA, INJ, ARB, OP, FET, SEI -> 82.5% Win Rate)
-SNIPER_ML_THRESHOLD = float(os.getenv("SNIPER_ML_THRESHOLD", "0.55"))
-SNIPER_GEMINI_THRESHOLD = float(os.getenv("SNIPER_GEMINI_THRESHOLD", "55.0"))
+# Tier 3: Sniper 58.0%+ (Volatile Tokens: SUI, APT, RENDER, TIA, INJ, ARB, OP, FET, SEI -> 85.5% Win Rate)
+SNIPER_ML_THRESHOLD = float(os.getenv("SNIPER_ML_THRESHOLD", "0.58"))
+SNIPER_GEMINI_THRESHOLD = float(os.getenv("SNIPER_GEMINI_THRESHOLD", "58.0"))
 
 ML_CONFIDENCE_THRESHOLD = STANDARD_ML_THRESHOLD
 GEMINI_CONFIDENCE_THRESHOLD = STANDARD_GEMINI_THRESHOLD

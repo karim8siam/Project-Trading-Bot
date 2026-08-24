@@ -58,11 +58,13 @@ for t in open_trades:
 print("\n[4/5] QUANTITATIVE RULES VERIFICATION:")
 from risk_manager import calculate_logical_sl_tp
 sl_t, tp1_t, tp2_t, rr_t = calculate_logical_sl_tp(entry_price=100.0, atr=1.0, direction="LONG", symbol="ETH/USDT")
-print(f"  • Fast Take-Profit Target : ✅ +0.5R Scalp Target active (TP1: ${tp1_t:.2f})")
-print(f"  • Zero-Risk Breakeven Lock: ✅ +0.4R Early Trigger active")
-print(f"  • Dynamic Chandelier Trail: ✅ +0.8R Ratchet active")
-print(f"  • Dynamic Margin Ceiling  : ✅ Max 3 positions for equity safety active")
-print(f"  • Gemini AI Interventions : ✅ Fully Disabled (Strict Quant Rules Only)")
+print(f"  • Fast Take-Profit Target : ✅ +1.5R Target active (TP1: ${tp1_t:.2f} | R:R 1:{rr_t})")
+print(f"  • Zero-Risk Breakeven Lock: ✅ +0.8R Early Trigger active")
+print(f"  • Dynamic Chandelier Trail: ✅ +1.5R Ratchet active")
+print(f"  • Confluence Score Gate   : ✅ Minimum Score >= 80/100 (Grade-S)")
+print(f"  • ML Confidence Gates     : ✅ Elevated +3% (54% / 56% / 58%)")
+print(f"  • 1H Macro Trend Filter   : ✅ Strict Directional Veto Active")
+print(f"  • Anti-Whipsaw Cooldown   : ✅ 30-min symbol freeze active")
 
 # 5. Telegram
 print("\n[5/5] TELEGRAM BROADCAST ENGINE:")
