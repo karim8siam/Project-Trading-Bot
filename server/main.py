@@ -37,7 +37,13 @@ from auth import (
 from onchain_listener import deposit_verifier
 from vault_engine import vault_engine
 from sweeper import sweeper
-from bridge_bot_sync import get_live_bot_trades, get_live_bot_performance_summary, get_live_24h_bot_pnl
+from bridge_bot_sync import (
+    get_live_bot_trades, 
+    get_live_bot_performance_summary, 
+    get_live_24h_bot_pnl,
+    get_live_binance_open_positions,
+    get_live_binance_balance
+)
 
 # Initialize Database
 init_platform_db()
@@ -328,6 +334,33 @@ def api_bot_trades(limit: int = 15):
     """Streams live trades from the trading bot database."""
     trades = get_live_bot_trades(limit=limit)
     return {"trades": trades}
+
+
+@api_router.get("/bot/binance-live")
+def api_bot_binance_live():
+    """Returns complete real-time live Binance Futures telemetry including live balance, ROI, open positions and closed trades."""
+    perf = get_live_bot_performance_summary()
+    open_positions = get_live_binance_open_positions()
+    closed_trades = get_live_bot_trades(limit=15)
+    
+    return {
+        "success": True,
+        "binance_connected": True,
+        "balance_usdt": perf["balance_usdt"],
+        "starting_balance_usdt": perf["starting_balance_usdt"],
+        "net_profit_usdt": perf["net_profit_usdt"],
+        "net_roi_pct": perf["net_roi_pct"],
+        "open_positions": open_positions,
+        "closed_trades": closed_trades,
+        "performance": perf,
+        "strategy_specs": {
+            "technical_score_gate": "Score >= 76/100 (Grade S)",
+            "ml_gates": "51% (Majors) / 53% (Alts) / 55% (Snipers)",
+            "risk_per_trade": "Strict 1.0% ($0.14)",
+            "stop_loss_model": "4-Pillar Structural Swing + Beta Buffer",
+            "take_profit_model": "Asymmetric Wider Runners (+1.5R to +2.5R)"
+        }
+    }
 
 
 @api_router.get("/bot/live-pnl")

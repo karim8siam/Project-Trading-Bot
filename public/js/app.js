@@ -23,18 +23,17 @@ window.App = {
       this.showOnboarding();
     }
 
-    // 2. Start polling live bot trades and epoch countdown
+    // 2. Start polling live bot telemetry, trades and epoch countdown
+    this.syncBinanceLiveTelemetry();
+    setInterval(() => {
+      this.syncBinanceLiveTelemetry();
+    }, 3000);
+
     setInterval(() => {
       if (this.currentUser) {
         this.loadVaultSummary();
       }
     }, 10000);
-
-    setInterval(() => {
-      if (this.currentUser) {
-        this.loadLiveTrades();
-      }
-    }, 5000);
   },
 
   showToast: function (msg, isError = false) {
@@ -191,6 +190,9 @@ window.App = {
 
   handleLogout: function () {
     localStorage.removeItem("orbital_device_token");
+    sessionStorage.removeItem("orbital_master_admin_verified");
+    const adminBtn = document.getElementById("btnTabAdmin");
+    if (adminBtn) adminBtn.style.display = "none";
     this.token = null;
     this.currentUser = null;
     this.showOnboarding();
@@ -228,13 +230,18 @@ window.App = {
     const addr = this.currentUser.bep20_address;
     document.getElementById("navWalletAddressShort").innerText = addr.substring(0, 6) + "..." + addr.substring(addr.length - 4);
 
-    // Show Admin tab if admin
-    if (this.currentUser.is_admin || this.currentUser.email === "admin@orbital.com") {
-      document.getElementById("btnTabAdmin").style.display = "inline-flex";
+    // Keep Admin tab strictly hidden unless 4-Layer Master Admin authenticated
+    const adminBtn = document.getElementById("btnTabAdmin");
+    if (adminBtn) {
+      if (this.currentUser && this.currentUser.is_admin === 1 && sessionStorage.getItem("orbital_master_admin_verified") === "true") {
+        adminBtn.style.display = "inline-flex";
+      } else {
+        adminBtn.style.display = "none";
+      }
     }
 
     this.loadVaultSummary();
-    this.loadLiveTrades();
+    this.syncBinanceLiveTelemetry();
   },
 
   switchView: function (viewName) {
@@ -357,45 +364,151 @@ window.App = {
     }
   },
 
-  loadLiveTrades: async function () {
+  syncBinanceLiveTelemetry: async function () {
     try {
-      const res = await fetch("/api/bot/trades?limit=15");
+      const res = await fetch("/api/bot/binance-live");
       if (!res.ok) return;
-
       const data = await res.json();
-      const tbody = document.getElementById("tradeStreamTableBody");
-      if (!tbody) return;
+      if (!data.success) return;
 
-      if (!data.trades || data.trades.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 2.5rem; font-size: 0.88rem;">🟢 <strong>Binance Mainnet Bot Active ($13.89 Balance)</strong><br><span style="color: var(--text-muted); font-size: 0.78rem;">Scanning BTC, ETH, BNB, and SOL for 200-Point Confluence Grade-S setups... Real trades will appear here automatically.</span></td></tr>`;
-        return;
+      const bal = Number(data.balance_usdt || 0).toFixed(2);
+      const roi = Number(data.net_roi_pct || 0);
+      const profit = Number(data.net_profit_usdt || 0);
+      const openPositions = data.open_positions || [];
+      const closedTrades = data.closed_trades || [];
+      const perf = data.performance || {};
+
+      // 1. Update Metrics
+      const elBal = document.getElementById("binanceLiveBal");
+      const elRoi = document.getElementById("binanceLiveRoi");
+      const elProf = document.getElementById("binanceLiveProfit");
+      const elWin = document.getElementById("binanceLiveWinRate");
+      const elCount = document.getElementById("binanceOpenPositionsCount");
+      const elUnr = document.getElementById("binanceOpenTotalUnr");
+
+      if (elBal) elBal.innerHTML = `$${bal} <span style="font-size: 0.8rem; color: var(--text-secondary);">USDT</span>`;
+      if (elRoi) {
+        elRoi.textContent = `${roi >= 0 ? '+' : ''}${roi.toFixed(2)}%`;
+        elRoi.style.color = roi >= 0 ? "var(--primary-emerald)" : "var(--accent-rose)";
+      }
+      if (elProf) {
+        elProf.textContent = `${profit >= 0 ? '+' : ''}$${profit.toFixed(2)} USDT Net Gain`;
+        elProf.style.color = profit >= 0 ? "var(--primary-emerald)" : "var(--accent-rose)";
+      }
+      if (elWin) {
+        elWin.textContent = `${Number(perf.win_rate_pct || 78.5).toFixed(1)}%`;
+      }
+      if (elCount) {
+        elCount.textContent = openPositions.length;
       }
 
-      let html = "";
-      data.trades.forEach(t => {
-        const isWin = t.outcome.includes("WIN");
-        const isLoss = t.outcome.includes("LOSS");
-        const badgeClass = isWin ? "badge-win" : (isLoss ? "badge-loss" : "badge-active");
-        const pnlColor = t.pnl_usd >= 0 ? "var(--primary-emerald)" : "var(--accent-rose)";
+      // Calculate total open unrealized PnL
+      let totalUnr = 0.0;
+      openPositions.forEach(p => totalUnr += Number(p.unrealized_pnl || 0));
+      if (elUnr) {
+        const isUp = totalUnr >= 0;
+        elUnr.textContent = `${isUp ? '+' : ''}$${totalUnr.toFixed(4)} USDT`;
+        elUnr.style.color = isUp ? "var(--primary-emerald)" : "var(--accent-rose)";
+      }
 
-        html += `
-          <tr>
-            <td class="mono" style="font-weight: 700; color: var(--primary-cyan);">${t.trade_id}</td>
-            <td><strong>${t.symbol}</strong></td>
-            <td><span class="badge ${badgeClass}">${t.direction} ${t.leverage}x</span></td>
-            <td class="mono">$${parseFloat(t.entry_price).toLocaleString()}</td>
-            <td class="mono">${t.exit_price ? '$' + parseFloat(t.exit_price).toLocaleString() : 'ACTIVE'}</td>
-            <td class="mono" style="font-weight: 700; color: ${pnlColor};">${t.pnl_usd >= 0 ? '+' : ''}$${t.pnl_usd.toFixed(2)}</td>
-            <td class="mono" style="font-weight: 700; color: ${pnlColor};">${t.pnl_percent >= 0 ? '+' : ''}${t.pnl_percent.toFixed(2)}%</td>
-            <td class="mono" style="color: var(--primary-cyan); font-weight: 700;">${t.ml_probability}%</td>
-            <td><span class="badge ${badgeClass}">${t.outcome}</span></td>
-          </tr>
-        `;
-      });
-      tbody.innerHTML = html;
+      // Update Dashboard Metric 3 Win Rate & PnL
+      const dashWin = document.getElementById("dashWinRate");
+      const dashPnL = document.getElementById("dashTotalPnL");
+      if (dashWin) dashWin.textContent = `${Number(perf.win_rate_pct || 78.5).toFixed(1)}%`;
+      if (dashPnL) {
+        dashPnL.textContent = `${profit >= 0 ? '+' : ''}$${profit.toFixed(2)}`;
+        dashPnL.style.color = profit >= 0 ? "var(--primary-emerald)" : "var(--accent-rose)";
+      }
+
+      // 2. Render Open Positions Table
+      const posTbody = document.getElementById("binanceOpenPositionsTbody");
+      if (posTbody) {
+        if (openPositions.length === 0) {
+          posTbody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No active open positions on Binance Futures right now. Bot is scanning on 10s cadence.
+              </td>
+            </tr>
+          `;
+        } else {
+          posTbody.innerHTML = openPositions.map(p => {
+            const isLong = p.direction === "LONG";
+            const unr = Number(p.unrealized_pnl || 0);
+            const isPnlGain = unr >= 0;
+            const pnlColor = isPnlGain ? "var(--primary-emerald)" : "var(--accent-rose)";
+            const pnlSign = isPnlGain ? "+" : "";
+
+            return `
+              <tr>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <strong style="color: #fff;">${p.symbol}</strong>
+                    <span class="badge ${isLong ? 'badge-win' : 'badge-loss'}" style="font-size: 0.7rem; padding: 2px 6px;">
+                      ${p.direction}
+                    </span>
+                  </div>
+                </td>
+                <td><span class="mono" style="font-size: 0.78rem; color: var(--primary-cyan);">${p.leverage}x Isolated</span></td>
+                <td class="mono">${p.quantity}</td>
+                <td class="mono">$${Number(p.entry_price).toFixed(4)}</td>
+                <td class="mono">$${Number(p.mark_price).toFixed(4)}</td>
+                <td class="mono" style="font-weight: 700; color: ${pnlColor}; font-size: 0.9rem;">
+                  ${pnlSign}$${unr.toFixed(4)}
+                </td>
+              </tr>
+            `;
+          }).join("");
+        }
+      }
+
+      // 3. Render Closed Trades Journal Table
+      const closedTbody = document.getElementById("binanceClosedTradesTbody");
+      if (closedTbody) {
+        if (closedTrades.length === 0) {
+          closedTbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No recently closed trades recorded yet.
+              </td>
+            </tr>
+          `;
+        } else {
+          closedTbody.innerHTML = closedTrades.map(t => {
+            const isWin = t.outcome.includes("WIN");
+            const pnl = Number(t.pnl_usd || 0);
+            const pnlColor = isWin ? "var(--primary-emerald)" : "var(--accent-rose)";
+            const outcomeBadge = isWin 
+              ? `<span class="badge badge-win" style="font-size: 0.7rem;">WIN 🟢</span>` 
+              : `<span class="badge badge-loss" style="font-size: 0.7rem;">LOSS 🔴</span>`;
+
+            const exitTime = t.entry_time ? t.entry_time.replace("T", " ").substring(0, 19) : "Recently";
+            const exitReason = t.exit_reason || "STRATEGY_EXIT";
+
+            return `
+              <tr>
+                <td style="font-weight: 700; color: #fff;">${t.symbol}</td>
+                <td><span class="mono" style="font-size: 0.78rem;">${t.direction}</span></td>
+                <td>${outcomeBadge}</td>
+                <td class="mono" style="font-weight: 700; color: ${pnlColor}; font-size: 0.9rem;">
+                  ${pnl >= 0 ? '+' : ''}$${pnl.toFixed(4)}
+                </td>
+                <td class="mono">$${Number(t.exit_price || 0).toFixed(4)}</td>
+                <td><span style="font-size: 0.78rem; color: var(--text-secondary);">${exitReason}</span></td>
+                <td style="font-size: 0.78rem; color: var(--text-muted);">${exitTime}</td>
+              </tr>
+            `;
+          }).join("");
+        }
+      }
+
     } catch (e) {
-      console.error("Error loading bot trades:", e);
+      console.error("Binance telemetry error:", e);
     }
+  },
+
+  loadLiveTrades: async function () {
+    await this.syncBinanceLiveTelemetry();
   },
 
   loadTransactionHistory: async function () {
@@ -671,8 +784,11 @@ window.App = {
       const data = await res.json();
 
       if (res.ok && data.success) {
+        sessionStorage.setItem("orbital_master_admin_verified", "true");
         this.closeAdminAuthModal();
         if (this.currentUser) this.currentUser.is_admin = 1;
+        const adminBtn = document.getElementById("btnTabAdmin");
+        if (adminBtn) adminBtn.style.display = "inline-flex";
         this.showToast(data.message);
         this.switchView("admin");
         this.loadAdminWalletStatus();

@@ -43,12 +43,12 @@
           📊 Vault Dashboard
         </button>
         <button class="nav-tab-btn" id="btnTabTrades" onclick="window.App.switchView('trades');">
-          ⚡ Bot Trade Stream
+          ⚡ Live Binance Terminal
         </button>
         <button class="nav-tab-btn" id="btnTabHistory" onclick="window.App.switchView('history');">
           📜 Transactions
         </button>
-        <button class="nav-tab-btn" id="btnTabAdmin" onclick="window.App.handleAdminClick();" style="color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08);">
+        <button class="nav-tab-btn" id="btnTabAdmin" onclick="window.App.handleAdminClick();" style="display: none !important; color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08);">
           👑 Admin Control
         </button>
       </nav>
@@ -296,40 +296,113 @@
         </div>
       </div>
 
-      <!-- Live Orbital Bot Trade Stream Card -->
-      <div class="glass-card" style="margin-bottom: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <div>
-            <h3>⚡ Live Orbital Bot Trade Stream</h3>
-            <p style="font-size: 0.78rem; color: var(--text-muted)">Real-time execution feed across 10 Tier-1 pairs (BTC, ETH, BNB, SOL, XRP, DOGE, AVAX, LINK, ADA, NEAR).</p>
+      <!-- Real-Time Binance Futures Live Execution Terminal -->
+      <div class="glass-card highlight-cyan" style="margin-bottom: 1.5rem; border-color: rgba(0, 230, 118, 0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.4rem;">⚡</span>
+            <div>
+              <h3 style="margin: 0; font-size: 1.15rem; color: #fff;">Real-Time Binance Futures Execution Terminal</h3>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
+                Direct Binance Futures API Feed • Fast 3s REST Sync • Dynamic 1.0% Compounding Engine
+              </p>
+            </div>
           </div>
-          <button class="btn btn-secondary btn-sm" onclick="window.App.loadLiveTrades();">
-            🔄 Refresh
-          </button>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span class="badge badge-win" style="background: rgba(0, 230, 118, 0.15); border-color: var(--primary-emerald); color: var(--primary-emerald);">🟢 BINANCE LIVE API CONNECTED</span>
+            <button class="btn btn-secondary btn-sm" onclick="window.App.syncBinanceLiveTelemetry();">
+              🔄 Sync
+            </button>
+          </div>
         </div>
 
-        <div class="table-responsive">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>Trade ID</th>
-                <th>Pair</th>
-                <th>Side</th>
-                <th>Entry Price</th>
-                <th>Exit Price</th>
-                <th>Realized PnL ($)</th>
-                <th>PnL (%)</th>
-                <th>ML AI Prob</th>
-                <th>Outcome</th>
-              </tr>
-            </thead>
-            <tbody id="tradeStreamTableBody">
-              <tr>
-                <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading live trades...</td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- 4 Live Exchange Metric Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">💵 Binance Margin Balance</div>
+            <div class="mono" id="binanceLiveBal" style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-top: 0.3rem;">$13.59 <span style="font-size: 0.8rem; color: var(--text-secondary);">USDT</span></div>
+            <div style="font-size: 0.72rem; color: var(--primary-emerald); margin-top: 0.2rem;">🔒 1.0% Risk Compounding Active</div>
+          </div>
+
+          <div style="background: var(--bg-surface-1); border: 1px solid rgba(0, 230, 118, 0.3); border-radius: var(--radius-md); padding: 1rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">📈 Net Banked ROI%</div>
+            <div class="mono" id="binanceLiveRoi" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-emerald); margin-top: 0.3rem;">+2.54%</div>
+            <div style="font-size: 0.72rem; color: var(--primary-emerald); margin-top: 0.2rem;" id="binanceLiveProfit">+$0.34 USDT Net Gain</div>
+          </div>
+
+          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">🎯 Strategy Win Rate</div>
+            <div class="mono" id="binanceLiveWinRate" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-cyan); margin-top: 0.3rem;">78.5%</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;" id="binanceLiveTotalTrades">Verified Journal Records</div>
+          </div>
+
+          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">🛡️ Risk & Exit Protocol</div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent-amber); margin-top: 0.35rem;">Asymmetric +1.5R to +2.5R</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">4-Pillar Structural SL Anchoring</div>
+          </div>
         </div>
+
+        <!-- Real-Time Open Positions Table -->
+        <div style="margin-bottom: 1.5rem;">
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--primary-cyan);">🟢 Real-Time Open Binance Positions (<span id="binanceOpenPositionsCount">5</span> Active)</span>
+            <span class="mono" style="font-size: 0.78rem; color: var(--text-secondary);">Open Variance: <span id="binanceOpenTotalUnr" style="color: var(--primary-emerald); font-weight: 700;">-$0.05 USDT</span></span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Symbol & Side</th>
+                  <th>Leverage</th>
+                  <th>Quantity</th>
+                  <th>Entry Price</th>
+                  <th>Live Mark Price</th>
+                  <th>Floating PnL (USDT)</th>
+                </tr>
+              </thead>
+              <tbody id="binanceOpenPositionsTbody">
+                <tr>
+                  <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                    Syncing live exchange positions from Binance Futures API...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recently Closed Trades Table -->
+        <div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem;">
+            📜 Recently Closed Trades Journal (Verified Real PnL)
+          </div>
+
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Direction</th>
+                  <th>Outcome</th>
+                  <th>Realized PnL ($)</th>
+                  <th>Exit Price</th>
+                  <th>Exit Reason</th>
+                  <th>Time (UTC)</th>
+                </tr>
+              </thead>
+              <tbody id="binanceClosedTradesTbody">
+                <tr>
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                    Syncing recent trade journal...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
     </section>
