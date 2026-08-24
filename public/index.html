@@ -388,9 +388,12 @@
 
         <!-- Real-Time Open Positions Table -->
         <div style="margin-bottom: 1.5rem;">
-          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
             <span style="color: var(--primary-cyan);">🟢 Real-Time Open Binance Positions (<span id="binanceOpenPositionsCount">5</span> Active)</span>
-            <span class="mono" style="font-size: 0.78rem; color: var(--text-secondary);">Open Variance: <span id="binanceOpenTotalUnr" style="color: var(--primary-emerald); font-weight: 700;">-$0.05 USDT</span></span>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span class="badge badge-win" style="font-size: 0.7rem; background: rgba(6, 182, 212, 0.15); border-color: var(--primary-cyan); color: var(--primary-cyan);">🧠 GEMINI AI SUPERVISOR ACTIVE</span>
+              <span class="mono" style="font-size: 0.78rem; color: var(--text-secondary);">Open Variance: <span id="binanceOpenTotalUnr" style="color: var(--primary-emerald); font-weight: 700;">+$0.00 USDT</span></span>
+            </div>
           </div>
 
           <div class="table-responsive">
@@ -403,17 +406,79 @@
                   <th>Entry Price</th>
                   <th>Live Mark Price</th>
                   <th>Floating PnL (USDT)</th>
+                  <th>🧠 AI Supervisor Action</th>
                 </tr>
               </thead>
               <tbody id="binanceOpenPositionsTbody">
                 <tr>
-                  <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
                     Syncing live exchange positions from Binance Futures API...
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
+        </div>
+
+        <!-- ===================================================================
+             GEMINI AI ACTIVE SUPERVISOR & CONTINUOUS LEARNING PANEL
+             =================================================================== -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+          
+          <!-- 1. Real-Time AI Tactical Decision Feed -->
+          <div style="background: var(--bg-surface-2); border: 1px solid rgba(6, 182, 212, 0.35); border-radius: var(--radius-md); padding: 1.15rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+              <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-cyan); display: flex; align-items: center; gap: 6px;">
+                <span>🧠</span> <span>GEMINI AI ACTIVE TRADE SUPERVISOR</span>
+              </div>
+              <span class="badge badge-win" style="font-size: 0.7rem;">ZERO-LAG OBSERVER</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.85rem;">
+              Continuously observes open positions every 10–30s. Dynamically locks in profits, tightens trailing stops, and cuts invalidations early.
+            </div>
+            <div id="aiSupervisorDecisionsList" style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 240px; overflow-y: auto;">
+              <div style="background: var(--bg-surface-1); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.75rem; color: var(--text-secondary);">
+                Active supervisor is monitoring positions...
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Continuous Machine Learning & Knowledge Base Feed -->
+          <div style="background: var(--bg-surface-2); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-md); padding: 1.15rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+              <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-emerald); display: flex; align-items: center; gap: 6px;">
+                <span>🚀</span> <span>CONTINUOUS SELF-LEARNING ENGINE</span>
+              </div>
+              <span class="badge badge-win" id="mlLearningStatusBadge" style="font-size: 0.7rem;">AUTO-RETRAINING ON</span>
+            </div>
+
+            <!-- ML Stats Strip -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.85rem; text-align: center;">
+              <div style="background: var(--bg-surface-1); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Dual Accuracy</div>
+                <div class="mono" id="mlEnsembleAcc" style="font-size: 1.05rem; font-weight: 800; color: var(--primary-emerald); margin-top: 2px;">56.0%</div>
+              </div>
+              <div style="background: var(--bg-surface-1); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Dataset Size</div>
+                <div class="mono" id="mlTrainedSamples" style="font-size: 1.05rem; font-weight: 800; color: #fff; margin-top: 2px;">3,120</div>
+              </div>
+              <div style="background: var(--bg-surface-1); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">ROC-AUC</div>
+                <div class="mono" id="mlRocAuc" style="font-size: 1.05rem; font-weight: 800; color: var(--primary-cyan); margin-top: 2px;">0.570</div>
+              </div>
+            </div>
+
+            <!-- Recent AI Post-Mortem Lessons -->
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 700; text-transform: uppercase;">
+              Latest Trade Post-Mortems & Extracted Lessons:
+            </div>
+            <div id="aiPostMortemsList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 160px; overflow-y: auto;">
+              <div style="background: var(--bg-surface-1); padding: 0.65rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.75rem; color: var(--text-secondary);">
+                Every closed trade automatically triggers post-trade quantitative review and ensemble weight updates.
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- Recently Closed Trades Table -->

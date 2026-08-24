@@ -42,7 +42,10 @@ from bridge_bot_sync import (
     get_live_bot_performance_summary, 
     get_live_24h_bot_pnl,
     get_live_binance_open_positions,
-    get_live_binance_balance
+    get_live_binance_balance,
+    get_live_ai_decisions,
+    get_live_ai_post_mortems,
+    get_ml_continuous_learning_summary
 )
 
 # Initialize Database
@@ -352,10 +355,13 @@ def api_bot_trades(limit: int = 15):
 
 @api_router.get("/bot/binance-live")
 def api_bot_binance_live():
-    """Returns complete real-time live Binance Futures telemetry including live balance, ROI, open positions and closed trades."""
+    """Returns complete real-time live Binance Futures telemetry including live balance, ROI, open positions, AI supervisor decisions and continuous learning stats."""
     perf = get_live_bot_performance_summary()
     open_positions = get_live_binance_open_positions()
     closed_trades = get_live_bot_trades(limit=15)
+    ai_decisions = get_live_ai_decisions(limit=10)
+    ai_post_mortems = get_live_ai_post_mortems(limit=6)
+    ml_learning = get_ml_continuous_learning_summary()
     
     return {
         "success": True,
@@ -367,13 +373,31 @@ def api_bot_binance_live():
         "open_positions": open_positions,
         "closed_trades": closed_trades,
         "performance": perf,
+        "ai_supervisor": {
+            "status": "Active (Gemini 3.6 Flash & Dual ML Copilot) 🧠",
+            "recent_decisions": ai_decisions,
+            "post_mortems": ai_post_mortems
+        },
+        "continuous_learning": ml_learning,
         "strategy_specs": {
             "technical_score_gate": "Score >= 76/100 (Grade S)",
             "ml_gates": "51% (Majors) / 53% (Alts) / 55% (Snipers)",
             "risk_per_trade": "Strict 1.0% ($0.14)",
             "stop_loss_model": "4-Pillar Structural Swing + Beta Buffer",
-            "take_profit_model": "Asymmetric Wider Runners (+1.5R to +2.5R)"
+            "take_profit_model": "Asymmetric Wider Runners (+1.5R to +2.5R)",
+            "trade_supervisor": "Gemini AI Active Post-Entry Decision Maker (Dynamic Profit Lock & Soft Cut)"
         }
+    }
+
+
+@api_router.get("/bot/ai-supervisor")
+def api_bot_ai_supervisor():
+    """Dedicated endpoint for real-time Gemini AI Active Trade Decisions and Continuous Learning."""
+    return {
+        "success": True,
+        "decisions": get_live_ai_decisions(limit=15),
+        "post_mortems": get_live_ai_post_mortems(limit=10),
+        "learning_status": get_ml_continuous_learning_summary()
     }
 
 
