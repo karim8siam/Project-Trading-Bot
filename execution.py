@@ -311,16 +311,23 @@ class BinanceFuturesExecutor:
         stop_loss = float(signal.get("stop_loss", entry_price * 0.985))
         take_profit = float(signal.get("take_profit", entry_price * 1.03))
 
-        # 1. 3-Pillar Risk Guardrails Check
-        guardrails_ok, guardrail_reason = check_3_pillar_risk_guardrails(
-            symbol=symbol,
-            account_balance=balance
-        )
-        if not guardrails_ok:
-            return {"success": False, "reason": f"Risk Guardrail Block: {guardrail_reason}"}
+        # 1. 3-Pillar Risk Guardrails Check (Bypassed for Exceptional Sovereign Delta Hedge)
+        is_exceptional_hedge = (signal.get("strategy") == "DELTA_HEDGE_SNIPER" or signal.get("is_hedge", False))
+        if not is_exceptional_hedge:
+            guardrails_ok, guardrail_reason = check_3_pillar_risk_guardrails(
+                symbol=symbol,
+                account_balance=balance
+            )
+            if not guardrails_ok:
+                return {"success": False, "reason": f"Risk Guardrail Block: {guardrail_reason}"}
+        else:
+            # Exceptional Hedge bypasses all macro and cooldown rules; only prevents duplicate coin exposure
+            open_trades = get_open_trades()
+            if symbol in [t["symbol"] for t in open_trades]:
+                return {"success": False, "reason": f"Hedge Block: Position already active for {symbol}."}
 
         # 2. Dynamic Position Sizing (5.0% Dedicated Risk for Delta Hedge, <= 1.0% Standard)
-        custom_risk = float(signal.get("risk_pct")) if signal.get("risk_pct") is not None else (5.0 if signal.get("strategy") == "DELTA_HEDGE_SNIPER" else None)
+        custom_risk = float(signal.get("risk_pct")) if signal.get("risk_pct") is not None else (5.0 if is_exceptional_hedge else None)
         risk_plan = calculate_position_size(
             symbol=symbol,
             entry_price=entry_price,
@@ -340,6 +347,11 @@ class BinanceFuturesExecutor:
         if not self.paper_mode and self.api_key and self.api_key != "mock_key_paper_mode":
             side = "BUY" if direction == "LONG" else "SELL"
             order_res = self.place_maker_limit_order(symbol=symbol, side=side, quantity=quantity)
+            
+            # If exceptional hedge and maker times out, immediately execute as market to guarantee hedge entry
+            if not order_res.get("success") and is_exceptional_hedge:
+                print(f"[Executor LIVE] ⚡ Exceptional Hedge Maker Timeout: Executing instant Market Order for {symbol} {direction}...")
+                order_res = self.place_market_order(symbol=symbol, side=side, quantity=quantity)
 
             if order_res.get("success"):
                 entry_price = order_res.get("avgPrice", entry_price)
