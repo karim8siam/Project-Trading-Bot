@@ -294,6 +294,17 @@ def analyze_market(
         claude_decision["verdict"] = f"VETO 🚫 ({btc_reason})"
         claude_decision["thesis"] = btc_reason
 
+    # 8. Open Interest (OI) & Funding Rate Sentiment Gate
+    from oi_funding_sentinel import oi_funding_sentinel
+    oi_ok, oi_reason, oi_metrics = oi_funding_sentinel.evaluate_sentiment_gate(symbol, direction)
+
+    if is_final_approved and not oi_ok:
+        is_final_approved = False
+        claude_decision["verdict"] = f"VETO 🚫 ({oi_reason})"
+        claude_decision["thesis"] = oi_reason
+
+    final_reason = oi_reason if not oi_ok else (btc_reason if not btc_aligned else ml_result["reason"])
+
     return {
         "has_signal": is_final_approved,
         "symbol": symbol,
@@ -312,10 +323,12 @@ def analyze_market(
         "ml_result": ml_result,
         "ml_approved": is_final_approved,
         "ml_confidence": ml_win_prob,
-        "ml_reason": btc_reason if not btc_aligned else ml_result["reason"],
+        "ml_reason": final_reason,
         "btc_state": btc_info.get("state", "N/A"),
         "btc_bias": btc_info.get("bias", "N/A"),
         "btc_reason": btc_reason,
+        "funding_rate_pct": oi_metrics.get("funding_rate_pct", 0.0),
+        "oi_delta_15m": oi_metrics.get("oi_delta_15m_pct", 0.0),
         "merge_result": merge_result,
         "claude_verdict": claude_decision["verdict"],
         "claude_thesis": claude_decision["thesis"],
