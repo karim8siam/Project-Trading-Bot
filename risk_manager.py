@@ -149,6 +149,7 @@ def calculate_logical_sl_tp(
     score: int = 76,
     df: Optional[pd.DataFrame] = None,
     df_htf: Optional[pd.DataFrame] = None,
+    df_5m: Optional[pd.DataFrame] = None,
     symbol: str = "",
     order_block_price: Optional[float] = None,
     support_resistance_price: Optional[float] = None,
@@ -156,35 +157,51 @@ def calculate_logical_sl_tp(
     ema200_price: Optional[float] = None
 ) -> Tuple[float, float, float, float]:
     """
-    Upgraded Elite 4-Pillar Stop Loss & Two-Stage Take Profit Engine:
-    1. Multi-Timeframe (1H + 15M) Structural Swing Anchors.
-    2. Volatility Beta Regime: Dynamic breathing room (1.0%-1.4% Majors, 1.8%-2.5% High-Beta Alts).
-    3. Institutional Order Block & Fair Value Gap (FVG) Base Defense Invalidation Buffers.
-    4. Two-Stage Take-Profit Payout (1:1.2 R:R TP1 & 1:2.5 R:R TP2).
+    Upgraded Elite Multi-Timeframe (5M + 15M) Structural Stop Loss & 1:1.5R/1:2.0R Take Profit Engine:
+    1. Multi-Timeframe (15M HTF + 5M Structural + 1M Execution) Swing Anchors.
+    2. Dynamic Volatility Cushion based on 5M/15M ATR.
+    3. Institutional Order Block & Fair Value Gap (FVG) Base Defense.
+    4. Two-Stage Take-Profit Payout (1:1.5 R:R TP1 & 1:2.0 R:R TP2).
     Returns: (stop_loss, tp1_partial, tp2_runner, rr_ratio)
     """
-    # 1. 1-Minute Micro-Scalping Volatility Buffer
-    beta_min_pct = 0.006 if symbol.upper() in {"DOGE/USDT", "PEPE/USDT", "SUI/USDT", "FET/USDT"} else 0.004  # 0.4% - 0.6% for 1M Scalps
+    # 1. Volatility Regime Buffer (Anchored to Multi-Timeframe ATR)
+    beta_min_pct = 0.006 if symbol.upper() in {"DOGE/USDT", "PEPE/USDT", "SUI/USDT", "FET/USDT"} else 0.004
     min_sl_dist = max(atr * 1.4, entry_price * beta_min_pct)
     max_sl_dist = max(atr * 3.5, entry_price * 0.025)
-    buffer_pct = max(0.002, (atr * 0.5) / entry_price)  # 0.2% - 0.4% micro-pivot invalidation cushion
+    buffer_pct = max(0.002, (atr * 0.5) / entry_price)  # Structural invalidation cushion
 
     candidate_sls = []
 
-    # 2. Dual-Timeframe (15M HTF + 1M Micro) Structural Swing Pivot Detection
-    if df is not None and not df.empty:
-        from indicators import detect_swing_pivots, detect_fair_value_gaps
-        pivots = detect_swing_pivots(df, window=15, df_htf=df_htf)
-        if direction.upper() == "LONG":
-            candidate_sls.append(pivots["swing_low"] * (1.0 - buffer_pct))
-            if pivots.get("htf_swing_low") and pivots["htf_swing_low"] < entry_price:
-                candidate_sls.append(pivots["htf_swing_low"] * (1.0 - buffer_pct))
-        else:
-            candidate_sls.append(pivots["swing_high"] * (1.0 + buffer_pct))
-            if pivots.get("htf_swing_high") and pivots["htf_swing_high"] > entry_price:
-                candidate_sls.append(pivots["htf_swing_high"] * (1.0 + buffer_pct))
+    from indicators import detect_swing_pivots, detect_fair_value_gaps
 
-        # 3. Fair Value Gap (FVG) Base Defense
+    # 2. 15-Minute Macro Structural Swing Pivot Detection
+    if df_htf is not None and not df_htf.empty:
+        pivots_15m = detect_swing_pivots(df_htf, window=15)
+        if direction.upper() == "LONG":
+            if pivots_15m["swing_low"] < entry_price:
+                candidate_sls.append(pivots_15m["swing_low"] * (1.0 - buffer_pct))
+        else:
+            if pivots_15m["swing_high"] > entry_price:
+                candidate_sls.append(pivots_15m["swing_high"] * (1.0 + buffer_pct))
+
+    # 3. 5-Minute Intermediate Structural Swing Pivot Detection
+    if df_5m is not None and not df_5m.empty:
+        pivots_5m = detect_swing_pivots(df_5m, window=15)
+        if direction.upper() == "LONG":
+            if pivots_5m["swing_low"] < entry_price:
+                candidate_sls.append(pivots_5m["swing_low"] * (1.0 - buffer_pct))
+        else:
+            if pivots_5m["swing_high"] > entry_price:
+                candidate_sls.append(pivots_5m["swing_high"] * (1.0 + buffer_pct))
+
+    # 4. 1-Minute Execution Swings & Fair Value Gaps
+    if df is not None and not df.empty:
+        pivots_1m = detect_swing_pivots(df, window=10)
+        if direction.upper() == "LONG":
+            candidate_sls.append(pivots_1m["swing_low"] * (1.0 - buffer_pct))
+        else:
+            candidate_sls.append(pivots_1m["swing_high"] * (1.0 + buffer_pct))
+
         fvg_data = detect_fair_value_gaps(df)
         if direction.upper() == "LONG" and fvg_data.get("bullish_fvg"):
             candidate_sls.append(fvg_data["bullish_fvg"] * (1.0 - buffer_pct))
@@ -244,11 +261,12 @@ def calculate_sl_tp(
     score: int = 76,
     df: Optional[pd.DataFrame] = None,
     df_htf: Optional[pd.DataFrame] = None,
+    df_5m: Optional[pd.DataFrame] = None,
     symbol: str = ""
 ) -> Tuple[float, float, float]:
     """
     Standard SL/TP calculator returning (stop_loss, tp1_partial, tp2_runner)
-    anchored on Structural Swing Pivots.
+    anchored on Multi-Timeframe Structural Swing Pivots (15M HTF + 5M Intermediate).
     """
     sl, tp1, tp2, _ = calculate_logical_sl_tp(
         entry_price=entry_price,
@@ -257,6 +275,7 @@ def calculate_sl_tp(
         score=score,
         df=df,
         df_htf=df_htf,
+        df_5m=df_5m,
         symbol=symbol
     )
     return sl, tp1, tp2

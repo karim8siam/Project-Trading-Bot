@@ -243,7 +243,7 @@ def analyze_market(
     features["is_sfp"] = 1.0 if "LIQUIDITY_SWEEP" in active_pattern else 0.0
     features["vol_surge"] = 1.0 if (pa_conf_15m.get("volume_surge") or (pa_conf_5m and pa_conf_5m.get("volume_surge"))) else 0.0
 
-    # Structural Swing Stop-Loss & Two-Stage Take-Profit Calculation (4-Pillar Elite Engine)
+    # Structural Swing Stop-Loss & Two-Stage Take-Profit Calculation (5M + 15M Structural Anchors)
     stop_loss, tp1_partial, tp2_runner = calculate_sl_tp(
         entry_price=current_price,
         atr=current_atr,
@@ -251,6 +251,7 @@ def analyze_market(
         score=score,
         df=df_tf,
         df_htf=df_htf,
+        df_5m=df_micro,
         symbol=symbol
     )
 
