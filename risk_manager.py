@@ -486,15 +486,15 @@ def check_3_pillar_risk_guardrails(
 ) -> Tuple[bool, str]:
     """
     Evaluates Per-Trade & Multi-Pair Opportunity Controls before allowing any trade:
-    - Dynamic open positions limit tailored to account balance (e.g. max 3 for $13-$20)
-    - Duplicate position check (Max 1 position per coin)
+    - Allows all valid qualified opportunities across all whitelisted pairs (no arbitrary cap).
+    - Duplicate position check (Max 1 position per coin).
+    - Strict <= 1.0% portfolio risk per trade.
     """
     open_trades = get_open_trades()
 
-    # Calculate safe dynamic concurrent position limit so free margin is never exhausted
-    dynamic_max_trades = max(2, min(MAX_OPEN_TRADES, int(account_balance / 3.5)))
-    if len(open_trades) >= dynamic_max_trades:
-        return False, f"Dynamic position ceiling reached ({len(open_trades)}/{dynamic_max_trades} active for ${account_balance:.2f} equity). Preserving free margin for highest conviction trades."
+    # Max concurrent unique pair cap (up to 20 whitelisted pairs)
+    if len(open_trades) >= MAX_OPEN_TRADES:
+        return False, f"Maximum global portfolio capacity reached ({len(open_trades)}/{MAX_OPEN_TRADES} active)."
 
     # Symbol Anti-Whipsaw Cooldown check
     in_cd, rem_mins = is_symbol_in_cooldown(symbol)
@@ -505,7 +505,7 @@ def check_3_pillar_risk_guardrails(
     if symbol in [t["symbol"] for t in open_trades]:
         return False, f"Position already active for {symbol}. No duplicate exposure allowed."
 
-    return True, f"Risk Guardrails Passed ({len(open_trades)}/{dynamic_max_trades} active)."
+    return True, f"Risk Guardrails Passed ({len(open_trades)}/{MAX_OPEN_TRADES} active)."
 
 
 # =========================================================================
