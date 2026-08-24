@@ -8,8 +8,10 @@ from typing import Dict, Any, List, Optional
 from config import TRADING_BOT_DB, USE_POSTGRES
 from database import get_db
 
-BINANCE_API_KEY = "6798eebc95fbb041285223a7e78ba77feeb7f95561a0f8bfdfcb7fb2ef45bfa3"
-BINANCE_API_SECRET = "cbba285888e285a8501e5138ce3fc2580ecad32537dbf2e1fa074747ebafbe34"
+import os
+
+BINANCE_API_KEY = os.getenv("BINANCE_API_KEY", "TlR1bv4jMTVhILGzPt2BL915GELBIHDMtvvG7mQGCeYoviSnvJok9XZgmJx1pvPS")
+BINANCE_API_SECRET = os.getenv("BINANCE_API_SECRET", "TJzC1PwimDtePApOGzt5MufLdtWGH4beX0ULLaaaoIH8N0S6WCnLlLzDCAiyHlbF")
 BINANCE_BASE_URL = "https://fapi.binance.com"
 
 
