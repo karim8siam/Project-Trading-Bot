@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexTrade AI &bull; Master Admin Portal (Restricted)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-badge {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--accent-amber);
+      color: var(--accent-amber);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+    }
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .admin-grid { grid-template-columns: 1fr; }
+    }
+    .admin-gate-card {
+      max-width: 440px;
+      margin: 4rem auto;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header>
+    <nav class="navbar">
+      <a href="/" class="logo">
+        <span class="logo-text">ApexTrade <span style="color: var(--accent-amber);">ADMIN</span></span>
+      </a>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <span class="admin-badge" id="auth-status-badge">🔒 ACCESS RESTRICTED</span>
+        <button class="btn btn-outline btn-sm" id="btn-admin-logout" style="display: none;">Log Out</button>
+        <a href="/" class="btn btn-outline btn-sm">← Back to Site</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ADMIN PASSKEY GATE SCREEN -->
+  <div id="admin-gate-section" style="padding: 0 1.5rem;">
+    <div class="card admin-gate-card" style="border-color: rgba(245, 158, 11, 0.4);">
+      <div style="font-size: 3rem; margin-bottom: 0.5rem;">🛡️</div>
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Master Admin Authorization</h2>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+        This portal is restricted exclusively to the platform administrator. Enter your master passkey to review and authorize user withdrawal confirmations.
+      </p>
+
+      <form id="form-admin-auth">
+        <div class="input-field-group" style="text-align: left;">
+          <label class="input-label" for="input-admin-passkey">Master Admin Passkey</label>
+          <input type="password" class="text-input" id="input-admin-passkey" placeholder="Enter admin passkey..." required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; background: linear-gradient(135deg, var(--accent-amber), #ef4444); color: #0b1120; font-weight: 800;" id="btn-submit-admin-auth">
+          🔓 Unlock Master Admin Console
+        </button>
+
+        <div class="form-alert" id="admin-auth-alert" style="display: none; margin-top: 1rem;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- AUTHENTICATED ADMIN DASHBOARD -->
+  <main id="admin-main-content" style="max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; display: none;">
+
+    <!-- Admin Header -->
+    <div class="dashboard-header" style="border-color: rgba(245, 158, 11, 0.3);">
+      <div class="user-profile-summary">
+        <div class="user-avatar" style="background: linear-gradient(135deg, var(--accent-amber), #ef4444); color: #0b1120;">👑</div>
+        <div>
+          <div class="user-email-row">
+            <span class="user-email">System Administrator Console</span>
+            <span class="status-badge active" style="background: rgba(245, 158, 11, 0.15); border-color: var(--accent-amber); color: var(--accent-amber);">SYSTEM OPERATOR AUTHORIZED</span>
+          </div>
+          <div class="user-wallet-row">
+            <span class="wallet-label">Master Platform Deposit Vault Address:</span>
+            <span class="wallet-address mono" id="admin-vault-addr" style="color: var(--accent-cyan);">0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-balance-block">
+        <div class="balance-title">Awaiting Withdrawals</div>
+        <div class="balance-amount" style="color: var(--accent-amber);" id="admin-header-pending-count">0 <span style="font-size: 1rem; color: var(--text-secondary);">Requests</span></div>
+      </div>
+    </div>
+
+    <!-- SECTION 1: CENTRALIZED WITHDRAWAL CONFIRMATION QUEUE (ALL USERS) -->
+    <div class="card" style="margin-top: 2rem; border-color: rgba(245, 158, 11, 0.5);">
+      <div class="card-title">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span>🛡️ Centralized User Withdrawal Confirmation Hub</span>
+          <span class="status-badge pending" id="admin-pending-badge">0 PENDING</span>
+        </div>
+        <button class="btn btn-outline btn-sm" id="btn-refresh-admin-withdrawals">↻ Refresh All Requests</button>
+      </div>
+
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+        Withdrawal requests from <strong>ALL platform users</strong> aggregate here. When you click <strong>Approve</strong>, funds are dispatched directly from the <strong>Master System Address (0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0)</strong> to the user's BEP-20 address.
+      </p>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Req ID</th>
+              <th>User Email</th>
+              <th>Withdrawal Amount</th>
+              <th>Destination BEP-20 Wallet</th>
+              <th>Requested Date</th>
+              <th>Admin Confirmation & Payout Action</th>
+            </tr>
+          </thead>
+          <tbody id="admin-withdrawals-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                No pending withdrawal requests. All requests from all users will appear here.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 2: ALL USERS' CONFIRMED DEPOSITS LEDGER -->
+    <div class="card" style="margin-top: 2rem;">
+      <div class="card-title">
+        <span>📜 All Users' Confirmed On-Chain Deposits (Master Audit Log)</span>
+        <button class="btn btn-outline btn-sm" id="btn-refresh-admin-deposits">↻ Refresh Deposits</button>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Date / Time</th>
+              <th>User Email</th>
+              <th>Amount ($ USDT)</th>
+              <th>Sender BEP-20</th>
+              <th>TxHash</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="admin-deposits-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No deposits loaded yet.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <footer style="margin-top: 3rem;">
+    <div>ApexTrade AI Master Administration Console &bull; Confidential &bull; Authorized Operator Access Only</div>
+  </footer>
+
+  <script src="/js/admin.js"></script>
+</body>
+</html>
