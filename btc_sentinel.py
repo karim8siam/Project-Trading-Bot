@@ -80,7 +80,7 @@ class BTCSentinelEngine:
                 "reason": "BTC Data Stream Buffering"
             }
 
-        # 1. Flash Shockwave Check (1M data)
+        # 1. Flash Shockwave Check (1M micro-data)
         roc_3m = 0.0
         is_flash_spike = False
         if df_1m is not None and not df_1m.empty and len(df_1m) >= 5:
@@ -88,33 +88,36 @@ class BTCSentinelEngine:
             prev_p = float(df_1m.iloc[-4]["close"])
             roc_3m = ((last_p - prev_p) / prev_p) * 100.0
 
-            # Detect extreme rapid liquidation wicks (> 0.45% in 3 mins)
-            if abs(roc_3m) >= 0.45:
+            # Detect extreme rapid liquidation wicks (> 0.40% in 3 mins)
+            if abs(roc_3m) >= 0.40:
                 is_flash_spike = True
-                self.flash_lockout_until = now + 180.0  # 3-minute cooling lockout
+                self.flash_lockout_until = now + 120.0  # 2-minute cooling lockout
 
-        # 2. 1-Hour Macro Analysis
-        df_1h = add_all_indicators(df_1h)
-        h_last = df_1h.iloc[-1]
-        h_close = float(h_last["close"])
-        h_ema20 = float(h_last.get("ema_20", h_close))
-        h_ema50 = float(h_last.get("ema_50", h_close))
-        h_rsi = float(h_last.get("rsi_14", 50.0))
-        h_adx = float(h_last.get("adx_14", 20.0))
-
-        macro_bull = h_close > h_ema50 and h_ema20 >= h_ema50
-        macro_bear = h_close < h_ema50 and h_ema20 <= h_ema50
-
-        # 3. 15-Minute Intraday Momentum Analysis
+        # 2. 15-Minute Macro Analysis (Aligns with 1M/15M Architecture)
         df_15m = add_all_indicators(df_15m)
-        m_last = df_15m.iloc[-1]
-        m_close = float(m_last["close"])
-        m_ema9 = float(m_last.get("ema_9", m_close))
-        m_ema21 = float(m_last.get("ema_21", m_close))
-        m_rsi = float(m_last.get("rsi_14", 50.0))
+        m15_last = df_15m.iloc[-1]
+        m15_close = float(m15_last["close"])
+        m15_ema20 = float(m15_last.get("ema_20", m15_close))
+        m15_ema50 = float(m15_last.get("ema_50", m15_close))
+        m15_rsi = float(m15_last.get("rsi_14", 50.0))
+        m15_adx = float(m15_last.get("adx_14", 20.0))
 
-        intra_bull = m_close > m_ema21 and m_ema9 >= m_ema21
-        intra_bear = m_close < m_ema21 and m_ema9 <= m_ema21
+        macro_bull = m15_close > m15_ema50 and m15_ema20 >= m15_ema50
+        macro_bear = m15_close < m15_ema50 and m15_ema20 <= m15_ema50
+
+        # 3. 5-Minute Intermediate Momentum Analysis
+        df_5m = data.get("5m")
+        if df_5m is not None and not df_5m.empty:
+            df_5m = add_all_indicators(df_5m)
+            m5_last = df_5m.iloc[-1]
+            m5_close = float(m5_last["close"])
+            m5_ema9 = float(m5_last.get("ema_9", m5_close))
+            m5_ema21 = float(m5_last.get("ema_21", m5_close))
+            intra_bull = m5_close > m5_ema21 and m5_ema9 >= m5_ema21
+            intra_bear = m5_close < m5_ema21 and m5_ema9 <= m5_ema21
+        else:
+            intra_bull = macro_bull
+            intra_bear = macro_bear
 
         # 4. State Synthesis
         if is_flash_spike:
@@ -122,47 +125,47 @@ class BTCSentinelEngine:
             bias = "NEUTRAL_LOCKED"
             allow_long = False
             allow_short = False
-            reason = f"BTC Flash Shockwave ({roc_3m:+.2f}% 3m Spike). Trading paused for 3 mins."
+            reason = f"BTC Flash Shockwave ({roc_3m:+.2f}% 3m Spike). Scalping paused for 2 mins."
         elif macro_bull and intra_bull:
             state_name = "BTC_EXPANSION_BULL"
             bias = "AGGRESSIVE_BULL"
             allow_long = True
             allow_short = False  # Strictly NO shorts when BTC is pumping
-            reason = f"Bitcoin Pumping: 1H & 15M Bull Alignment (Price: ${h_close:,.2f} > EMA50 ${h_ema50:,.2f})"
+            reason = f"Bitcoin Pumping: 15M & 5M Bull Alignment (Price: ${m15_close:,.2f} > 15M EMA50 ${m15_ema50:,.2f})"
         elif macro_bear and intra_bear:
             state_name = "BTC_EXPANSION_BEAR"
             bias = "AGGRESSIVE_BEAR"
             allow_long = False  # Strictly NO longs when BTC is dumping
             allow_short = True
-            reason = f"Bitcoin Dumping: 1H & 15M Bear Alignment (Price: ${h_close:,.2f} < EMA50 ${h_ema50:,.2f})"
+            reason = f"Bitcoin Dumping: 15M & 5M Bear Alignment (Price: ${m15_close:,.2f} < 15M EMA50 ${m15_ema50:,.2f})"
         elif macro_bull:
             state_name = "BTC_MODERATE_BULL"
             bias = "BULL_BIAS"
             allow_long = True
             allow_short = False
-            reason = f"Bitcoin Macro Bullish (Price > 1H EMA50 ${h_ema50:,.2f})"
+            reason = f"Bitcoin Macro Bullish (Price > 15M EMA50 ${m15_ema50:,.2f})"
         elif macro_bear:
             state_name = "BTC_MODERATE_BEAR"
             bias = "BEAR_BIAS"
             allow_long = False
             allow_short = True
-            reason = f"Bitcoin Macro Bearish (Price < 1H EMA50 ${h_ema50:,.2f})"
+            reason = f"Bitcoin Macro Bearish (Price < 15M EMA50 ${m15_ema50:,.2f})"
         else:
             state_name = "BTC_BALANCED_RANGE"
             bias = "NEUTRAL"
             allow_long = True
             allow_short = True
-            reason = f"Bitcoin Consolidating in Neutral Range (${h_close:,.2f})"
+            reason = "Bitcoin Sideways Range (15M Neutral Chop)"
 
         res = {
             "state": state_name,
             "bias": bias,
             "allow_long": allow_long,
             "allow_short": allow_short,
-            "btc_price": h_close,
+            "btc_price": m15_close,
             "roc_3m": round(roc_3m, 2),
-            "1h_rsi": round(h_rsi, 1),
-            "1h_adx": round(h_adx, 1),
+            "15m_rsi": round(m15_rsi, 1),
+            "15m_adx": round(m15_adx, 1),
             "reason": reason,
             "timestamp": now
         }
