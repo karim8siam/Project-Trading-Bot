@@ -211,9 +211,9 @@ def analyze_market(
                 "reason": v_reason
             }
 
-    # Minimum baseline filter: Score must be at least 80/100 (PERFECT GRADE-S 🔥)
-    if score < 80:
-        v_reason = f"Confluence score {score}/100 is below minimum threshold 80"
+    # Minimum baseline filter: Score must be at least 82/100 (PERFECT GRADE-S+++ 🔥)
+    if score < 82:
+        v_reason = f"Confluence score {score}/100 is below minimum threshold 82"
         return {
             "has_signal": False,
             "symbol": symbol,
