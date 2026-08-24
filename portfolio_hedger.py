@@ -59,31 +59,22 @@ class PortfolioHedger:
         hedge_direction = "SHORT"
         reason = ""
 
-        if hedge_count < self.max_hedges:
-            # Condition 1: Heavy Long Skew (>= 4 Longs and 0 Shorts)
-            if long_count >= self.min_skew_positions and short_count == 0:
-                hedge_needed = True
-                hedge_direction = "SHORT"
-                reason = f"Directional Long Skew ({long_count} Longs / 0 Shorts). Short Hedge needed."
+        # Condition 1: Heavy Long Skew (>= 3 Longs and 0 Shorts)
+        if long_count >= 3 and short_count == 0:
+            hedge_needed = True
+            hedge_direction = "SHORT"
+            reason = f"Directional Long Skew ({long_count} Longs / 0 Shorts). Short Counter-Hedge needed."
 
-            # Condition 2: Dynamic Percentage Drawdown Trigger (e.g. -0.80% to max -5.0%)
-            elif (
-                drawdown_pct <= -self.drawdown_threshold_pct
-                and abs(drawdown_pct) <= self.max_allowed_drawdown_pct
-                and long_count >= 3
-                and short_count == 0
-            ):
-                hedge_needed = True
-                hedge_direction = "SHORT"
-                reason = (
-                    f"Dynamic Portfolio Drawdown ({drawdown_pct:.2f}% of balance <= -{self.drawdown_threshold_pct:.2f}%). "
-                    f"Short Hedge needed to absorb pullback."
-                )
+        # Condition 2: Heavy Short Skew (>= 3 Shorts and 0 Longs)
+        elif short_count >= 3 and long_count == 0:
+            hedge_needed = True
+            hedge_direction = "LONG"
+            reason = f"Directional Short Skew ({short_count} Shorts / 0 Longs). Long Counter-Hedge needed."
 
         return {
             "long_count": long_count,
             "short_count": short_count,
-            "hedge_count": hedge_count,
+            "hedge_count": short_count if hedge_direction == "SHORT" else long_count,
             "total_unrealized_pnl": round(total_unrealized_pnl, 4),
             "drawdown_pct": round(drawdown_pct, 2),
             "active_symbols": list(active_symbols),

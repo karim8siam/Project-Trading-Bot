@@ -118,51 +118,6 @@ def run_single_iteration(verbose: bool = True) -> Dict[str, Any]:
         except Exception as e:
             print(f"  [ERROR] Failed to scan {symbol}: {e}")
 
-    # =========================================================================
-    # PORTFOLIO DELTA HEDGE SENTINEL (TURNING POINT)
-    # =========================================================================
-    try:
-        from portfolio_hedger import portfolio_hedger
-        open_trades_curr = get_open_trades()
-        hedge_status = portfolio_hedger.evaluate_portfolio_state(open_trades_curr, total_balance=balance)
-        if hedge_status.get("hedge_needed"):
-            if verbose:
-                print(f"\n[Delta Hedger] 🛡️ SKEW TRIGGER: {hedge_status['reason']}")
-            hedge_cand = portfolio_hedger.scan_for_hedge_candidate(
-                active_symbols=hedge_status["active_symbols"],
-                target_direction=hedge_status["hedge_direction"]
-            )
-            if hedge_cand:
-                if verbose:
-                    print(
-                        f"  [DELTA HEDGE DETECTED] ⚔️ {hedge_cand['direction']} on {hedge_cand['symbol']} "
-                        f"({hedge_cand['reason']}) | Score: {hedge_cand['score']}/100"
-                    )
-                # Form signal payload for execution with 5.0% dedicated risk
-                hedge_signal = {
-                    "symbol": hedge_cand["symbol"],
-                    "direction": hedge_cand["direction"],
-                    "strategy": "DELTA_HEDGE_SNIPER",
-                    "score": 95,
-                    "current_price": hedge_cand["current_price"],
-                    "stop_loss": hedge_cand["stop_loss"],
-                    "take_profit": hedge_cand["take_profit"],
-                    "atr": hedge_cand["atr"],
-                    "risk_pct": 5.0,
-                    "ml_confidence": 0.70,
-                    "ml_approved": True,
-                    "has_signal": True,
-                    "reason": hedge_cand["reason"]
-                }
-                exec_res = executor.execute_signal(hedge_signal, account_balance=balance)
-                if verbose:
-                    if exec_res.get("success"):
-                        print(f"    -> [HEDGE ORDER PLACED] Trade ID: {exec_res.get('trade_id')} | {hedge_cand['symbol']} {hedge_cand['direction']} (5.0% Risk)")
-                    else:
-                        print(f"    -> [HEDGE ORDER REJECTED] {exec_res.get('reason')}")
-    except Exception as e:
-        print(f"[Delta Hedger Error]: {e}")
-
     # Summary Line
     open_trades = get_open_trades()
     perf = get_performance_summary()
