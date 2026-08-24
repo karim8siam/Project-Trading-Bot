@@ -163,22 +163,18 @@ def calculate_logical_sl_tp(
     4. Two-Stage Take-Profit Payout (1:1.2 R:R TP1 & 1:2.5 R:R TP2).
     Returns: (stop_loss, tp1_partial, tp2_runner, rr_ratio)
     """
-    # 1. Coin-Specific Volatility Regime Floor (Upgrade 2)
-    high_beta_coins = {"DOGE/USDT", "PEPE/USDT", "1000PEPE/USDT", "SUI/USDT", "TIA/USDT", "RENDER/USDT", "INJ/USDT", "ARB/USDT", "OP/USDT", "FET/USDT", "SEI/USDT", "AVAX/USDT", "LINK/USDT", "APT/USDT"}
-    is_high_beta = symbol.upper() in high_beta_coins
-    beta_min_pct = 0.018 if is_high_beta else 0.010  # 1.8% floor for high-beta alts, 1.0% floor for majors
-    
-    beta_min_pct = max(0.012, beta_min_pct)  # Minimum 1.2% hard stop buffer to prevent noise wicks
-    min_sl_dist = max(atr * 1.8, entry_price * beta_min_pct)
-    max_sl_dist = max(atr * 4.0, entry_price * 0.045)
-    buffer_pct = max(0.005, (atr * 0.6) / entry_price)  # 0.5% - 0.8% structural invalidation cushion
+    # 1. 1-Minute Micro-Scalping Volatility Buffer
+    beta_min_pct = 0.006 if symbol.upper() in {"DOGE/USDT", "PEPE/USDT", "SUI/USDT", "FET/USDT"} else 0.004  # 0.4% - 0.6% for 1M Scalps
+    min_sl_dist = max(atr * 1.4, entry_price * beta_min_pct)
+    max_sl_dist = max(atr * 3.5, entry_price * 0.025)
+    buffer_pct = max(0.002, (atr * 0.5) / entry_price)  # 0.2% - 0.4% micro-pivot invalidation cushion
 
     candidate_sls = []
 
-    # 2. Dual-Timeframe (1H + 15M) Structural Swing Pivot Detection (Upgrade 1)
+    # 2. Dual-Timeframe (15M HTF + 1M Micro) Structural Swing Pivot Detection
     if df is not None and not df.empty:
         from indicators import detect_swing_pivots, detect_fair_value_gaps
-        pivots = detect_swing_pivots(df, window=25, df_htf=df_htf)
+        pivots = detect_swing_pivots(df, window=15, df_htf=df_htf)
         if direction.upper() == "LONG":
             candidate_sls.append(pivots["swing_low"] * (1.0 - buffer_pct))
             if pivots.get("htf_swing_low") and pivots["htf_swing_low"] < entry_price:
@@ -188,7 +184,7 @@ def calculate_logical_sl_tp(
             if pivots.get("htf_swing_high") and pivots["htf_swing_high"] > entry_price:
                 candidate_sls.append(pivots["htf_swing_high"] * (1.0 + buffer_pct))
 
-        # 3. Fair Value Gap (FVG) Base Defense (Upgrade 3)
+        # 3. Fair Value Gap (FVG) Base Defense
         fvg_data = detect_fair_value_gaps(df)
         if direction.upper() == "LONG" and fvg_data.get("bullish_fvg"):
             candidate_sls.append(fvg_data["bullish_fvg"] * (1.0 - buffer_pct))
@@ -206,11 +202,11 @@ def calculate_logical_sl_tp(
             candidate_sls.append(ema200_price * (1.0 - buffer_pct))
 
         # Default fallback
-        candidate_sls.append(entry_price - max(atr * 1.8, entry_price * beta_min_pct))
+        candidate_sls.append(entry_price - max(atr * 1.4, entry_price * beta_min_pct))
 
         # Filter candidates within acceptable institutional range
         valid_sls = [sl for sl in candidate_sls if (entry_price - sl) >= min_sl_dist and (entry_price - sl) <= max_sl_dist]
-        stop_loss = min(valid_sls) if valid_sls else (entry_price - max(atr * 1.8, entry_price * beta_min_pct))
+        stop_loss = min(valid_sls) if valid_sls else (entry_price - max(atr * 1.4, entry_price * beta_min_pct))
 
         sl_distance = max(entry_price - stop_loss, min_sl_dist)
         tp1 = entry_price + (sl_distance * 0.5)  # Fast Scalp TP @ 0.5R Target
@@ -226,10 +222,10 @@ def calculate_logical_sl_tp(
         if ema200_price and ema200_price > entry_price:
             candidate_sls.append(ema200_price * (1.0 + buffer_pct))
 
-        candidate_sls.append(entry_price + max(atr * 1.8, entry_price * beta_min_pct))
+        candidate_sls.append(entry_price + max(atr * 1.4, entry_price * beta_min_pct))
 
         valid_sls = [sl for sl in candidate_sls if (sl - entry_price) >= min_sl_dist and (sl - entry_price) <= max_sl_dist]
-        stop_loss = max(valid_sls) if valid_sls else (entry_price + max(atr * 1.8, entry_price * beta_min_pct))
+        stop_loss = max(valid_sls) if valid_sls else (entry_price + max(atr * 1.4, entry_price * beta_min_pct))
 
         sl_distance = max(stop_loss - entry_price, min_sl_dist)
         tp1 = entry_price - (sl_distance * 0.5)  # Fast Scalp TP @ 0.5R Target
@@ -524,8 +520,8 @@ def register_symbol_stop_out(symbol: str):
     """Registers a stop-loss event to prevent rapid re-entry into chop."""
     SYMBOL_COOLDOWN_TIMESTAMPS[symbol] = time.time()
 
-def is_symbol_in_cooldown(symbol: str, cooldown_seconds: int = 1800) -> Tuple[bool, int]:
-    """Checks if symbol is in 30-minute anti-whipsaw protection window."""
+def is_symbol_in_cooldown(symbol: str, cooldown_seconds: int = 300) -> Tuple[bool, int]:
+    """Checks if symbol is in 5-minute anti-whipsaw protection window (for 1M scalps)."""
     last_stop = SYMBOL_COOLDOWN_TIMESTAMPS.get(symbol, 0.0)
     elapsed = time.time() - last_stop
     if elapsed < cooldown_seconds:

@@ -57,16 +57,16 @@ SNIPER_SYMBOLS_87_PCT = [
 
 ALLOWED_SYMBOLS = CORE_MAJOR_SYMBOLS + HIGH_RISK_SYMBOLS_80_PCT + SNIPER_SYMBOLS_87_PCT
 
-# Supported timeframes (default 15m)
-DEFAULT_TIMEFRAME = os.getenv("DEFAULT_TIMEFRAME", "15m")
-HIGHER_TIMEFRAME = os.getenv("HIGHER_TIMEFRAME", "1h")  # For macro trend confirmation
+# Supported timeframes (1m execution with 15m macro filter)
+DEFAULT_TIMEFRAME = os.getenv("DEFAULT_TIMEFRAME", "1m")
+HIGHER_TIMEFRAME = os.getenv("HIGHER_TIMEFRAME", "15m")  # For macro trend confirmation
 
 # ==========================================
-# 3. RISK MANAGEMENT RULES (STRICT 1%)
+# 3. RISK MANAGEMENT RULES (STRICT 1% & MAX 4 TRADES)
 # ==========================================
 RISK_PER_TRADE_PERCENT = float(os.getenv("RISK_PER_TRADE_PERCENT", "1.0"))  # 1.0% of total balance
 DEFAULT_LEVERAGE = int(os.getenv("DEFAULT_LEVERAGE", "5"))  # 5x isolated
-MAX_OPEN_TRADES = int(os.getenv("MAX_OPEN_TRADES", "20"))  # 1 position per coin max across all 20 whitelisted pairs
+MAX_OPEN_TRADES = int(os.getenv("MAX_OPEN_TRADES", "4"))  # Hard cap: Maximum 4 concurrent trades at a time
 MAX_DAILY_LOSS_PERCENT = float(os.getenv("MAX_DAILY_LOSS_PERCENT", "3.0"))  # Kill switch at 3% daily drawdown
 
 # Take-Profit & Stop-Loss Multipliers (ATR-based)
