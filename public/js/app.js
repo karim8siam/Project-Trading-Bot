@@ -34,6 +34,22 @@ window.App = {
         this.loadVaultSummary();
       }
     }, 10000);
+
+    // 3. Listen for #admin URL hash or Ctrl+Shift+A / Cmd+Shift+A shortcut
+    if (window.location.hash === "#admin") {
+      this.openAdminAuthModal();
+    }
+    window.addEventListener("hashchange", () => {
+      if (window.location.hash === "#admin") {
+        this.openAdminAuthModal();
+      }
+    });
+    window.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "A" || e.key === "a")) {
+        e.preventDefault();
+        this.openAdminAuthModal();
+      }
+    });
   },
 
   showToast: function (msg, isError = false) {

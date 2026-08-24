@@ -34,7 +34,7 @@
           </svg>
         </div>
         <span>ORBITAL<span style="color: var(--primary-cyan)">.TRADING</span></span>
-        <span class="brand-badge">BSC BEP-20</span>
+        <span class="brand-badge" style="cursor: pointer;" onclick="window.App.openAdminAuthModal();" title="Click to open Master Portal">BSC BEP-20</span>
       </a>
 
       <!-- Center Navigation Tabs (Logged-in only) -->
@@ -844,6 +844,20 @@
       </button>
     </div>
   </div>
+
+  <!-- Platform Footer -->
+  <footer style="border-top: 1px solid var(--border-subtle); padding: 2rem 0; margin-top: 3rem; text-align: center; font-size: 0.78rem; color: var(--text-muted);">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        © 2026 Orbital Trading Platform • Automated Web3 Quantitative Vaults • 24h Yield Engine
+      </div>
+      <div style="display: flex; gap: 1.25rem;">
+        <a href="#admin" onclick="window.App.openAdminAuthModal(); return false;" style="color: var(--text-secondary); text-decoration: none; display: flex; align-items: center; gap: 4px;">
+          <span>👑</span> <span>Master Portal</span>
+        </a>
+      </div>
+    </div>
+  </footer>
 
   <!-- Toast Notification Container -->
   <div id="toastContainer"></div>
