@@ -332,6 +332,10 @@
 
         if (res.ok && data.success) {
           sessionStorage.setItem("orbital_master_admin_verified", "true");
+          if (data.token) {
+            adminToken = data.token;
+            localStorage.setItem("orbital_device_token", data.token);
+          }
           showToast(data.message);
           checkAdminAuth();
         } else {
