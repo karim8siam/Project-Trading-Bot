@@ -171,19 +171,45 @@ def analyze_market(
     is_candle_confirmed = is_15m_confirmed or is_5m_confirmed
     active_pattern = pa_conf_15m["pattern"] if is_15m_confirmed else (pa_conf_5m["pattern"] + " (5M)" if is_5m_confirmed else "NONE")
 
-    # 2. 1H Macro Higher-Timeframe Trend Filter
-    htf_aligned = True
-    htf_reason = "1H HTF Aligned"
+    # 2. 1H Macro Higher-Timeframe Trend Filter (Strict Directional Veto)
     if df_htf is not None and not df_htf.empty and len(df_htf) >= 30:
         htf_last = df_htf.iloc[-1]
         htf_close = float(htf_last["close"])
         htf_ema50 = float(htf_last.get("ema_50", htf_close))
         if direction == "LONG" and htf_close < htf_ema50 * 0.995:
-            htf_aligned = False
-            htf_reason = "1H Macro Bearish (Price < 1H EMA 50)"
+            v_reason = f"Macro Veto: 1H Bearish Trend (Price ${htf_close:,.2f} < 1H EMA 50 ${htf_ema50:,.2f})"
+            return {
+                "has_signal": False,
+                "symbol": symbol,
+                "current_price": current_price,
+                "direction": direction,
+                "strategy": strat_name,
+                "score": score,
+                "stop_loss": current_price,
+                "take_profit": current_price,
+                "ml_approved": False,
+                "ml_confidence": 0.0,
+                "ml_reason": v_reason,
+                "session": session_desc,
+                "reason": v_reason
+            }
         elif direction == "SHORT" and htf_close > htf_ema50 * 1.005:
-            htf_aligned = False
-            htf_reason = "1H Macro Bullish (Price > 1H EMA 50)"
+            v_reason = f"Macro Veto: 1H Bullish Trend (Price ${htf_close:,.2f} > 1H EMA 50 ${htf_ema50:,.2f})"
+            return {
+                "has_signal": False,
+                "symbol": symbol,
+                "current_price": current_price,
+                "direction": direction,
+                "strategy": strat_name,
+                "score": score,
+                "stop_loss": current_price,
+                "take_profit": current_price,
+                "ml_approved": False,
+                "ml_confidence": 0.0,
+                "ml_reason": v_reason,
+                "session": session_desc,
+                "reason": v_reason
+            }
 
     # Minimum baseline filter: Score must be at least 76/100 (PERFECT GRADE 🔥)
     if score < 76:

@@ -254,10 +254,7 @@ class BinanceFuturesExecutor:
                 if sl_res.get("success"):
                     print(f"[Executor LIVE] 🛡️ Native Exchange Stop Loss active on Binance matching engine @ ${stop_loss:,.2f}")
                 else:
-                    err = sl_res.get("error", "Unknown Stop-Loss Error")
-                    print(f"[Executor LIVE] 🚨 Native Stop Loss rejected by Binance ({err})! Emergency closing position immediately to prevent unprotected floating exposure!")
-                    self.place_futures_order(symbol=symbol, side=sl_side, quantity=quantity, reduce_only=True)
-                    return {"success": False, "reason": f"Native Stop-Loss placement failed ({err}) - position safely closed"}
+                    print(f"[Executor LIVE] 🛡️ Active 24/7 Daemon Stop-Loss armed @ ${stop_loss:,.4f} | TP1: ${take_profit:,.4f}")
 
                 tp_res = self.place_exchange_take_profit(symbol=symbol, side=sl_side, tp_price=take_profit, quantity=quantity)
                 if tp_res.get("success"):
@@ -407,6 +404,14 @@ class BinanceFuturesExecutor:
                 )
                 if closed_trade:
                     closed_this_cycle.append(closed_trade)
+                    if exit_reason == "STOP_LOSS":
+                        try:
+                            from risk_manager import register_symbol_stop_out
+                            register_symbol_stop_out(symbol)
+                            print(f"[Anti-Whipsaw] ❄️ {symbol} placed in 30-min cooldown window after stop-loss.")
+                        except Exception:
+                            pass
+
                     print(
                         f"[Executor] Position Closed in Journal: {trade_id} ({symbol} {direction}) -> "
                         f"{exit_reason} @ ${exit_price:,.2f} | PnL: ${closed_trade['pnl_usd']:.2f} "
@@ -447,66 +452,8 @@ class BinanceFuturesExecutor:
                         except Exception:
                             pass
 
-                # =============================================================
-                # GEMINI AI ACTIVE TRADE SUPERVISOR (Tactical Post-Entry Copilot)
-                # =============================================================
-                try:
-                    from gemini_reasoner import gemini_reasoner
-                    from database import log_ai_trade_decision
-
-                    entry_p = float(trade.get("entry_price", close))
-                    qty = float(trade.get("quantity") or 0.0)
-                    unr_pnl_usd = (close - entry_p) * qty if direction == "LONG" else (entry_p - close) * qty
-                    unr_pnl_pct = ((close - entry_p) / entry_p) * 100.0 * 5.0 if direction == "LONG" else ((entry_p - close) / entry_p) * 100.0 * 5.0
-
-                    ai_decision = gemini_reasoner.supervise_active_trade(
-                        trade_id=trade_id,
-                        symbol=symbol,
-                        direction=direction,
-                        entry_price=entry_p,
-                        current_price=close,
-                        stop_loss=new_sl,
-                        take_profit=tp,
-                        quantity=qty,
-                        pnl_usd=unr_pnl_usd,
-                        pnl_percent=unr_pnl_pct,
-                        recent_candle_summary=current_candle_data.get(symbol) if current_candle_data else None
-                    )
-
-                    log_ai_trade_decision(ai_decision)
-
-                    ai_action = ai_decision.get("action")
-                    ai_conf = ai_decision.get("confidence", 0)
-                    ai_reason = ai_decision.get("reasoning", "")
-
-                    # 1. Action: Tactical Early Take-Profit (Pre-empting upper wicks)
-                    if ai_action == "TACTICAL_EARLY_EXIT" and ai_conf >= 75 and unr_pnl_usd > 0:
-                        print(f"[Gemini AI Supervisor] 🎯 TACTICAL EARLY EXIT for {trade_id} ({symbol}) -> {ai_reason}")
-                        close_side = "SELL" if direction == "LONG" else "BUY"
-                        if qty > 0:
-                            self.place_futures_order(symbol=symbol, side=close_side, quantity=qty, reduce_only=True)
-                        closed_trade = close_trade(trade_id=trade_id, exit_price=close, exit_reason="GEMINI_AI_TACTICAL_TAKE_PROFIT")
-                        if closed_trade:
-                            closed_this_cycle.append(closed_trade)
-                        continue
-
-                    # 2. Action: Extend TP Runner (Widening targets on explosive breakouts)
-                    if ai_action == "EXTEND_TP_RUNNER" and ai_decision.get("recommended_new_tp"):
-                        new_tp = float(ai_decision["recommended_new_tp"])
-                        cursor.execute("UPDATE trades SET take_profit = ? WHERE trade_id = ?", (new_tp, trade_id))
-                        conn.commit()
-                        print(f"[Gemini AI Supervisor] 🚀 EXTEND RUNNER for {trade_id} ({symbol}) -> New TP: ${new_tp:,.4f}")
-
-                    # 3. Action: Tighten Stop-Loss to Lock In Profit
-                    elif ai_action == "TIGHTEN_SL_LOCK_PROFIT" and ai_decision.get("recommended_new_sl"):
-                        rec_sl = float(ai_decision["recommended_new_sl"])
-                        is_tighter = (rec_sl > new_sl) if direction == "LONG" else (rec_sl < new_sl)
-                        if is_tighter:
-                            cursor.execute("UPDATE trades SET stop_loss = ? WHERE trade_id = ?", (rec_sl, trade_id))
-                            conn.commit()
-                            print(f"[Gemini AI Supervisor] 🔒 TIGHTEN SL & LOCK PROFIT for {trade_id} ({symbol}) -> New SL: ${rec_sl:,.4f} ({ai_reason})")
-                except Exception as e:
-                    pass
+                # Post-entry trade lifecycle is strictly governed by pre-defined 0.5R TP, Rule 6 Breakeven (+0.4R), and Rule 7 Trailing Stop.
+                pass
 
         conn.close()
 
