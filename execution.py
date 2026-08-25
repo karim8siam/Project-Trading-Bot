@@ -518,10 +518,12 @@ class BinanceFuturesExecutor:
             if not live_active_positions:
                 return False, 0.0, 0.0
 
-            target_profit_threshold = balance * 0.01  # Exact 1.0% of Total Balance (e.g. $0.133 on $13.27)
+            target_profit_threshold = balance * 0.01  # Exact +1.0% of Total Balance (e.g. +$0.133 on $13.27)
+            target_loss_threshold = -balance * 0.01   # Exact -1.0% of Total Balance (e.g. -$0.133 on $13.27)
             pnl_pct = (total_unrealized_profit / balance) * 100.0
-            print(f"  [Basket Monitor] 📊 Open Positions: {len(live_active_positions)} | Unrealized PnL: ${total_unrealized_profit:+.4f} / +${target_profit_threshold:,.4f} Target ({pnl_pct:+.2f}% / +1.00%)")
+            print(f"  [Basket Monitor] 📊 Open Positions: {len(live_active_positions)} | Unrealized PnL: ${total_unrealized_profit:+.4f} ({pnl_pct:+.2f}% / Bounds: -1.00% to +1.00%)")
 
+            # 1. POSITIVE HARVEST: +1.0% Aggregate Profit Target Hit
             if total_unrealized_profit >= target_profit_threshold:
                 print("\n" + "=" * 80)
                 print(f"  💰 [PORTFOLIO 1% CASH HARVEST ACTIVATED] 💰")
@@ -577,6 +579,63 @@ class BinanceFuturesExecutor:
                     pass
 
                 return True, total_unrealized_profit, target_profit_threshold
+
+            # 2. NEGATIVE CIRCUIT BREAKER: -1.0% Aggregate Loss Threshold Hit
+            elif total_unrealized_profit <= target_loss_threshold:
+                print("\n" + "=" * 80)
+                print(f"  🛑 [PORTFOLIO 1% LOSS CIRCUIT BREAKER ACTIVATED] 🛑")
+                print(f"  • Total Unrealized Loss: -${abs(total_unrealized_profit):,.4f} USD ({pnl_pct:+.2f}% of Total Balance)")
+                print(f"  • -1.0% Loss Threshold : <= ${target_loss_threshold:,.4f} USD")
+                print(f"  • Action: Executing MKT Close All across {len(live_active_positions)} positions to strictly cap total loss!")
+                print("=" * 80)
+
+                for pos in live_active_positions:
+                    std_sym = pos["symbol"]
+                    spec = SYMBOL_SPECS.get(std_sym, {"amount_precision": 3})
+                    amt_prec = spec.get("amount_precision", 3)
+                    qty = round(abs(pos["amount"]), amt_prec) if amt_prec > 0 else int(abs(pos["amount"]))
+                    close_side = "SELL" if pos["amount"] > 0 else "BUY"
+                    print(f"    -> MKT Close All: {std_sym} {close_side} {qty} (Unrealized PnL: ${pos['unrealized_pnl']:+.4f})...")
+                    self.place_futures_order(symbol=std_sym, side=close_side, quantity=qty, reduce_only=True)
+
+                # Instantly sync SQLite Database trade closures
+                try:
+                    conn = get_connection()
+                    cursor = conn.cursor()
+                    now_iso = datetime.utcnow().isoformat()
+                    for pos in live_active_positions:
+                        std_sym = pos["symbol"]
+                        pnl_val = pos["unrealized_pnl"]
+                        cursor.execute(
+                            "UPDATE trades SET status = 'CLOSED', exit_time = ?, exit_reason = 'BASKET_1PCT_LOSS_CUT', pnl_usd = ? WHERE symbol = ? AND status = 'OPEN'",
+                            (now_iso, pnl_val, std_sym)
+                        )
+                    conn.commit()
+                    conn.close()
+                except Exception as dbe:
+                    print(f"[Basket Loss Cut DB Sync Warning]: {dbe}")
+
+                # Continuous Learning Retrain
+                try:
+                    ml_brain.check_and_retrain(force=True)
+                except Exception:
+                    pass
+
+                # Push real-time Telegram notification
+                try:
+                    from telegram_notifier import send_telegram_alert
+                    pos_names = ", ".join([p["symbol"] for p in live_active_positions])
+                    send_telegram_alert(
+                        f"🛑 <b>PORTFOLIO 1.0% LOSS CIRCUIT BREAKER TRIGGERED!</b>\n\n"
+                        f"• <b>Total Loss Capped:</b> -${abs(total_unrealized_profit):,.4f} USDT ({pnl_pct:.2f}%)\n"
+                        f"• <b>Total Wallet Balance:</b> ${balance:,.2f} USDT\n"
+                        f"• <b>Positions Closed:</b> {len(live_active_positions)} ({pos_names})\n"
+                        f"• <b>Status:</b> All positions closed at Market to strictly prevent drawdown exceeding 1.0%!"
+                    )
+                except Exception:
+                    pass
+
+                return True, total_unrealized_profit, target_loss_threshold
 
             return False, total_unrealized_profit, target_profit_threshold
 
