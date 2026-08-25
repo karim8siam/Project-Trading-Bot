@@ -9,6 +9,8 @@ Implements:
 - Continuous ML Model Retraining Trigger
 """
 
+import os
+import json
 import time
 import uuid
 import hmac
@@ -40,6 +42,34 @@ from risk_manager import (
 from ml_brain import ml_brain
 from data_fetcher import data_fetcher, DEMO_FAPI_BASE_URL, PROD_FAPI_BASE_URL
 from google_sheets_sync import sheets_sync
+
+INVERTED_TEST_FILE = os.path.join(os.path.dirname(__file__), "data", "inverted_test_state.json")
+
+
+def get_inverted_test_count() -> int:
+    """Returns number of remaining inverted trades (0 if disabled)."""
+    try:
+        if os.path.exists(INVERTED_TEST_FILE):
+            with open(INVERTED_TEST_FILE, "r") as f:
+                data = json.load(f)
+                return int(data.get("remaining_trades", 0))
+    except Exception:
+        pass
+    return 0
+
+
+def set_inverted_test_count(count: int):
+    """Sets number of remaining inverted trades."""
+    os.makedirs(os.path.dirname(INVERTED_TEST_FILE), exist_ok=True)
+    with open(INVERTED_TEST_FILE, "w") as f:
+        json.dump({"remaining_trades": count, "total_requested": count, "enabled": count > 0}, f)
+
+
+def decrement_inverted_test_count():
+    """Decrements remaining count after successful order fill."""
+    curr = get_inverted_test_count()
+    if curr > 0:
+        set_inverted_test_count(curr - 1)
 
 
 class BinanceFuturesExecutor:
@@ -316,6 +346,23 @@ class BinanceFuturesExecutor:
         stop_loss = float(signal.get("stop_loss", entry_price * (0.985 if direction == "LONG" else 1.015)))
         take_profit = float(signal.get("take_profit", entry_price * (1.004 if direction == "LONG" else 0.996)))
 
+        # Contrarian Inverted Test Mode for 5 trades (BUY -> SELL, SELL -> BUY)
+        remaining_inv = get_inverted_test_count()
+        is_inverted = remaining_inv > 0
+        orig_direction = direction
+
+        if is_inverted:
+            direction = "SHORT" if orig_direction == "LONG" else "LONG"
+            orig_sl = stop_loss
+            orig_sl_dist = abs(entry_price - orig_sl)
+            if direction == "LONG":
+                stop_loss = entry_price - orig_sl_dist
+                take_profit = entry_price * 1.004
+            else:
+                stop_loss = entry_price + orig_sl_dist
+                take_profit = entry_price * 0.996
+            print(f"[CONTRARIAN TEST 🔄] Inverting Signal ({6 - remaining_inv}/5): Original {orig_direction} -> INVERTED {direction} @ ${entry_price:,.4f} | SL: ${stop_loss:,.4f} | TP: ${take_profit:,.4f}")
+
         # 1. 3-Pillar Risk Guardrails Check (Bypassed for Exceptional Sovereign Delta Hedge)
         is_exceptional_hedge = (signal.get("strategy") == "DELTA_HEDGE_SNIPER" or signal.get("is_hedge", False))
         if not is_exceptional_hedge:
@@ -362,6 +409,11 @@ class BinanceFuturesExecutor:
                 entry_price = order_res.get("avgPrice", entry_price)
                 print(f"[Executor LIVE] 🚀 Order FILLED on Binance: {direction} {quantity} {symbol} @ ${entry_price:,.2f}")
 
+                if is_inverted:
+                    decrement_inverted_test_count()
+                    rem = get_inverted_test_count()
+                    print(f"[CONTRARIAN TEST 🔄] Inverted trade executed! Remaining inverted test trades: {rem}")
+
                 sl_side = "SELL" if direction == "LONG" else "BUY"
                 sl_res = self.place_exchange_stop_loss(symbol=symbol, side=sl_side, stop_price=stop_loss, quantity=quantity)
                 if sl_res.get("success"):
@@ -388,6 +440,7 @@ class BinanceFuturesExecutor:
             "leverage": DEFAULT_LEVERAGE,
             "stop_loss": stop_loss,
             "take_profit": take_profit,
+            "strategy": f"CONTRARIAN_{signal.get('strategy', 'AUTO')}" if is_inverted else signal.get("strategy", "AUTO"),
             "ml_predicted_prob": signal.get("ml_confidence", 0.5),
             "ml_approved": 1 if signal.get("ml_approved") else 0
         }
