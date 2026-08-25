@@ -22,40 +22,19 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 USE_TESTNET = os.getenv("USE_TESTNET", "true").lower() in ("true", "1", "yes")
 
 # ==========================================
-# 2. 3-TIER ADAPTIVE MASTER PORTFOLIO (20 WHITELISTED PAIRS)
+# 2. 4 CORE MAJORS (BTC, ETH, BNB, SOL) - OBSERVATION MODE
 # ==========================================
-# Tier 1: Core Majors (73%+ Threshold - Active Momentum)
 CORE_MAJOR_SYMBOLS = [
     "BTC/USDT",
     "ETH/USDT",
     "BNB/USDT",
-    "SOL/USDT",
-    "XRP/USDT",
-    "ADA/USDT",
-    "NEAR/USDT"
+    "SOL/USDT"
 ]
 
-# Tier 2: High-Risk Altcoins (80%+ Threshold - High Security Filter)
-HIGH_RISK_SYMBOLS_80_PCT = [
-    "AVAX/USDT",
-    "DOGE/USDT",
-    "LINK/USDT"
-]
+HIGH_RISK_SYMBOLS_80_PCT = []
+SNIPER_SYMBOLS_87_PCT = []
 
-# Tier 3: Sniper Volatile Mid-Cap Tokens (87%+ Threshold - Ultra-Elite Grade-S+++)
-SNIPER_SYMBOLS_87_PCT = [
-    "SUI/USDT",
-    "APT/USDT",
-    "RENDER/USDT",
-    "TIA/USDT",
-    "INJ/USDT",
-    "ARB/USDT",
-    "OP/USDT",
-    "FET/USDT",
-    "SEI/USDT"
-]
-
-ALLOWED_SYMBOLS = CORE_MAJOR_SYMBOLS + HIGH_RISK_SYMBOLS_80_PCT + SNIPER_SYMBOLS_87_PCT
+ALLOWED_SYMBOLS = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT"]
 
 # Supported timeframes (1m execution with 15m macro filter)
 DEFAULT_TIMEFRAME = os.getenv("DEFAULT_TIMEFRAME", "1m")
