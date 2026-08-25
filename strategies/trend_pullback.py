@@ -155,8 +155,8 @@ def evaluate_trend_pullback(df: pd.DataFrame, idx: int = -1) -> Dict[str, Any]:
     if bull_score >= 55 and bull_score > bear_score:
         sl = max(low_p - (atr * 1.2), close - (atr * 2.0))
         sl_dist = close - sl
-        tp1 = close + (sl_dist * 1.5)
-        tp2 = close + (sl_dist * 3.0)
+        tp1 = close * 1.004
+        tp2 = close * 1.008
         return {
             "has_signal": True,
             "direction": "LONG",
@@ -174,8 +174,8 @@ def evaluate_trend_pullback(df: pd.DataFrame, idx: int = -1) -> Dict[str, Any]:
     if bear_score >= 55 and bear_score > bull_score:
         sl = min(high_p + (atr * 1.2), close + (atr * 2.0))
         sl_dist = sl - close
-        tp1 = close - (sl_dist * 1.5)
-        tp2 = close - (sl_dist * 3.0)
+        tp1 = close * 0.996
+        tp2 = close * 0.992
         return {
             "has_signal": True,
             "direction": "SHORT",

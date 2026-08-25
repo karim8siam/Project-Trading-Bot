@@ -114,8 +114,8 @@ def evaluate_volatility_breakout(df: pd.DataFrame, idx: int = -1) -> Dict[str, A
     if bull_break_score > 0 and total_bull >= 55 and total_bull > total_bear:
         sl = max(low_p - (atr * 1.0), close - (atr * 1.8))
         sl_dist = close - sl
-        tp1 = close + (sl_dist * 1.5)
-        tp2 = close + (sl_dist * 3.0)
+        tp1 = close * 1.004
+        tp2 = close * 1.008
         return {
             "has_signal": True,
             "direction": "LONG",
@@ -132,8 +132,8 @@ def evaluate_volatility_breakout(df: pd.DataFrame, idx: int = -1) -> Dict[str, A
     if bear_break_score > 0 and total_bear >= 55 and total_bear > total_bull:
         sl = min(high_p + (atr * 1.0), close + (atr * 1.8))
         sl_dist = sl - close
-        tp1 = close - (sl_dist * 1.5)
-        tp2 = close - (sl_dist * 3.0)
+        tp1 = close * 0.996
+        tp2 = close * 0.992
         return {
             "has_signal": True,
             "direction": "SHORT",

@@ -125,8 +125,8 @@ def evaluate_range_mean_reversion(df: pd.DataFrame, idx: int = -1) -> Dict[str, 
     # Threshold: >= 55 points
     if bull_score >= 55 and bull_score > bear_score:
         sl = max(low_p - (atr * 1.0), close - (atr * 1.6))
-        tp1 = bb_mid if bb_mid > close else close + (atr * 1.5)
-        tp2 = bb_upper if bb_upper > tp1 else close + (atr * 2.8)
+        tp1 = close * 1.004
+        tp2 = close * 1.008
         return {
             "has_signal": True,
             "direction": "LONG",
@@ -143,8 +143,8 @@ def evaluate_range_mean_reversion(df: pd.DataFrame, idx: int = -1) -> Dict[str, 
 
     if bear_score >= 55 and bear_score > bull_score:
         sl = min(high_p + (atr * 1.0), close + (atr * 1.6))
-        tp1 = bb_mid if bb_mid < close else close - (atr * 1.5)
-        tp2 = bb_lower if bb_lower < tp1 else close - (atr * 2.8)
+        tp1 = close * 0.996
+        tp2 = close * 0.992
         return {
             "has_signal": True,
             "direction": "SHORT",

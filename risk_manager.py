@@ -228,8 +228,8 @@ def calculate_logical_sl_tp(
         stop_loss = min(valid_sls) if valid_sls else (entry_price - max(atr * 1.4, entry_price * beta_min_pct))
 
         sl_distance = max(entry_price - stop_loss, min_sl_dist)
-        tp1 = entry_price + (sl_distance * 1.5)  # Stage 1 Target @ 1:1.5R Payoff
-        tp2 = entry_price + (sl_distance * 2.0)  # Stage 2 Runner @ 1:2.0R Payoff
+        tp1 = entry_price * 1.004  # Shifted to exact +0.40% Scalp Take-Profit Target
+        tp2 = entry_price * 1.008  # Stage 2 Runner @ +0.80%
 
     else:  # SHORT
         if order_block_price and order_block_price > entry_price:
@@ -247,8 +247,8 @@ def calculate_logical_sl_tp(
         stop_loss = max(valid_sls) if valid_sls else (entry_price + max(atr * 1.4, entry_price * beta_min_pct))
 
         sl_distance = max(stop_loss - entry_price, min_sl_dist)
-        tp1 = entry_price - (sl_distance * 1.5)  # Stage 1 Target @ 1:1.5R Payoff
-        tp2 = entry_price - (sl_distance * 2.0)  # Stage 2 Runner @ 1:2.0R Payoff
+        tp1 = entry_price * 0.996  # Shifted to exact -0.40% Scalp Take-Profit Target
+        tp2 = entry_price * 0.992  # Stage 2 Runner @ -0.80%
 
     rr_ratio = abs(tp1 - entry_price) / max(1e-6, abs(entry_price - stop_loss))
     return round(stop_loss, 4), round(tp1, 4), round(tp2, 4), round(rr_ratio, 2)

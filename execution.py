@@ -313,8 +313,8 @@ class BinanceFuturesExecutor:
         symbol = signal["symbol"]
         direction = signal["direction"]
         entry_price = float(signal.get("current_price") or signal.get("price") or data_fetcher.fetch_current_price(symbol))
-        stop_loss = float(signal.get("stop_loss", entry_price * 0.985))
-        take_profit = float(signal.get("take_profit", entry_price * 1.03))
+        stop_loss = float(signal.get("stop_loss", entry_price * (0.985 if direction == "LONG" else 1.015)))
+        take_profit = float(signal.get("take_profit", entry_price * (1.004 if direction == "LONG" else 0.996)))
 
         # 1. 3-Pillar Risk Guardrails Check (Bypassed for Exceptional Sovereign Delta Hedge)
         is_exceptional_hedge = (signal.get("strategy") == "DELTA_HEDGE_SNIPER" or signal.get("is_hedge", False))
