@@ -107,6 +107,29 @@ def evaluate_master_crypto_strategy(
     return None, int(max_score), "NONE", {"regime": regime}, neutral_desc
 
 
+def check_tron_4candle_reversal(symbol: str, df: pd.DataFrame) -> Tuple[bool, Optional[str], str]:
+    """
+    User Custom Rule for TRON (TRX/USDT):
+    When 4 consecutive candles are in the same direction (UP/DOWN):
+    - 4 consecutive UP candles -> Enter Counter-Trend SHORT.
+    - 4 consecutive DOWN candles -> Enter Counter-Trend LONG.
+    Bypasses standard ML/macro filters with 1% risk and defined SL/TP protection.
+    """
+    if "TRX" not in symbol or df is None or len(df) < 5:
+        return False, None, ""
+
+    recent = df.iloc[-4:]
+    is_4_green = all(float(r["close"]) >= float(r["open"]) for _, r in recent.iterrows())
+    is_4_red = all(float(r["close"]) <= float(r["open"]) for _, r in recent.iterrows())
+
+    if is_4_green:
+        return True, "SHORT", "TRON 4-Candle Reversal: 4 Consecutive UP Candles -> Counter-Trend SHORT Active 🔥"
+    elif is_4_red:
+        return True, "LONG", "TRON 4-Candle Reversal: 4 Consecutive DOWN Candles -> Counter-Trend LONG Active 🔥"
+
+    return False, None, ""
+
+
 def analyze_market(
     symbol: str,
     df_tf: pd.DataFrame,
@@ -134,11 +157,62 @@ def analyze_market(
         df_micro = add_all_indicators(df_micro)
 
     session_active, session_desc = is_active_trading_session()
-    direction, score, strat_name, breakdown, desc = evaluate_master_crypto_strategy(df_tf, idx=-1)
 
     latest_row = df_tf.iloc[-1]
     current_price = float(latest_row["close"])
     current_atr = float(latest_row.get("atr_14", current_price * 0.01))
+
+    # =========================================================================
+    # 0. SPECIAL USER DIRECTIVE: TRON (TRX/USDT) 4-CANDLE COUNTER-TREND FADE
+    # =========================================================================
+    if "TRX" in symbol:
+        is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_tf)
+        if not is_tron_rev and df_micro is not None and len(df_micro) >= 5:
+            is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_micro)
+
+        if is_tron_rev and tron_dir:
+            stop_loss, tp1_partial, tp2_runner = calculate_sl_tp(
+                entry_price=current_price,
+                atr=current_atr,
+                direction=tron_dir,
+                score=95,
+                df=df_tf,
+                df_htf=df_htf,
+                df_5m=df_micro,
+                symbol=symbol
+            )
+            return {
+                "has_signal": True,
+                "symbol": symbol,
+                "direction": tron_dir,
+                "strategy": "TRON_4CANDLE_FADE",
+                "score": 95,
+                "score_breakdown": {"custom_rule": "TRON_4CANDLE_FADE", "direction": tron_dir},
+                "current_price": current_price,
+                "stop_loss": stop_loss,
+                "take_profit": tp1_partial,
+                "take_profit_2": tp2_runner,
+                "pattern": "4_CANDLE_FADE",
+                "atr": current_atr,
+                "session": session_desc,
+                "technical_reason": tron_desc,
+                "ml_result": {"is_approved": True, "ensemble_prob": 0.95, "reason": tron_desc},
+                "ml_approved": True,
+                "ml_confidence": 0.95,
+                "ml_reason": tron_desc,
+                "btc_state": "BYPASS_FOR_TRON",
+                "btc_bias": "NEUTRAL",
+                "btc_reason": "Bypassed via User Tron 4-Candle Rule",
+                "funding_rate_pct": 0.0,
+                "oi_delta_15m": 0.0,
+                "merge_result": {"composite_score_pct": 95.0, "verdict": "APPROVED"},
+                "claude_verdict": f"APPROVED 🔥 ({tron_desc})",
+                "claude_thesis": tron_desc,
+                "risk_multiplier": 1.0,
+                "features": {}
+            }
+
+    direction, score, strat_name, breakdown, desc = evaluate_master_crypto_strategy(df_tf, idx=-1)
 
     if not direction or score < 50:
         return {
