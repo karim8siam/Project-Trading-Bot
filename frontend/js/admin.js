@@ -45,49 +45,55 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  formAdminAuth.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const passkey = inputAdminPasskey.value.trim();
+  if (formAdminAuth) {
+    formAdminAuth.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const passkey = inputAdminPasskey ? inputAdminPasskey.value.trim() : "";
 
-    try {
-      const res = await fetch("/api/admin/auth/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Admin-Passkey": passkey },
-        body: JSON.stringify({ passcode: passkey })
-      });
-      const data = await res.json();
+      try {
+        const res = await fetch("/api/admin/auth/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Admin-Passkey": passkey },
+          body: JSON.stringify({ passcode: passkey })
+        });
+        const data = await res.json();
 
-      if (data.success) {
-        adminPasskey = passkey;
-        sessionStorage.setItem("apextrade_admin_passkey", passkey);
-        sessionStorage.setItem("apextrade_admin_authenticated", "true");
-        unlockAdminConsole();
-      } else {
-        showAuthAlert(data.message || "Invalid passkey. Access denied.");
+        if (data.success) {
+          adminPasskey = passkey;
+          sessionStorage.setItem("apextrade_admin_passkey", passkey);
+          sessionStorage.setItem("apextrade_admin_authenticated", "true");
+          unlockAdminConsole();
+        } else {
+          showAuthAlert(data.message || "Invalid passkey. Access denied.");
+        }
+      } catch (err) {
+        showAuthAlert("Network error validating admin credentials.");
       }
-    } catch (err) {
-      showAuthAlert("Network error validating admin credentials.");
-    }
-  });
+    });
+  }
 
   if (btnAdminLogout) {
     btnAdminLogout.addEventListener("click", () => {
       adminPasskey = "";
       sessionStorage.removeItem("apextrade_admin_passkey");
       sessionStorage.removeItem("apextrade_admin_authenticated");
-      adminGateSection.style.display = "block";
-      adminMainContent.style.display = "none";
-      authStatusBadge.className = "admin-badge";
-      authStatusBadge.textContent = "🔒 ACCESS RESTRICTED";
+      if (adminGateSection) adminGateSection.style.display = "block";
+      if (adminMainContent) adminMainContent.style.display = "none";
+      if (authStatusBadge) {
+        authStatusBadge.className = "admin-badge";
+        authStatusBadge.textContent = "🔒 ACCESS RESTRICTED";
+      }
       btnAdminLogout.style.display = "none";
     });
   }
 
   function unlockAdminConsole() {
-    adminGateSection.style.display = "none";
-    adminMainContent.style.display = "block";
-    authStatusBadge.className = "status-badge active";
-    authStatusBadge.textContent = "🛡️ ADMIN AUTHORIZED";
+    if (adminGateSection) adminGateSection.style.display = "none";
+    if (adminMainContent) adminMainContent.style.display = "block";
+    if (authStatusBadge) {
+      authStatusBadge.className = "status-badge active";
+      authStatusBadge.textContent = "🛡️ ADMIN AUTHORIZED";
+    }
     if (btnAdminLogout) btnAdminLogout.style.display = "inline-flex";
 
     loadAllPendingWithdrawals();
@@ -95,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showAuthAlert(msg) {
+    if (!adminAuthAlert) return;
     adminAuthAlert.style.display = "block";
     adminAuthAlert.className = "form-alert error";
     adminAuthAlert.textContent = msg;

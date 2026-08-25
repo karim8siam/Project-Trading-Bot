@@ -215,15 +215,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       if (data.success) {
         depositConfig = data;
-        platformDepositAddress.value = data.platform_deposit_address;
+        if (platformDepositAddress) platformDepositAddress.value = data.platform_deposit_address;
         
         // Generate QR code for BEP20 address
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.platform_deposit_address)}`;
-        depositQrImg.src = qrUrl;
+        if (depositQrImg) {
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.platform_deposit_address)}`;
+          depositQrImg.src = qrUrl;
+        }
 
         // Display short contract
-        const c = data.usdt_contract;
-        usdtContractShort.textContent = `${c.substring(0, 6)}...${c.substring(c.length - 4)}`;
+        if (usdtContractShort) {
+          const c = data.usdt_contract;
+          usdtContractShort.textContent = `${c.substring(0, 6)}...${c.substring(c.length - 4)}`;
+        }
       }
     } catch (e) {
       console.error("Failed to load deposit config:", e);
@@ -235,9 +239,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/api/batch/current");
       const data = await res.json();
       if (data.success && data.batch) {
-        batchIdPill.textContent = data.batch.batch_id;
-        batchPoolAmount.textContent = Number(data.batch.total_amount_usdt).toFixed(2);
-        batchParticipantsCount.textContent = data.batch.unique_participants;
+        if (batchIdPill) batchIdPill.textContent = data.batch.batch_id;
+        if (batchPoolAmount) batchPoolAmount.textContent = Number(data.batch.total_amount_usdt).toFixed(2);
+        if (batchParticipantsCount) batchParticipantsCount.textContent = data.batch.unique_participants;
 
         countdownSeconds = data.seconds_until_sweep || 0;
         startCountdown();
@@ -264,6 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateCountdownDisplay() {
+    if (!countdownTimer) return;
     const hours = Math.floor(countdownSeconds / 3600);
     const minutes = Math.floor((countdownSeconds % 3600) / 60);
     const seconds = countdownSeconds % 60;
@@ -593,83 +598,96 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnCloseModal) btnCloseModal.addEventListener("click", closeModal);
   if (btnOpenLogin) btnOpenLogin.addEventListener("click", () => openModal("login"));
   if (btnOpenRegister) btnOpenRegister.addEventListener("click", () => openModal("register"));
-  if (btnHeroCta) btnHeroCta.addEventListener("click", () => openModal("register"));
+  if (btnHeroCta) btnHeroCta.addEventListener("click", enterDashboardDirectly);
 
-  tabRegister.addEventListener("click", () => openModal("register"));
-  tabLogin.addEventListener("click", () => openModal("login"));
+  if (tabRegister) tabRegister.addEventListener("click", () => openModal("register"));
+  if (tabLogin) tabLogin.addEventListener("click", () => openModal("login"));
 
   // Submit Registration
-  formRegister.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setAuthAlert("");
+  if (formRegister) {
+    formRegister.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setAuthAlert("");
 
-    const email = document.getElementById("reg-email").value.trim();
-    const password = document.getElementById("reg-password").value;
-    const bep20 = document.getElementById("reg-bep20").value.trim();
+      const emailEl = document.getElementById("reg-email");
+      const pwdEl = document.getElementById("reg-password");
+      const bep20El = document.getElementById("reg-bep20");
+      if (!emailEl || !pwdEl || !bep20El) return;
 
-    // EVM Address check
-    const bep20Regex = /^0x[a-fA-F0-9]{40}$/;
-    if (!bep20Regex.test(bep20)) {
-      setAuthAlert("Invalid BEP-20 address format. Must start with 0x followed by 40 hex characters.");
-      return;
-    }
+      const email = emailEl.value.trim();
+      const password = pwdEl.value;
+      const bep20 = bep20El.value.trim();
 
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: jsonBody({ email, password, bep20_address: bep20 })
-      });
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        setAuthAlert(data.message || "Registration failed.");
+      // EVM Address check
+      const bep20Regex = /^0x[a-fA-F0-9]{40}$/;
+      if (!bep20Regex.test(bep20)) {
+        setAuthAlert("Invalid BEP-20 address format. Must start with 0x followed by 40 hex characters.");
         return;
       }
 
-      authToken = data.token;
-      localStorage.setItem("apextrade_auth_token", authToken);
-      currentUser = data.user;
-      closeModal();
-      renderLoggedIn();
-      await fetchBatchStatus();
-    } catch (err) {
-      setAuthAlert("Network error during registration. Please try again.");
-    }
-  });
+      try {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: jsonBody({ email, password, bep20_address: bep20 })
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          setAuthAlert(data.message || "Registration failed.");
+          return;
+        }
+
+        authToken = data.token;
+        localStorage.setItem("apextrade_auth_token", authToken);
+        currentUser = data.user;
+        closeModal();
+        renderLoggedIn();
+        await fetchBatchStatus();
+      } catch (err) {
+        setAuthAlert("Network error during registration. Please try again.");
+      }
+    });
+  }
 
   // Submit Login
-  formLogin.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setAuthAlert("");
+  if (formLogin) {
+    formLogin.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setAuthAlert("");
 
-    const email = document.getElementById("login-email").value.trim();
-    const password = document.getElementById("login-password").value;
+      const emailEl = document.getElementById("login-email");
+      const pwdEl = document.getElementById("login-password");
+      if (!emailEl || !pwdEl) return;
 
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: jsonBody({ email, password })
-      });
-      const data = await res.json();
+      const email = emailEl.value.trim();
+      const password = pwdEl.value;
 
-      if (!res.ok || !data.success) {
-        setAuthAlert(data.message || "Invalid email or password.");
-        return;
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: jsonBody({ email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          setAuthAlert(data.message || "Invalid email or password.");
+          return;
+        }
+
+        authToken = data.token;
+        localStorage.setItem("apextrade_auth_token", authToken);
+        currentUser = data.user;
+        closeModal();
+        renderLoggedIn();
+        await loadDepositHistory();
+        await fetchBatchStatus();
+      } catch (err) {
+        setAuthAlert("Network error during login. Please try again.");
       }
-
-      authToken = data.token;
-      localStorage.setItem("apextrade_auth_token", authToken);
-      currentUser = data.user;
-      closeModal();
-      renderLoggedIn();
-      await loadDepositHistory();
-      await fetchBatchStatus();
-    } catch (err) {
-      setAuthAlert("Network error during login. Please try again.");
-    }
-  });
+    });
+  }
 
   // ==========================================
   // 3B. AUTO-COMPOUNDING MODAL POP-UP
@@ -745,14 +763,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const inputDepositAmount = document.getElementById("input-deposit-amount");
   const inputSenderAddress = document.getElementById("input-sender-address");
 
-  btnCopyAddress.addEventListener("click", () => {
-    const addr = platformDepositAddress.value;
-    navigator.clipboard.writeText(addr).then(() => {
-      const originalText = btnCopyAddress.textContent;
-      btnCopyAddress.textContent = "Copied!";
-      setTimeout(() => btnCopyAddress.textContent = originalText, 2000);
+  if (btnCopyAddress) {
+    btnCopyAddress.addEventListener("click", () => {
+      const addr = platformDepositAddress ? platformDepositAddress.value : "0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0";
+      navigator.clipboard.writeText(addr).then(() => {
+        const originalText = btnCopyAddress.textContent;
+        btnCopyAddress.textContent = "Copied!";
+        setTimeout(() => btnCopyAddress.textContent = originalText, 2000);
+      });
     });
-  });
+  }
 
   async function executeVerification(txHash, simulate = false) {
     if (!txHash) {
@@ -769,8 +789,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const senderAddr = inputSenderAddress ? inputSenderAddress.value.trim() : "";
     const claimedAmt = inputDepositAmount ? parseFloat(inputDepositAmount.value) || 0.0 : 0.0;
 
-    btnVerifyTx.disabled = true;
-    btnSimulateTest.disabled = true;
+    if (btnVerifyTx) btnVerifyTx.disabled = true;
+    if (btnSimulateTest) btnSimulateTest.disabled = true;
     setVerifyAlert("🔍 Inspecting BSC Blockchain RPC: Verifying Real USDT Contract, Sender Identity ('Who'), and Exact Deposit Value ('How Much')...", "loading");
 
     try {
@@ -806,7 +826,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ⏱️ <strong>Pool Status:</strong> Queued for next 00:00 UTC Binance Trading Pool
         `, "success");
 
-        inputTxHash.value = "";
+        if (inputTxHash) inputTxHash.value = "";
         if (inputDepositAmount) inputDepositAmount.value = "";
         await loadUserProfile();
         await loadDepositHistory();
@@ -815,52 +835,61 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       setVerifyAlert("❌ Network error connecting to platform server.", "error");
     } finally {
-      btnVerifyTx.disabled = false;
-      btnSimulateTest.disabled = false;
+      if (btnVerifyTx) btnVerifyTx.disabled = false;
+      if (btnSimulateTest) btnSimulateTest.disabled = false;
     }
   }
 
-  btnVerifyTx.addEventListener("click", () => {
-    const txHash = inputTxHash.value.trim();
-    executeVerification(txHash, false);
-  });
+  if (btnVerifyTx) {
+    btnVerifyTx.addEventListener("click", () => {
+      const txHash = inputTxHash ? inputTxHash.value.trim() : "";
+      executeVerification(txHash, false);
+    });
+  }
 
-  btnSimulateTest.addEventListener("click", () => {
-    const sampleHex = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join("");
-    inputTxHash.value = sampleHex;
-    if (inputDepositAmount && !inputDepositAmount.value) inputDepositAmount.value = "50.00";
-    executeVerification(sampleHex, true);
-  });
+  if (btnSimulateTest) {
+    btnSimulateTest.addEventListener("click", () => {
+      const sampleHex = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join("");
+      if (inputTxHash) inputTxHash.value = sampleHex;
+      if (inputDepositAmount && !inputDepositAmount.value) inputDepositAmount.value = "50.00";
+      executeVerification(sampleHex, true);
+    });
+  }
 
   // Admin Sweep Test Button
-  btnAdminSweepTest.addEventListener("click", async () => {
-    if (!confirm("Execute daily sweep of today's accumulated funds to the Binance Hot Wallet now?")) {
-      return;
-    }
-    try {
-      const res = await fetch("/api/admin/sweep-now", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: jsonBody({})
-      });
-      const data = await res.json();
-      if (data.success) {
-        alert(`✅ Daily Sweep Executed!\n\nSwept: ${data.total_amount_usdt.toFixed(2)} USDT\nDestination: ${data.destination_address}\nSweep Tx: ${data.sweep_tx_hash}`);
-        await fetchBatchStatus();
-        if (authToken) await loadUserProfile();
-      } else {
-        alert(`❌ Sweep failed: ${data.message || 'Unknown error'}`);
+  if (btnAdminSweepTest) {
+    btnAdminSweepTest.addEventListener("click", async () => {
+      if (!confirm("Execute daily sweep of today's accumulated funds to the Binance Hot Wallet now?")) {
+        return;
       }
-    } catch (e) {
-      alert("Network error triggering sweep.");
-    }
-  });
+      try {
+        const res = await fetch("/api/admin/sweep-now", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: jsonBody({})
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`✅ Daily Sweep Executed!\n\nSwept: ${data.total_amount_usdt.toFixed(2)} USDT\nDestination: ${data.destination_address}\nSweep Tx: ${data.sweep_tx_hash}`);
+          await fetchBatchStatus();
+          if (authToken) await loadUserProfile();
+        } else {
+          alert(`❌ Sweep failed: ${data.message || 'Unknown error'}`);
+        }
+      } catch (e) {
+        alert("Network error triggering sweep.");
+      }
+    });
+  }
 
   function setVerifyAlert(msg, type) {
+    if (!verifyAlert) return;
     verifyAlert.style.display = "block";
     verifyAlert.className = `verify-alert ${type}`;
-    verifyAlert.textContent = msg;
+    verifyAlert.innerHTML = msg;
   }
+
+  if (btnRefreshHistory) btnRefreshHistory.addEventListener("click", loadDepositHistory);
 
   // Load Deposit History
   async function loadDepositHistory() {
