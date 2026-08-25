@@ -76,19 +76,19 @@ SL_ATR_MULTIPLIER = float(os.getenv("SL_ATR_MULTIPLIER", "1.5"))  # 1.5x ATR for
 TP_ATR_MULTIPLIER = float(os.getenv("TP_ATR_MULTIPLIER", "3.0"))  # 3.0x ATR for Take Profit (1:2.5 to 1:3 Asymmetric R:R)
 
 # ==========================================
-# 4. MACHINE LEARNING & GEMINI PARAMETERS (CALIBRATED TIERS +1%)
+# 4. MACHINE LEARNING & GEMINI PARAMETERS (CALIBRATED -4% SENSITIVITY)
 # ==========================================
-# Tier 1: Core Majors: BTC, ETH, BNB, SOL, XRP, ADA, NEAR -> Calibrated to 56.0%+
-STANDARD_ML_THRESHOLD = float(os.getenv("STANDARD_ML_THRESHOLD", "0.56"))
-STANDARD_GEMINI_THRESHOLD = float(os.getenv("STANDARD_GEMINI_THRESHOLD", "56.0"))
+# Tier 1: Core Majors: BTC, ETH, BNB, SOL, XRP, ADA, NEAR, TRX -> Calibrated to 52.0%+ (was 56.0%)
+STANDARD_ML_THRESHOLD = float(os.getenv("STANDARD_ML_THRESHOLD", "0.52"))
+STANDARD_GEMINI_THRESHOLD = float(os.getenv("STANDARD_GEMINI_THRESHOLD", "52.0"))
 
-# Tier 2: High-Risk Alts: AVAX, DOGE, LINK -> Calibrated to 58.0%+
-HIGH_RISK_ML_THRESHOLD = float(os.getenv("HIGH_RISK_ML_THRESHOLD", "0.58"))
-HIGH_RISK_GEMINI_THRESHOLD = float(os.getenv("HIGH_RISK_GEMINI_THRESHOLD", "58.0"))
+# Tier 2: High-Risk Alts: AVAX, DOGE, LINK, DOT -> Calibrated to 54.0%+ (was 58.0%)
+HIGH_RISK_ML_THRESHOLD = float(os.getenv("HIGH_RISK_ML_THRESHOLD", "0.54"))
+HIGH_RISK_GEMINI_THRESHOLD = float(os.getenv("HIGH_RISK_GEMINI_THRESHOLD", "54.0"))
 
-# Tier 3: Sniper Tokens: SUI, APT, RENDER, TIA, INJ, ARB, OP, FET, SEI -> Calibrated to 60.0%+
-SNIPER_ML_THRESHOLD = float(os.getenv("SNIPER_ML_THRESHOLD", "0.60"))
-SNIPER_GEMINI_THRESHOLD = float(os.getenv("SNIPER_GEMINI_THRESHOLD", "60.0"))
+# Tier 3: Sniper Tokens: SUI, APT, RENDER, TIA, INJ, ARB, OP, FET, SEI -> Calibrated to 56.0%+ (was 60.0%)
+SNIPER_ML_THRESHOLD = float(os.getenv("SNIPER_ML_THRESHOLD", "0.56"))
+SNIPER_GEMINI_THRESHOLD = float(os.getenv("SNIPER_GEMINI_THRESHOLD", "56.0"))
 
 ML_CONFIDENCE_THRESHOLD = STANDARD_ML_THRESHOLD
 GEMINI_CONFIDENCE_THRESHOLD = STANDARD_GEMINI_THRESHOLD
