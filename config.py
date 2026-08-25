@@ -24,20 +24,40 @@ USE_TESTNET = os.getenv("USE_TESTNET", "true").lower() in ("true", "1", "yes")
 # ==========================================
 # 2. 3-TIER ADAPTIVE MASTER PORTFOLIO (21 WHITELISTED PAIRS)
 # ==========================================
-# Tier 1: Core 5 Majors + Tron (56%+ ML Threshold)
+# Tier 1: Core Majors (56%+ ML Threshold - Active Momentum)
 CORE_MAJOR_SYMBOLS = [
     "BTC/USDT",
     "ETH/USDT",
     "BNB/USDT",
     "SOL/USDT",
+    "XRP/USDT",
+    "ADA/USDT",
+    "NEAR/USDT",
     "TRX/USDT"  # Tron
 ]
 
-# Inactive per user directive (Trading restricted exclusively to Core 5 Whitelist)
-HIGH_RISK_SYMBOLS_80_PCT = []
-SNIPER_SYMBOLS_87_PCT = []
+# Tier 2: High-Risk Altcoins (58%+ ML Threshold - High Security Filter)
+HIGH_RISK_SYMBOLS_80_PCT = [
+    "AVAX/USDT",
+    "DOGE/USDT",
+    "LINK/USDT",
+    "DOT/USDT"
+]
 
-ALLOWED_SYMBOLS = CORE_MAJOR_SYMBOLS
+# Tier 3: Sniper Volatile Mid-Cap Tokens (60%+ ML Threshold - Ultra-Elite Grade-S+++)
+SNIPER_SYMBOLS_87_PCT = [
+    "SUI/USDT",
+    "APT/USDT",
+    "RENDER/USDT",
+    "TIA/USDT",
+    "INJ/USDT",
+    "ARB/USDT",
+    "OP/USDT",
+    "FET/USDT",
+    "SEI/USDT"
+]
+
+ALLOWED_SYMBOLS = CORE_MAJOR_SYMBOLS + HIGH_RISK_SYMBOLS_80_PCT + SNIPER_SYMBOLS_87_PCT
 
 # Supported timeframes (1m execution with 15m macro filter)
 DEFAULT_TIMEFRAME = os.getenv("DEFAULT_TIMEFRAME", "1m")
@@ -48,7 +68,7 @@ HIGHER_TIMEFRAME = os.getenv("HIGHER_TIMEFRAME", "15m")  # For macro trend confi
 # ==========================================
 RISK_PER_TRADE_PERCENT = float(os.getenv("RISK_PER_TRADE_PERCENT", "1.0"))  # 1.0% of total balance
 DEFAULT_LEVERAGE = int(os.getenv("DEFAULT_LEVERAGE", "5"))  # 5x isolated
-MAX_OPEN_TRADES = int(os.getenv("MAX_OPEN_TRADES", "5"))  # Focused Core 5 (BTC, ETH, BNB, SOL, TRX)
+MAX_OPEN_TRADES = int(os.getenv("MAX_OPEN_TRADES", "21"))  # Uncapped: Takes every qualified opportunity across all 21 pairs
 MAX_DAILY_LOSS_PERCENT = float(os.getenv("MAX_DAILY_LOSS_PERCENT", "3.0"))  # Kill switch at 3% daily drawdown
 
 # Take-Profit & Stop-Loss Multipliers (ATR-based)
