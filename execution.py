@@ -460,9 +460,10 @@ class BinanceFuturesExecutor:
                 return False, 0.0, 0.0
 
             target_profit_threshold = balance * 0.01  # Exact 1.0% of Total Balance (e.g. $0.133 on $13.27)
+            pnl_pct = (total_unrealized_profit / balance) * 100.0
+            print(f"  [Basket Monitor] 📊 Open Positions: {len(live_active_positions)} | Unrealized PnL: ${total_unrealized_profit:+.4f} / +${target_profit_threshold:,.4f} Target ({pnl_pct:+.2f}% / +1.00%)")
 
             if total_unrealized_profit >= target_profit_threshold:
-                pnl_pct = (total_unrealized_profit / balance) * 100.0
                 print("\n" + "=" * 80)
                 print(f"  💰 [PORTFOLIO 1% CASH HARVEST ACTIVATED] 💰")
                 print(f"  • Total Unrealized PnL : +${total_unrealized_profit:,.4f} USD ({pnl_pct:+.2f}% of Total Balance)")
