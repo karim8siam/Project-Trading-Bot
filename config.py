@@ -24,15 +24,16 @@ USE_TESTNET = os.getenv("USE_TESTNET", "true").lower() in ("true", "1", "yes")
 # ==========================================
 # 2. 3-TIER ADAPTIVE MASTER PORTFOLIO (21 WHITELISTED PAIRS)
 # ==========================================
-# Tier 1: Core 4 Majors (56%+ ML Threshold)
+# Tier 1: Core 5 Majors + Tron (56%+ ML Threshold)
 CORE_MAJOR_SYMBOLS = [
     "BTC/USDT",
     "ETH/USDT",
     "BNB/USDT",
-    "SOL/USDT"
+    "SOL/USDT",
+    "TRX/USDT"  # Tron
 ]
 
-# Inactive per user directive (Trading restricted exclusively to Core 4 Majors)
+# Inactive per user directive (Trading restricted exclusively to Core 5 Whitelist)
 HIGH_RISK_SYMBOLS_80_PCT = []
 SNIPER_SYMBOLS_87_PCT = []
 
@@ -47,7 +48,7 @@ HIGHER_TIMEFRAME = os.getenv("HIGHER_TIMEFRAME", "15m")  # For macro trend confi
 # ==========================================
 RISK_PER_TRADE_PERCENT = float(os.getenv("RISK_PER_TRADE_PERCENT", "1.0"))  # 1.0% of total balance
 DEFAULT_LEVERAGE = int(os.getenv("DEFAULT_LEVERAGE", "5"))  # 5x isolated
-MAX_OPEN_TRADES = int(os.getenv("MAX_OPEN_TRADES", "4"))  # Focused Core 4 Majors (BTC, ETH, BNB, SOL)
+MAX_OPEN_TRADES = int(os.getenv("MAX_OPEN_TRADES", "5"))  # Focused Core 5 (BTC, ETH, BNB, SOL, TRX)
 MAX_DAILY_LOSS_PERCENT = float(os.getenv("MAX_DAILY_LOSS_PERCENT", "3.0"))  # Kill switch at 3% daily drawdown
 
 # Take-Profit & Stop-Loss Multipliers (ATR-based)
