@@ -4,9 +4,13 @@ module.exports = (req, res) => {
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Admin-Passkey");
 
-  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method === "OPTIONS") {
+    res.statusCode = 204;
+    return res.end();
+  }
 
-  res.status(200).json({
+  res.statusCode = 200;
+  res.end(JSON.stringify({
     success: true,
     token: "jwt_token_quick_access_trader",
     user: {
@@ -17,5 +21,5 @@ module.exports = (req, res) => {
       account_status: "ACTIVE",
       bot_trading_enabled: true
     }
-  });
+  }, null, 2));
 };

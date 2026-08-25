@@ -1,15 +1,28 @@
 module.exports = (req, res) => {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Admin-Passkey");
 
-  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method === "OPTIONS") {
+    res.statusCode = 204;
+    return res.end();
+  }
 
-  const body = req.body || {};
-  const email = (body.email || "trader@apextrade.ai").trim().toLowerCase();
+  let body = req.body;
+  if (typeof body === "string") {
+    try {
+      body = JSON.parse(body);
+    } catch (e) {
+      body = {};
+    }
+  }
+  body = body || {};
 
-  res.status(200).json({
+  const email = (body.email || "trade09siam@gmail.com").trim().toLowerCase();
+
+  res.statusCode = 200;
+  res.end(JSON.stringify({
     success: true,
     message: "Login successful.",
     token: "jwt_token_" + Date.now(),
@@ -21,5 +34,5 @@ module.exports = (req, res) => {
       account_status: "ACTIVE",
       bot_trading_enabled: true
     }
-  });
+  }, null, 2));
 };
