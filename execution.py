@@ -304,8 +304,12 @@ class BinanceFuturesExecutor:
         bal = account_balance if account_balance is not None else data_fetcher.fetch_balance_usdt()
         return self.execute_trade(signal, balance=bal)
 
-    def execute_trade(self, signal: Dict[str, Any], balance: float) -> Dict[str, Any]:
+    def execute_trade(self, signal: Dict[str, Any], balance: Optional[float] = None) -> Dict[str, Any]:
         """Evaluates Risk Rules, executes order on Binance Futures via Maker Engine, sets SL/TP, and records to DB."""
+        # Always query fresh live balance from Binance to calculate exact 1.0% risk at this exact millisecond
+        live_balance = data_fetcher.fetch_balance_usdt()
+        balance = live_balance if live_balance > 0 else (balance or 10.0)
+
         symbol = signal["symbol"]
         direction = signal["direction"]
         entry_price = float(signal.get("current_price") or signal.get("price") or data_fetcher.fetch_current_price(symbol))
