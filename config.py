@@ -140,6 +140,8 @@ def validate_symbol(symbol: str) -> str:
     Guarantees that only valid Binance USD(S)-M Futures symbols can ever be processed.
     """
     normalized = symbol.upper().replace(":", "").replace("-", "/")
+    if "/" not in normalized and normalized.endswith("USDT"):
+        normalized = normalized[:-4] + "/USDT"
     if normalized not in ALLOWED_SYMBOLS and normalized not in ALL_SUPPORTED_SYMBOLS:
         raise ValueError(
             f"SECURITY VIOLATION: Symbol '{symbol}' is not a recognized supported futures pair."
