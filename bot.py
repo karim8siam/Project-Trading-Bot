@@ -144,14 +144,14 @@ def start_trading_loop(interval_seconds: int = 10):
     3-Interval Hierarchical Continuous Searching Engine:
     - 10-Second Loop: Micro-Trigger & High-Speed Trailing Stop Position Guard.
     - 30-Second Loop: 15-Minute Multi-Pair Structure & SFP Breakout Scanner.
-    - 60-Second Loop: 1-Hour Macro Trend Re-Alignment & Global Health Sync.
+    - 60-Second Loop: 15-Minute Macro Trend Alignment & Global Health Sync.
     """
     print_banner()
     print("=" * 80)
     print("  ⚡ 3-INTERVAL HIERARCHICAL SEARCHING ARCHITECTURE ACTIVE:")
     print("    • Fast 10s Cadence : 5M Micro-Trigger & Trailing Stop Guard")
     print("    • Mid  30s Cadence : 15M Structure & SFP Liquidity Sweeps")
-    print("    • Slow 60s Cadence : 1H Macro Trend Alignment & Sync")
+    print("    • Slow 60s Cadence : 15M Macro Trend Alignment & Sync")
     print("=" * 80)
     print("Starting continuous multi-interval loop. Press Ctrl+C to stop.\n")
 
