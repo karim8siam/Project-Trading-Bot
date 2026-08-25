@@ -14,12 +14,16 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 from config import BASE_DIR, ALLOWED_SYMBOLS, DB_PATH
 import sqlite3
-import pandas as pd
 
 
-# Local backup CSV files (persisted in data/ directory)
-DATA_DIR = BASE_DIR / "data"
-DATA_DIR.mkdir(exist_ok=True)
+if os.getenv("VERCEL"):
+    DATA_DIR = Path("/tmp")
+else:
+    DATA_DIR = BASE_DIR / "data"
+    try:
+        DATA_DIR.mkdir(exist_ok=True)
+    except Exception:
+        pass
 LOCAL_TRADES_CSV = DATA_DIR / "google_sheets_trades.csv"
 LOCAL_DAILY_CSV = DATA_DIR / "google_sheets_daily_performance.csv"
 
@@ -39,41 +43,44 @@ class GoogleSheetsSync:
 
     def _init_local_csvs(self):
         """Initializes local CSV mirrors with header columns if they don't exist."""
-        if not LOCAL_TRADES_CSV.exists():
-            with open(LOCAL_TRADES_CSV, mode="w", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    "Trade ID",
-                    "Date / Time (UTC)",
-                    "Symbol",
-                    "Direction",
-                    "Entry Price ($)",
-                    "Exit Price ($)",
-                    "Exit Reason",
-                    "PnL ($)",
-                    "PnL (%)",
-                    "Outcome",
-                    "ML Win Prob (%)",
-                    "Confluence Score",
-                    "Breakeven Saved",
-                    "Account Balance ($)"
-                ])
+        try:
+            if not LOCAL_TRADES_CSV.exists():
+                with open(LOCAL_TRADES_CSV, mode="w", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerow([
+                        "Trade ID",
+                        "Date / Time (UTC)",
+                        "Symbol",
+                        "Direction",
+                        "Entry Price ($)",
+                        "Exit Price ($)",
+                        "Exit Reason",
+                        "PnL ($)",
+                        "PnL (%)",
+                        "Outcome",
+                        "ML Win Prob (%)",
+                        "Confluence Score",
+                        "Breakeven Saved",
+                        "Account Balance ($)"
+                    ])
 
-        if not LOCAL_DAILY_CSV.exists():
-            with open(LOCAL_DAILY_CSV, mode="w", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    "Date",
-                    "Starting Balance ($)",
-                    "Ending Balance ($)",
-                    "Daily PnL ($)",
-                    "Daily Profit/Loss (%)",
-                    "Total Trades",
-                    "Wins",
-                    "Losses",
-                    "Win Rate (%)",
-                    "Status"
-                ])
+            if not LOCAL_DAILY_CSV.exists():
+                with open(LOCAL_DAILY_CSV, mode="w", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerow([
+                        "Date",
+                        "Starting Balance ($)",
+                        "Ending Balance ($)",
+                        "Daily PnL ($)",
+                        "Daily Profit/Loss (%)",
+                        "Total Trades",
+                        "Wins",
+                        "Losses",
+                        "Win Rate (%)",
+                        "Status"
+                    ])
+        except Exception:
+            pass
 
     def log_trade(self, trade_data: Dict[str, Any]) -> bool:
         """
@@ -168,23 +175,23 @@ class GoogleSheetsSync:
         if not target_date:
             target_date = datetime.utcnow().strftime("%Y-%m-%d")
 
-        conn = sqlite3.connect(DB_PATH)
-        df = pd.read_sql("SELECT * FROM trades WHERE exit_price IS NOT NULL", conn)
+        conn = sqlite3.connect(str(DB_PATH))
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM trades WHERE exit_price IS NOT NULL")
+        rows = [dict(r) for r in cursor.fetchall()]
         conn.close()
 
-        if not df.empty:
-            df["trade_date"] = df["exit_time"].apply(lambda x: str(x)[:10] if x else "")
-            daily_df = df[df["trade_date"] == target_date]
-            if daily_df.empty:
-                daily_df = df.tail(10)
-            
-            total_trades = len(daily_df)
-            wins_df = daily_df[daily_df["pnl_usd"] > 0]
-            losses_df = daily_df[daily_df["pnl_usd"] <= 0]
-            wins = len(wins_df)
-            losses = len(losses_df)
+        daily_rows = [r for r in rows if str(r.get("exit_time", ""))[:10] == target_date]
+        if not daily_rows and rows:
+            daily_rows = rows[-10:]
+
+        if daily_rows:
+            total_trades = len(daily_rows)
+            wins = sum(1 for r in daily_rows if (r.get("pnl_usd") or 0) > 0)
+            losses = total_trades - wins
             win_rate = (wins / total_trades * 100.0) if total_trades > 0 else 0.0
-            daily_pnl_usd = float(daily_df["pnl_usd"].sum())
+            daily_pnl_usd = sum(float(r.get("pnl_usd") or 0) for r in daily_rows)
         else:
             total_trades = 0
             wins = 0
