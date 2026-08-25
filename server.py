@@ -131,6 +131,12 @@ class ApexTradeAPIHandler(BaseHTTPRequestHandler):
         return False
 
     def do_GET(self):
+        try:
+            self._handle_get()
+        except Exception as e:
+            self._send_error(f"Internal server error: {e}", 500, "INTERNAL_ERROR")
+
+    def _handle_get(self):
         parsed_url = urlparse(self.path)
         path = parsed_url.path
 
@@ -376,6 +382,12 @@ class ApexTradeAPIHandler(BaseHTTPRequestHandler):
         self._serve_static(path)
 
     def do_POST(self):
+        try:
+            self._handle_post()
+        except Exception as e:
+            self._send_error(f"Internal server error: {e}", 500, "INTERNAL_ERROR")
+
+    def _handle_post(self):
         parsed_url = urlparse(self.path)
         path = parsed_url.path
         body = self._read_json_body()

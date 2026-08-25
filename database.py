@@ -12,20 +12,28 @@ import pandas as pd
 from config import DB_PATH, validate_symbol
 
 
+_SCHEMA_INITIALIZED = False
+
 def get_connection():
     """Returns a SQLite connection with dict-like row access."""
+    global _SCHEMA_INITIALIZED
     try:
         DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     except Exception:
         pass
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
+    if not _SCHEMA_INITIALIZED:
+        try:
+            init_db_conn(conn)
+            _SCHEMA_INITIALIZED = True
+        except Exception:
+            pass
     return conn
 
 
-def init_db():
-    """Initializes all database tables with proper indexing."""
-    conn = get_connection()
+def init_db_conn(conn):
+    """Initializes all database tables with proper indexing on given connection."""
     cursor = conn.cursor()
 
     # 1. Trades table
@@ -244,7 +252,12 @@ def init_db():
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_settlements_date ON settlements(settlement_date);")
 
     conn.commit()
-    conn.close()
+
+
+def init_db():
+    """Initializes all database tables with proper indexing."""
+    conn = get_connection()
+    init_db_conn(conn)
 
 
 def clear_db():
