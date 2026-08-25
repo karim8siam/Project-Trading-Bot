@@ -38,33 +38,32 @@ from config import (
 from database import get_open_trades, get_closed_trades, get_connection
 
 
-# Standard contract specifications for 20 whitelisted pairs (Synchronized with Binance ExchangeInfo)
+# Standard contract specifications for whitelisted pairs (Exact Binance Futures Tick/Lot Precision)
 SYMBOL_SPECS = {
     # Tier 1: Core Majors
-    "BTC/USDT":      {"amount_precision": 3, "min_qty": 0.001, "price_precision": 2, "min_notional": 50.0, "pip_size": 1.0},
-    "ETH/USDT":      {"amount_precision": 3, "min_qty": 0.001, "price_precision": 2, "min_notional": 20.0, "pip_size": 0.1},
-    "BNB/USDT":      {"amount_precision": 2, "min_qty": 0.01,  "price_precision": 3, "min_notional": 5.0, "pip_size": 0.01},
-    "SOL/USDT":      {"amount_precision": 2, "min_qty": 0.01,  "price_precision": 4, "min_notional": 5.0, "pip_size": 0.01},
+    "BTC/USDT":      {"amount_precision": 3, "min_qty": 0.001, "price_precision": 1, "min_notional": 5.0, "pip_size": 0.1},
+    "ETH/USDT":      {"amount_precision": 3, "min_qty": 0.001, "price_precision": 2, "min_notional": 5.0, "pip_size": 0.01},
+    "BNB/USDT":      {"amount_precision": 2, "min_qty": 0.01,  "price_precision": 2, "min_notional": 5.0, "pip_size": 0.01},
+    "SOL/USDT":      {"amount_precision": 2, "min_qty": 0.01,  "price_precision": 2, "min_notional": 5.0, "pip_size": 0.01},
     "XRP/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.0001},
-    "ADA/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 5, "min_notional": 5.0, "pip_size": 0.0001},
-    "NEAR/USDT":     {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.001},
+    "ADA/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.0001},
+    "NEAR/USDT":     {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 3, "min_notional": 5.0, "pip_size": 0.001},
     "TRX/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 5, "min_notional": 5.0, "pip_size": 0.00001},
     # Tier 2: High-Risk Alts
-    "AVAX/USDT":     {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.01},
-    "DOGE/USDT":     {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 6, "min_notional": 5.0, "pip_size": 0.00001},
-    "LINK/USDT":     {"amount_precision": 2, "min_qty": 0.01,  "price_precision": 3, "min_notional": 20.0, "pip_size": 0.01},
+    "AVAX/USDT":     {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 2, "min_notional": 5.0, "pip_size": 0.01},
+    "DOGE/USDT":     {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 5, "min_notional": 5.0, "pip_size": 0.00001},
+    "LINK/USDT":     {"amount_precision": 2, "min_qty": 0.01,  "price_precision": 2, "min_notional": 5.0, "pip_size": 0.01},
     "DOT/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 3, "min_notional": 5.0, "pip_size": 0.001},
-    # Tier 3: Sniper Volatile Mid-Caps (87% Threshold)
-    "SUI/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 6, "min_notional": 5.0, "pip_size": 0.0001},
-    "APT/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 5, "min_notional": 5.0, "pip_size": 0.001},
-    "1000PEPE/USDT": {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 7, "min_notional": 5.0, "pip_size": 0.0000001},
-    "RENDER/USDT":   {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 7, "min_notional": 5.0, "pip_size": 0.001},
-    "TIA/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 7, "min_notional": 5.0, "pip_size": 0.0001},
-    "INJ/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 6, "min_notional": 5.0, "pip_size": 0.001},
-    "ARB/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 6, "min_notional": 5.0, "pip_size": 0.0001},
-    "OP/USDT":       {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 7, "min_notional": 5.0, "pip_size": 0.0001},
-    "FET/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 7, "min_notional": 5.0, "pip_size": 0.0001},
-    "SEI/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 7, "min_notional": 5.0, "pip_size": 0.0001}
+    # Tier 3: Sniper Volatile Mid-Caps
+    "SUI/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.0001},
+    "APT/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 3, "min_notional": 5.0, "pip_size": 0.001},
+    "RENDER/USDT":   {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 3, "min_notional": 5.0, "pip_size": 0.001},
+    "TIA/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.0001},
+    "INJ/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 3, "min_notional": 5.0, "pip_size": 0.001},
+    "ARB/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.0001},
+    "OP/USDT":       {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.0001},
+    "FET/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.0001},
+    "SEI/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.0001}
 }
 
 

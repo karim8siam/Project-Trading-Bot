@@ -156,9 +156,12 @@ class BinanceFuturesExecutor:
 
         from risk_manager import SYMBOL_SPECS
         raw_sym = symbol.replace("/", "")
-        prec = SYMBOL_SPECS.get(symbol, {}).get("price_precision", 4)
+        prec = SYMBOL_SPECS.get(symbol, {}).get("price_precision", 2)
+        qty_prec = SYMBOL_SPECS.get(symbol, {}).get("amount_precision", 3)
         formatted_stop_price = f"{float(stop_price):.{prec}f}"
+        formatted_qty = f"{float(quantity):.{qty_prec}f}"
 
+        # Strategy 1: STOP_MARKET with closePosition="true" (Guaranteed 100% position close)
         params = {
             "symbol": raw_sym,
             "side": side.upper(),
@@ -172,11 +175,35 @@ class BinanceFuturesExecutor:
             r = data_fetcher.session.post(f"{self.base_url}/fapi/v1/order", headers=self._get_headers(), params=signed_params, timeout=8)
             data = r.json()
             if r.status_code == 200:
+                print(f"[Executor LIVE] 🛡️ Native Exchange Stop Loss armed on Binance matching engine @ ${formatted_stop_price} (Order ID: {data.get('orderId')})")
                 return {"success": True, "data": data}
-            else:
-                return {"success": False, "error": data.get("msg", str(data))}
         except Exception as e:
-            return {"success": False, "error": str(e)}
+            data = {"msg": str(e)}
+
+        # Strategy 2: If closePosition fails, retry with reduceOnly="true" and exact quantity
+        try:
+            params_retry = {
+                "symbol": raw_sym,
+                "side": side.upper(),
+                "type": "STOP_MARKET",
+                "stopPrice": formatted_stop_price,
+                "quantity": formatted_qty,
+                "reduceOnly": "true",
+                "workingType": "MARK_PRICE"
+            }
+            signed_retry = self._sign_payload(params_retry)
+            r2 = data_fetcher.session.post(f"{self.base_url}/fapi/v1/order", headers=self._get_headers(), params=signed_retry, timeout=8)
+            data2 = r2.json()
+            if r2.status_code == 200:
+                print(f"[Executor LIVE] 🛡️ Native Exchange Stop Loss (reduceOnly) armed on Binance @ ${formatted_stop_price} (Order ID: {data2.get('orderId')})")
+                return {"success": True, "data": data2}
+            else:
+                err_msg = data2.get("msg", str(data2))
+                print(f"[Executor LIVE ⚠️] Native Exchange Stop Loss rejected by Binance: {err_msg}")
+                return {"success": False, "error": err_msg}
+        except Exception as e2:
+            print(f"[Executor LIVE ⚠️] Native Exchange Stop Loss exception: {e2}")
+            return {"success": False, "error": str(e2)}
 
     def place_exchange_take_profit(self, symbol: str, side: str, tp_price: float, quantity: float) -> Dict[str, Any]:
         """Places native TAKE_PROFIT_MARKET order directly on Binance matching engine."""
@@ -185,15 +212,19 @@ class BinanceFuturesExecutor:
 
         from risk_manager import SYMBOL_SPECS
         raw_sym = symbol.replace("/", "")
-        prec = SYMBOL_SPECS.get(symbol, {}).get("price_precision", 4)
+        prec = SYMBOL_SPECS.get(symbol, {}).get("price_precision", 2)
+        qty_prec = SYMBOL_SPECS.get(symbol, {}).get("amount_precision", 3)
         formatted_tp_price = f"{float(tp_price):.{prec}f}"
+        formatted_qty = f"{float(quantity):.{qty_prec}f}"
 
+        # Strategy 1: TAKE_PROFIT_MARKET with reduceOnly="true" and quantity
         params = {
             "symbol": raw_sym,
             "side": side.upper(),
             "type": "TAKE_PROFIT_MARKET",
             "stopPrice": formatted_tp_price,
-            "closePosition": "true",
+            "quantity": formatted_qty,
+            "reduceOnly": "true",
             "workingType": "MARK_PRICE"
         }
         signed_params = self._sign_payload(params)
@@ -201,11 +232,33 @@ class BinanceFuturesExecutor:
             r = data_fetcher.session.post(f"{self.base_url}/fapi/v1/order", headers=self._get_headers(), params=signed_params, timeout=8)
             data = r.json()
             if r.status_code == 200:
+                print(f"[Executor LIVE] 🎯 Native Exchange Take Profit armed on Binance matching engine @ ${formatted_tp_price} (Order ID: {data.get('orderId')})")
                 return {"success": True, "data": data}
-            else:
-                return {"success": False, "error": data.get("msg", str(data))}
         except Exception as e:
-            return {"success": False, "error": str(e)}
+            data = {"msg": str(e)}
+
+        # Strategy 2: If reduceOnly failed, retry with closePosition="true"
+        try:
+            params_retry = {
+                "symbol": raw_sym,
+                "side": side.upper(),
+                "type": "TAKE_PROFIT_MARKET",
+                "stopPrice": formatted_tp_price,
+                "closePosition": "true",
+                "workingType": "MARK_PRICE"
+            }
+            signed_retry = self._sign_payload(params_retry)
+            r2 = data_fetcher.session.post(f"{self.base_url}/fapi/v1/order", headers=self._get_headers(), params=signed_retry, timeout=8)
+            data2 = r2.json()
+            if r2.status_code == 200:
+                print(f"[Executor LIVE] 🎯 Native Exchange Take Profit (closePosition) armed on Binance @ ${formatted_tp_price} (Order ID: {data2.get('orderId')})")
+                return {"success": True, "data": data2}
+            else:
+                err_msg = data2.get("msg", str(data2))
+                print(f"[Executor LIVE ⚠️] Native Exchange Take Profit rejected by Binance: {err_msg}")
+                return {"success": False, "error": err_msg}
+        except Exception as e2:
+            return {"success": False, "error": str(e2)}
 
     def place_maker_limit_order(self, symbol: str, side: str, quantity: float, timeout_seconds: int = 15) -> Dict[str, Any]:
         """
@@ -366,14 +419,12 @@ class BinanceFuturesExecutor:
 
                 sl_side = "SELL" if direction == "LONG" else "BUY"
                 sl_res = self.place_exchange_stop_loss(symbol=symbol, side=sl_side, stop_price=stop_loss, quantity=quantity)
-                if sl_res.get("success"):
-                    print(f"[Executor LIVE] 🛡️ Native Exchange Stop Loss active on Binance matching engine @ ${stop_loss:,.2f}")
-                else:
-                    print(f"[Executor LIVE] 🛡️ Active 24/7 Daemon Stop-Loss armed @ ${stop_loss:,.4f} | TP1: ${take_profit:,.4f}")
+                if not sl_res.get("success"):
+                    print(f"[FATAL SAFETY GUARD 🚨] Native Exchange Stop Loss failed on Binance: {sl_res.get('error')}. Closing position immediately to prevent unprotected offline risk!")
+                    self.place_market_order(symbol=symbol, side=sl_side, quantity=quantity)
+                    return {"success": False, "reason": f"Exchange Stop-Loss rejected: {sl_res.get('error')}. Position closed safely."}
 
                 tp_res = self.place_exchange_take_profit(symbol=symbol, side=sl_side, tp_price=take_profit, quantity=quantity)
-                if tp_res.get("success"):
-                    print(f"[Executor LIVE] 🎯 Native Exchange Take Profit active on Binance matching engine @ ${take_profit:,.2f}")
             else:
                 err_msg = order_res.get("error") or order_res.get("reason", "Unknown Binance Error")
                 print(f"[Executor LIVE] ⚠️ Order not executed: {err_msg}")
