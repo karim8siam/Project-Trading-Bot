@@ -3,174 +3,228 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ApexTrade AI &bull; Master Admin Portal (Restricted)</title>
+  <title>Orbital Trading | Master Admin Payout & Settlement Portal</title>
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    .admin-badge {
-      background: rgba(245, 158, 11, 0.15);
-      border: 1px solid var(--accent-amber);
-      color: var(--accent-amber);
-      font-size: 0.75rem;
+    .admin-header {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(11, 17, 32, 0.9));
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .payout-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
       font-weight: 700;
-      padding: 0.25rem 0.6rem;
-      border-radius: var(--radius-sm);
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
     }
-    .admin-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }
-    @media (max-width: 900px) {
-      .admin-grid { grid-template-columns: 1fr; }
-    }
-    .admin-gate-card {
-      max-width: 440px;
-      margin: 4rem auto;
-      text-align: center;
+    .payout-btn:hover {
+      opacity: 0.9;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Navbar -->
-  <header>
-    <nav class="navbar">
-      <a href="/" class="logo">
-        <span class="logo-text">ApexTrade <span style="color: var(--accent-amber);">ADMIN</span></span>
-      </a>
-      <div style="display: flex; align-items: center; gap: 1rem;">
-        <span class="admin-badge" id="auth-status-badge">🔒 ACCESS RESTRICTED</span>
-        <button class="btn btn-outline btn-sm" id="btn-admin-logout" style="display: none;">Log Out</button>
-        <a href="/" class="btn btn-outline btn-sm">← Back to Site</a>
-      </div>
-    </nav>
+  <!-- Navigation -->
+  <header class="navbar">
+    <a href="/" class="nav-brand">
+      <div class="brand-icon">👑</div>
+      <div class="brand-name">ORBITAL<span>.ADMIN</span></div>
+    </a>
+
+    <div class="nav-actions">
+      <a href="/" class="btn btn-outline btn-sm">⬅️ Back to Main Site</a>
+      <button class="btn btn-outline btn-sm" id="btn-admin-logout" style="display: none;">Sign Out</button>
+    </div>
   </header>
 
-  <!-- ADMIN PASSKEY GATE SCREEN -->
-  <div id="admin-gate-section" style="padding: 0 1.5rem;">
-    <div class="card admin-gate-card" style="border-color: rgba(245, 158, 11, 0.4);">
-      <div style="font-size: 3rem; margin-bottom: 0.5rem;">🛡️</div>
-      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Master Admin Authorization</h2>
-      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
-        This portal is restricted exclusively to the platform administrator. Enter your master passkey to review and authorize user withdrawal confirmations.
-      </p>
+  <main class="main-wrapper">
 
-      <form id="form-admin-auth">
-        <div class="input-field-group" style="text-align: left;">
-          <label class="input-label" for="input-admin-passkey">Master Admin Passkey</label>
-          <input type="password" class="text-input" id="input-admin-passkey" placeholder="Enter admin passkey..." required autocomplete="current-password">
+    <!-- 1. ADMIN LOGIN -->
+    <section id="admin-login-section" class="hero-section" style="max-width: 480px; margin: 3rem auto;">
+      <div class="card">
+        <div class="card-header" style="text-align: center;">
+          <h2>👑 Master Admin Portal</h2>
         </div>
+        <p class="card-desc" style="text-align: center;">
+          Restricted to platform administrator for user returns, on-chain deposit logs, and daily 24h settlements.
+        </p>
+        <form id="admin-login-form">
+          <div class="form-group">
+            <label>Master Admin Passkey</label>
+            <input type="password" id="admin-passkey" placeholder="Enter passkey (e.g. 01644)" required style="text-align: center; font-size: 1.2rem; letter-spacing: 0.3rem;">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1.5rem; background: linear-gradient(135deg, #ef4444, #f59e0b);">
+            🔓 Unlock Admin Controls
+          </button>
+        </form>
+      </div>
+    </section>
 
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; background: linear-gradient(135deg, var(--accent-amber), #ef4444); color: #0b1120; font-weight: 800;" id="btn-submit-admin-auth">
-          🔓 Unlock Master Admin Console
-        </button>
-
-        <div class="form-alert" id="admin-auth-alert" style="display: none; margin-top: 1rem;"></div>
-      </form>
-    </div>
-  </div>
-
-  <!-- AUTHENTICATED ADMIN DASHBOARD -->
-  <main id="admin-main-content" style="max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; display: none;">
-
-    <!-- Admin Header -->
-    <div class="dashboard-header" style="border-color: rgba(245, 158, 11, 0.3);">
-      <div class="user-profile-summary">
-        <div class="user-avatar" style="background: linear-gradient(135deg, var(--accent-amber), #ef4444); color: #0b1120;">👑</div>
+    <!-- 2. ADMIN DASHBOARD -->
+    <section id="admin-dashboard-section" style="display: none;">
+      
+      <div class="admin-header">
         <div>
-          <div class="user-email-row">
-            <span class="user-email">System Administrator Console</span>
-            <span class="status-badge active" style="background: rgba(245, 158, 11, 0.15); border-color: var(--accent-amber); color: var(--accent-amber);">SYSTEM OPERATOR AUTHORIZED</span>
-          </div>
-          <div class="user-wallet-row">
-            <span class="wallet-label">Master Platform Deposit Vault Address:</span>
-            <span class="wallet-address mono" id="admin-vault-addr" style="color: var(--accent-cyan);">0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0</span>
-          </div>
+          <h2 style="margin: 0; color: #f87171;">👑 Orbital Trading Master Command</h2>
+          <p style="margin: 0.3rem 0 0 0; color: var(--text-secondary); font-size: 0.9rem;">
+            BNB Smart Chain (BEP-20) Vault Management & User Returns Engine
+          </p>
+        </div>
+        <div>
+          <span class="status-badge active" style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #34d399;">
+            ● ADMIN SESSION ACTIVE
+          </span>
         </div>
       </div>
 
-      <div class="user-balance-block">
-        <div class="balance-title">Awaiting Withdrawals</div>
-        <div class="balance-amount" style="color: var(--accent-amber);" id="admin-header-pending-count">0 <span style="font-size: 1rem; color: var(--text-secondary);">Requests</span></div>
-      </div>
-    </div>
-
-    <!-- SECTION 1: CENTRALIZED WITHDRAWAL CONFIRMATION QUEUE (ALL USERS) -->
-    <div class="card" style="margin-top: 2rem; border-color: rgba(245, 158, 11, 0.5);">
-      <div class="card-title">
-        <div style="display: flex; align-items: center; gap: 0.6rem;">
-          <span>🛡️ Centralized User Withdrawal Confirmation Hub</span>
-          <span class="status-badge pending" id="admin-pending-badge">0 PENDING</span>
+      <!-- Stats Metric Cards -->
+      <div class="feature-grid" style="margin-bottom: 2rem;">
+        <div class="card">
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Total Registered Users</div>
+          <div style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-top: 0.5rem;" id="adm-total-users">0</div>
         </div>
-        <button class="btn btn-outline btn-sm" id="btn-refresh-admin-withdrawals">↻ Refresh All Requests</button>
+        <div class="card">
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Total Pool Deposited (USDT)</div>
+          <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent-cyan); margin-top: 0.5rem;" id="adm-total-deposited">$0.00</div>
+        </div>
+        <div class="card">
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Active Vault Capital</div>
+          <div style="font-size: 1.8rem; font-weight: 800; color: var(--accent-emerald); margin-top: 0.5rem;" id="adm-active-capital">$0.00</div>
+        </div>
       </div>
 
-      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-        Withdrawal requests from <strong>ALL platform users</strong> aggregate here. When you click <strong>Approve</strong>, funds are dispatched directly from the <strong>Master System Address (0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0)</strong> to the user's BEP-20 address.
-      </p>
-
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>Req ID</th>
-              <th>User Email</th>
-              <th>Withdrawal Amount</th>
-              <th>Destination BEP-20 Wallet</th>
-              <th>Requested Date</th>
-              <th>Admin Confirmation & Payout Action</th>
-            </tr>
-          </thead>
-          <tbody id="admin-withdrawals-tbody">
-            <tr>
-              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                No pending withdrawal requests. All requests from all users will appear here.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SECTION 2: ALL USERS' CONFIRMED DEPOSITS LEDGER -->
-    <div class="card" style="margin-top: 2rem;">
-      <div class="card-title">
-        <span>📜 All Users' Confirmed On-Chain Deposits (Master Audit Log)</span>
-        <button class="btn btn-outline btn-sm" id="btn-refresh-admin-deposits">↻ Refresh Deposits</button>
+      <!-- 24H DAILY SETTLEMENT ENGINE -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+          <h3>⚡ Execute 24-Hour Settlement Cycle</h3>
+          <span class="badge-tag">60/40 Profit Model</span>
+        </div>
+        <p class="card-desc">
+          Enter the daily trading performance ROI (%). Wins (>0%) credit 60% to users and deduct 40% platform fee. Losses (&le;0%) apply 100% direct loss (0% fee).
+        </p>
+        
+        <form id="admin-settle-form" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+          <div class="form-group" style="margin: 0; min-width: 220px;">
+            <label>Today's Bot Daily ROI (%)</label>
+            <input type="number" step="0.01" id="input-daily-roi" placeholder="e.g. 2.50 or -1.20" required>
+          </div>
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald)); color: #0b1120; font-weight: 700;">
+            🚀 Settle Active Users Now
+          </button>
+        </form>
       </div>
 
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>Date / Time</th>
-              <th>User Email</th>
-              <th>Amount ($ USDT)</th>
-              <th>Sender BEP-20</th>
-              <th>TxHash</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="admin-deposits-tbody">
-            <tr>
-              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-                No deposits loaded yet.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- REGISTERED USERS & RETURN / PAYOUT TABLE -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+          <h3>👥 Registered Users & Return Capital Payouts</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Email</th>
+                <th>User BEP-20 Wallet Address</th>
+                <th>Vault Balance</th>
+                <th>Auto-Compound</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="adm-users-tbody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                  Loading users...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      <!-- ON-CHAIN DEPOSITS LOG -->
+      <div class="card">
+        <div class="card-header">
+          <h3>🔗 On-Chain Verified BEP-20 Deposits</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tx Hash</th>
+                <th>User Email</th>
+                <th>Amount (USDT)</th>
+                <th>Verification</th>
+                <th>Date / Time</th>
+              </tr>
+            </thead>
+            <tbody id="adm-deposits-tbody">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                  No verified on-chain deposits yet.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
 
   </main>
 
-  <footer style="margin-top: 3rem;">
-    <div>ApexTrade AI Master Administration Console &bull; Confidential &bull; Authorized Operator Access Only</div>
-  </footer>
+  <!-- Payout Return Modal -->
+  <div class="modal" id="modal-payout">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>💸 Process User Capital Return / Payout</h3>
+        <button class="modal-close" data-close="modal-payout">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>User Email</label>
+          <input type="text" id="payout-user-email" readonly>
+        </div>
+        <div class="form-group">
+          <label>Destination BEP-20 Address</label>
+          <div class="copy-input-group">
+            <input type="text" id="payout-user-bep20" readonly>
+            <button class="btn btn-outline btn-sm" id="btn-copy-payout-bep20">📋 Copy</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Return Amount (USDT)</label>
+          <input type="number" step="0.01" id="payout-amount" placeholder="Enter amount to return">
+        </div>
+        <div class="form-group">
+          <label>Payout Transaction Hash (Optional)</label>
+          <input type="text" id="payout-tx-hash" placeholder="0x... from your Binance/TrustWallet">
+        </div>
+        <button type="button" class="btn btn-primary btn-block" id="btn-confirm-payout" style="background: linear-gradient(135deg, #10b981, #059669); margin-top: 1rem;">
+          ✅ Confirm Return & Update User Balance
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="toast-container"></div>
 
   <script src="/js/admin.js"></script>
 </body>

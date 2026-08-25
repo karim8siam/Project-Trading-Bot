@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ApexTrade AI | Next-Gen Binance Futures Automated Trading</title>
-  <meta name="description" content="Production-ready automated crypto futures trading bot powered by Machine Learning on Binance. Instant BEP-20 USDT deposit verification.">
+  <title>Orbital Trading | Autonomous Crypto Capital & Vault Management</title>
+  <meta name="description" content="Orbital Trading Autonomous Vault Portal. Deposit BEP-20 USDT, configure auto-compounding and re-investment, and track 24-hour cycle settlements.">
   
-  <!-- Google Fonts -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -15,11 +15,11 @@
 </head>
 <body>
 
-  <!-- Navigation Bar -->
+  <!-- Navigation -->
   <header class="navbar">
     <a href="/" class="nav-brand">
-      <div class="brand-icon">▲</div>
-      <div class="brand-name">ApexTrade<span>AI</span></div>
+      <div class="brand-icon">🌐</div>
+      <div class="brand-name">ORBITAL<span>.TRADING</span></div>
     </a>
 
     <div class="nav-status">
@@ -31,604 +31,191 @@
 
     <div class="nav-actions" id="nav-actions">
       <button class="btn btn-outline btn-sm" id="btn-open-login">Sign In</button>
-      <button class="btn btn-primary btn-sm" id="btn-open-register" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald)); color: #0b1120; font-weight: 700;">Get Started</button>
+      <button class="btn btn-primary btn-sm" id="btn-open-register">Join Vault</button>
     </div>
   </header>
 
-  <!-- Main Content Wrapper -->
+  <!-- Main Content -->
   <main class="main-wrapper">
 
-    <!-- 1. HERO SECTION (Shown when logged out) -->
+    <!-- 1. HERO & LANDING (Logged Out) -->
     <section class="hero-section" id="hero-section">
       <div class="hero-pill">
-        <span>⚡ Binance Futures Multi-Timeframe AI Bot</span>
+        <span>⚡ Autonomous Capital Vault & Compound Protocol</span>
       </div>
-      <h1 class="hero-title">Institutional Binance Futures Algorithmic Trading</h1>
+      <h1 class="hero-title">Orbital Trading Capital Management</h1>
       <p class="hero-subtitle">
-        Automated execution powered by 1H/15M/5M Multi-Timeframe Confluence, 300-Tree ML Ensembles, 4-Pillar Structural SL Protection, and Asymmetric +1.5R to +2.5R Profit Runners.
+        Deposit BEP-20 USDT into the Orbital Trading capital pool. Benefit from automated 24-hour algorithmic trading cycles, daily profit settlements, and flexible auto-compounding or re-investment.
       </p>
 
-      <div class="hero-cta" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <button class="btn btn-primary btn-lg" id="btn-hero-cta" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald)); color: #0b1120; font-weight: 800; font-size: 1.1rem; padding: 1rem 2.5rem; box-shadow: 0 4px 25px rgba(0, 210, 255, 0.4); cursor: pointer;">
-          ⚡ Launch Trading Portal
+      <div class="hero-cta">
+        <button class="btn btn-primary btn-lg" id="btn-hero-cta">
+          🚀 Open Vault Account
         </button>
-        <button class="btn btn-outline btn-lg" onclick="document.getElementById('public-live-terminal').scrollIntoView({behavior: 'smooth'})" style="font-weight: 700;">
-          📊 View Real-Time Binance Ledger
+        <button class="btn btn-outline btn-lg" id="btn-hero-login">
+          🔑 Sign In
         </button>
       </div>
 
-      <!-- Live Performance Ticker -->
-      <div class="hero-stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">Model Confidence</div>
-          <div class="stat-value gain">72.0%</div>
-          <div class="stat-detail">Optimized Meta-Filter Tier</div>
+      <!-- Feature Grid -->
+      <div class="feature-grid" style="margin-top: 3.5rem;">
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>On-Chain BSC Verification</h3>
+          <p>Instant cryptographic validation of BEP-20 USDT deposits via Binance Smart Chain RPC verification.</p>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Asymmetric Risk:Reward</div>
-          <div class="stat-value">1 : 2.5</div>
-          <div class="stat-detail">ATR Adaptive Trailing TP/SL</div>
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Auto-Compound & Re-invest</h3>
+          <p>Seamlessly compound daily trading returns or withdraw principal and profits back to your BEP-20 wallet.</p>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">Deposit Verification</div>
-          <div class="stat-value gain">On-Chain</div>
-          <div class="stat-detail">Direct BEP-20 USDT BSC RPC</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Supported Assets</div>
-          <div class="stat-value">BTC / ETH / BNB / SOL</div>
-          <div class="stat-detail">Whitelisted High-Volume Pairs</div>
-        </div>
-      </div>
-
-      <!-- LIVE REAL-TIME BINANCE FUTURES EXECUTION TERMINAL (PUBLIC) -->
-      <div id="public-live-terminal" class="card" style="margin-top: 3.5rem; text-align: left; border-color: rgba(0, 230, 118, 0.4); background: linear-gradient(145deg, rgba(14, 22, 38, 0.95), rgba(8, 12, 20, 0.98)); box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);">
-        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-size: 1.3rem;">⚡</span>
-            <span style="font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em;">Live Binance Futures Real-Time Execution Terminal</span>
-            <span class="status-badge active" style="background: rgba(0, 230, 118, 0.15); border-color: var(--accent-emerald); color: var(--accent-emerald);">🟢 BINANCE LIVE API CONNECTED</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="mono" style="font-size: 0.75rem; color: var(--text-muted);">Sync: Fast 3s REST</span>
-            <button class="btn btn-outline btn-sm" onclick="syncBinanceLiveTelemetry()" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">↻ Sync</button>
-          </div>
-        </div>
-
-        <!-- 4 Live Exchange Metric Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
-          <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">💵 Binance Live Balance</div>
-            <div class="mono terminal-binance-bal" style="font-size: 1.7rem; font-weight: 800; color: var(--text-primary); margin-top: 0.35rem;">$13.87 <span style="font-size: 1rem; color: var(--text-secondary);">USDT</span></div>
-            <div style="font-size: 0.75rem; color: var(--accent-emerald); margin-top: 0.25rem;">🔒 Dynamic 1.0% Compounding Active</div>
-          </div>
-
-          <div style="background: var(--bg-surface-raised); border: 1px solid rgba(0, 230, 118, 0.3); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">📈 Net Banked ROI%</div>
-            <div class="mono terminal-binance-roi" style="font-size: 1.7rem; font-weight: 800; color: var(--accent-emerald); margin-top: 0.35rem;">+4.71%</div>
-            <div style="font-size: 0.75rem; color: var(--accent-emerald); margin-top: 0.25rem;" class="terminal-binance-profit">+$0.62 USDT Net Gain</div>
-          </div>
-
-          <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">🎯 Trade Win Rate</div>
-            <div class="mono terminal-binance-winrate" style="font-size: 1.7rem; font-weight: 800; color: var(--accent-cyan); margin-top: 0.35rem;">78.5%</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;" class="terminal-binance-totaltrades">Verified Journal Records</div>
-          </div>
-
-          <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">🛡️ Risk & Exit Protocol</div>
-            <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent-amber); margin-top: 0.45rem;">Asymmetric +1.5R to +2.5R</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">4-Pillar Structural SL Anchoring</div>
-          </div>
-        </div>
-
-        <!-- Real-Time Open Positions Table -->
-        <div style="margin-top: 1.5rem;">
-          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
-            <span>🟢 Real-Time Open Binance Positions (<span class="terminal-open-count">5</span> Active)</span>
-            <span class="mono" style="font-size: 0.8rem; color: var(--text-secondary);">Open Variance: <span class="terminal-total-unr" style="color: var(--accent-emerald); font-weight: 700;">-$0.05 USDT</span></span>
-          </div>
-
-          <div class="table-responsive">
-            <table>
-              <thead>
-                <tr>
-                  <th>Symbol & Side</th>
-                  <th>Leverage</th>
-                  <th>Quantity</th>
-                  <th>Entry Price</th>
-                  <th>Live Mark Price</th>
-                  <th>Floating PnL (USDT)</th>
-                </tr>
-              </thead>
-              <tbody class="terminal-positions-tbody">
-                <tr>
-                  <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-                    Syncing live exchange positions from Binance Futures API...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Recently Closed Trades Table -->
-        <div style="margin-top: 1.5rem;">
-          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem;">
-            📜 Recently Closed Trades Journal (Verified Real PnL)
-          </div>
-
-          <div class="table-responsive">
-            <table>
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Direction</th>
-                  <th>Outcome</th>
-                  <th>Realized PnL ($)</th>
-                  <th>Exit Price</th>
-                  <th>Exit Reason</th>
-                  <th>Time (UTC)</th>
-                </tr>
-              </thead>
-              <tbody class="terminal-closed-tbody">
-                <tr>
-                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-                    Syncing recent trade journal...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Official Community & Social Channels Section -->
-      <div class="community-section" style="margin-top: 4rem; text-align: center;">
-        <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.5rem;">
-          🌐 Connect With Us
-        </div>
-        <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.75rem;">
-          Official Telegram & YouTube Channels
-        </h2>
-        <p style="font-size: 0.95rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto 2.5rem auto; line-height: 1.6;">
-          Join our official community for daily trading bot updates, trade execution analysis, announcements, and direct discussion.
-        </p>
-
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 780px; margin: 0 auto;">
-          
-          <!-- Telegram Channel Card -->
-          <a href="https://t.me/QuickMOneyq" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration: none; color: inherit; border-color: rgba(0, 136, 204, 0.45); background: linear-gradient(145deg, rgba(0, 136, 204, 0.08), rgba(15, 23, 42, 0.7)); transition: all 0.25s ease; display: flex; align-items: center; gap: 1.25rem; padding: 1.5rem; border-radius: var(--radius-lg);" onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='#0088cc'; this.style.boxShadow='0 8px 30px rgba(0, 136, 204, 0.25)';" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(0, 136, 204, 0.45)'; this.style.boxShadow='none';">
-            <div style="width: 58px; height: 58px; border-radius: 50%; background: #0088cc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 18px rgba(0, 136, 204, 0.45);">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" fill="#ffffff"/>
-              </svg>
-            </div>
-            <div style="text-align: left;">
-              <div style="font-weight: 800; font-size: 1.15rem; color: #38bdf8;">Telegram Channel</div>
-              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">t.me/QuickMOneyq</div>
-              <div style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 700; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
-                Join Telegram Channel ↗
-              </div>
-            </div>
-          </a>
-
-          <!-- YouTube Channel Card -->
-          <a href="https://www.youtube.com/channel/UCPBmO6pr_m1XNX5PuPmQiDA" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration: none; color: inherit; border-color: rgba(255, 0, 0, 0.45); background: linear-gradient(145deg, rgba(255, 0, 0, 0.08), rgba(15, 23, 42, 0.7)); transition: all 0.25s ease; display: flex; align-items: center; gap: 1.25rem; padding: 1.5rem; border-radius: var(--radius-lg);" onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='#ff0000'; this.style.boxShadow='0 8px 30px rgba(255, 0, 0, 0.25)';" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 0, 0, 0.45)'; this.style.boxShadow='none';">
-            <div style="width: 58px; height: 58px; border-radius: 50%; background: #ff0000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 18px rgba(255, 0, 0, 0.45);">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path d="M21.58 7.19a2.76 2.76 0 00-1.95-1.96C17.9 4.75 12 4.75 12 4.75s-5.9 0-7.63.48c-.96.26-1.7.99-1.95 1.96C2 8.93 2 12 2 12s0 3.07.42 4.81c.25.97.99 1.7 1.95 1.96 1.73.48 7.63.48 7.63.48s5.9 0 7.63-.48c.96-.26 1.7-.99 1.95-1.96.42-1.74.42-4.81.42-4.81s0-3.07-.42-4.81zM9.75 15.02V8.98l5.5 3.02-5.5 3.02z" fill="#ffffff"/>
-              </svg>
-            </div>
-            <div style="text-align: left;">
-              <div style="font-weight: 800; font-size: 1.15rem; color: #f87171;">YouTube Channel</div>
-              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">Live Bot Updates & Strategies</div>
-              <div style="font-size: 0.8rem; color: #f87171; font-weight: 700; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
-                Subscribe on YouTube ↗
-              </div>
-            </div>
-          </a>
-
+        <div class="feature-card">
+          <div class="feature-icon">⏱️</div>
+          <h3>24-Hour Settlement Cycles</h3>
+          <p>Transparent daily accounting at 00:00 UTC with 60/40 profit distribution on winning cycles and direct ledger audits.</p>
         </div>
       </div>
     </section>
 
-    <!-- 2. DASHBOARD VIEW (Shown when logged in) -->
-    <section class="dashboard-view" id="dashboard-view">
+    <!-- 2. USER DASHBOARD (Logged In) -->
+    <section class="dashboard-section" id="dashboard-section" style="display: none;">
       
-      <!-- User Profile & Balance Header -->
-      <div class="dashboard-header">
-        <div class="user-profile-summary">
-          <div class="user-avatar" id="user-avatar-initials">U</div>
+      <!-- Top Account Banner -->
+      <div class="account-banner card">
+        <div class="account-info">
+          <div class="user-avatar">👤</div>
           <div>
-            <div class="user-email-row">
-              <span class="user-email" id="dash-user-email">user@example.com</span>
-              <span class="status-badge pending" id="dash-status-badge">PENDING DEPOSIT</span>
-              <span class="status-badge active" id="dash-compound-badge" style="background: rgba(0, 210, 255, 0.15); border-color: var(--accent-cyan); color: var(--accent-cyan);">🔄 AUTO-COMPOUND: ON</span>
-              <span class="status-badge" id="dash-queue-badge" style="display: none; background: var(--bg-surface-raised); border: 1px solid var(--border-subtle);">QUEUED FOR 00:00 UTC BATCH</span>
-            </div>
-            <div class="user-wallet-row">
-              <span class="wallet-label">Your Registered BEP-20 Address:</span>
-              <span class="wallet-address mono" id="dash-user-bep20">0x0000000000000000000000000000000000000000</span>
-              <button class="copy-btn" id="btn-copy-user-bep20" title="Copy Address">📋</button>
+            <div class="user-email-label" id="user-email-display">user@example.com</div>
+            <div class="bep20-pill">
+              <span>BEP20:</span>
+              <code id="user-bep20-display">0x...</code>
             </div>
           </div>
         </div>
 
-        <div class="user-balance-block">
-          <div class="balance-title">Your Confirmed Deposit Balance</div>
-          <div class="balance-amount"><span id="dash-balance">0.00</span> <span style="font-size: 1.1rem; color: var(--text-secondary);">USDT</span></div>
-        </div>
-      </div>
-
-      <!-- PERSONALIZED FINANCIAL KPI OVERVIEW CARDS -->
-      <div class="financial-kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-label">💰 Active Trading Capital</div>
-          <div class="kpi-value mono" id="kpi-balance">0.00 <span class="kpi-currency">USDT</span></div>
-          <div class="kpi-subtext" id="kpi-total-deposited">Total Deposited: 0.00 USDT</div>
-        </div>
-
-        <div class="kpi-card gain-card">
-          <div class="kpi-label">📈 Total Profit Earned</div>
-          <div class="kpi-value mono gain" id="kpi-profit">+0.00 <span class="kpi-currency">USDT</span></div>
-          <div class="kpi-subtext">Cumulative bot profits</div>
-        </div>
-
-        <div class="kpi-card loss-card">
-          <div class="kpi-label">📉 Total Losses Incurred</div>
-          <div class="kpi-value mono loss" id="kpi-loss">-0.00 <span class="kpi-currency">USDT</span></div>
-          <div class="kpi-subtext">Cumulative bot losses</div>
-        </div>
-
-        <div class="kpi-card net-card">
-          <div class="kpi-label">💎 All-Time Net PnL</div>
-          <div class="kpi-value mono" id="kpi-net-pnl">+0.00 <span class="kpi-currency">USDT</span></div>
-          <div class="kpi-subtext" id="kpi-net-roi">Net ROI: +0.00% across cycles</div>
+        <div class="account-balances">
+          <div class="bal-item">
+            <span class="bal-label">Vault Balance</span>
+            <span class="bal-value highlight-cyan" id="user-balance-display">$0.00 USDT</span>
+          </div>
+          <div class="bal-item">
+            <span class="bal-label">Status</span>
+            <span class="status-badge active" id="user-status-badge">ACTIVE</span>
+          </div>
+          <button class="btn btn-outline btn-sm" id="btn-logout">Sign Out</button>
         </div>
       </div>
 
-      <!-- LAST DAY RETURN & DEPOSIT CONFIRMATION CARD -->
-      <div class="card return-confirmation-card" id="last-return-card" style="margin-bottom: 2rem;">
-        <div class="card-title">
-          <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-            <span>🛡️ Daily Return & Deposit Confirmation</span>
-            <span class="status-badge active" id="last-return-status-badge">CONFIRMED & RETURNED</span>
+      <!-- Dashboard Grid -->
+      <div class="vault-grid">
+
+        <!-- DEPOSIT CARD -->
+        <div class="card vault-card">
+          <div class="card-header">
+            <h3>📥 Deposit USDT (BEP-20)</h3>
+            <span class="badge-tag">Binance Smart Chain</span>
           </div>
-          <span class="mono" id="last-return-date-pill" style="font-size: 0.8rem; color: var(--text-secondary);">Cycle: 2026-08-15</span>
+          <p class="card-desc">Send USDT on BEP-20 network to the official platform address, then submit your Transaction Hash for instant on-chain verification.</p>
+
+          <div class="deposit-box">
+            <label>Official Platform Deposit Address (BEP-20)</label>
+            <div class="copy-input-group">
+              <input type="text" readonly id="platform-deposit-address" value="0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0">
+              <button class="btn btn-outline btn-sm" id="btn-copy-address">📋 Copy</button>
+            </div>
+            <div class="deposit-notice">⚠️ Minimum Deposit: <strong>1.0 USDT</strong> (BEP-20 only). Do not send other tokens.</div>
+          </div>
+
+          <form id="deposit-verify-form" class="deposit-form">
+            <label>Verify On-Chain Transaction Hash (Tx Hash)</label>
+            <div class="input-with-action">
+              <input type="text" id="input-tx-hash" placeholder="0x..." required pattern="^0x[a-fA-F0-9]{64}$">
+              <button type="submit" class="btn btn-primary" id="btn-verify-tx">
+                ⚡ Verify Deposit
+              </button>
+            </div>
+            <small style="color: var(--text-muted);">Paste the 66-character BscScan transaction hash from your wallet/exchange.</small>
+          </form>
+
+          <div id="deposit-verify-status" class="alert-box" style="display: none;"></div>
         </div>
 
-        <div class="return-confirmation-grid">
-          <div class="return-stat-box">
-            <div class="stat-label">Daily Bot Performance</div>
-            <div class="stat-value mono" id="last-return-roi" style="color: var(--accent-emerald);">+8.00%</div>
-            <div class="stat-detail" id="last-return-rule">Last 24h trading day</div>
+        <!-- COMPOUNDING & RE-INVESTMENT SETTINGS -->
+        <div class="card vault-card">
+          <div class="card-header">
+            <h3>⚙️ Compounding & Re-investment</h3>
+            <span class="badge-tag">24h Cycle</span>
           </div>
+          <p class="card-desc">Configure how your capital and daily settled profits behave at the 00:00 UTC cycle cutoff.</p>
 
-          <div class="return-stat-box">
-            <div class="stat-label">Daily Profit / Loss</div>
-            <div class="stat-value mono gain" id="last-return-amount">+$12.00 USDT</div>
-            <div class="stat-detail" id="last-return-fee" style="color: var(--accent-emerald); font-weight: 600;">✅ Confirmed & Credited</div>
-          </div>
-
-          <div class="return-stat-box">
-            <div class="stat-label">Current Trading Capital</div>
-            <div class="stat-value mono" id="last-return-endbal" style="font-weight: 700;">262.00 USDT</div>
-            <div class="stat-detail">Starting cycle capital: <span id="last-return-startbal">250.00</span> USDT</div>
-          </div>
-
-          <div class="return-stat-box">
-            <div class="stat-label">Confirmation & Wallet Destination</div>
-            <div class="mono" style="font-size: 0.75rem; word-break: break-all; color: var(--accent-cyan);" id="last-return-bep20">
-              0x0000000000000000000000000000000000000000
-            </div>
-            <div class="stat-detail" id="last-return-transfer-note" style="color: var(--accent-emerald); font-weight: 700; margin-top: 0.35rem;">
-              ✅ Return Confirmed: Sent from System Address (0x66A06fA...) to your BEP-20
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- MAIN DASHBOARD GRID -->
-      <div class="dashboard-grid">
-
-        <!-- CARD 1: BEP-20 USDT Deposit Instructions -->
-        <div class="card deposit-card">
-          <div class="card-title">
-            <span>💳 Deposit BEP-20 USDT</span>
-            <span class="chain-badge">BSC BEP-20</span>
-          </div>
-
-          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-            Send USDT (BEP-20) to the platform deposit address. Deposits accumulate throughout the day and sweep to Binance at 00:00 UTC. Minimum deposit is <strong>1.0 USDT</strong>.
-          </p>
-
-          <!-- Deposit Address Box -->
-          <div class="deposit-address-wrapper">
-            <label class="input-label" for="platform-deposit-address">Platform Deposit Address (BEP-20 USDT Vault)</label>
-            <div class="input-with-button">
-              <input type="text" class="text-input mono" id="platform-deposit-address" readonly value="0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0">
-              <button class="btn btn-secondary" id="btn-copy-address">Copy</button>
-            </div>
-          </div>
-
-          <!-- QR Code & Token Contract Info -->
-          <div class="qr-contract-row">
-            <div class="qr-container">
-              <img id="deposit-qr-img" src="" alt="Deposit QR Code" width="130" height="130">
-            </div>
-            <div class="contract-info">
-              <div class="info-item">
-                <span class="info-label">Network:</span>
-                <span class="info-val">BNB Smart Chain (BEP-20)</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Token:</span>
-                <span class="info-val">Tether USD (USDT)</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Contract:</span>
-                <span class="info-val mono" id="usdt-contract-short">0x55d3...7955</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Min Deposit:</span>
-                <span class="info-val" style="color: var(--accent-emerald);">1.0 USDT</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- CARD 2: Deposit for Next Pool (On-Chain Verification) -->
-        <div class="card verify-card" style="border-color: rgba(0, 210, 255, 0.35);">
-          <div class="card-title">
-            <span>📥 Deposit for Next Pool (00:00 UTC Batch)</span>
-            <span class="status-badge active">BSC RPC VERIFIER</span>
-          </div>
-
-          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
-            Submit your deposit details to verify on-chain. The system automatically inspects <strong>how much</strong> was sent, <strong>who</strong> sent it, and verifies that it is <strong>authentic BEP-20 USDT</strong>.
-          </p>
-
-          <!-- 3 User Fields: Amount, Address (Who), TxHash -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
-            <div>
-              <label class="input-label" for="input-deposit-amount">1. Deposit Amount ($ USDT)</label>
-              <input type="number" class="text-input mono" id="input-deposit-amount" placeholder="e.g. 100.00" min="1" step="any">
-            </div>
-            <div>
-              <label class="input-label" for="input-sender-address">2. Your BEP-20 Address (Who)</label>
-              <input type="text" class="text-input mono" id="input-sender-address" placeholder="0x..." autocomplete="off">
-            </div>
-          </div>
-
-          <div class="input-field-group">
-            <label class="input-label" for="input-tx-hash">3. Transaction Hash (TxHash)</label>
-            <input type="text" class="text-input mono" id="input-tx-hash" placeholder="0x..." autocomplete="off">
-          </div>
-
-          <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap;">
-            <button class="btn btn-primary" id="btn-verify-tx" style="flex: 1; min-width: 200px;">
-              ⚡ Verify & Credit to Next Pool
-            </button>
-            <button class="btn btn-secondary btn-sm" id="btn-simulate-test" title="Quick test verification for sandbox testing">
-              🧪 Quick Simulation (+50.00 USDT)
-            </button>
-          </div>
-
-          <!-- On-Chain Security Verification Audit Box -->
-          <div class="verify-alert" id="verify-alert" style="margin-top: 1rem;"></div>
-        </div>
-
-        <!-- CARD 3: AI Trading Bot Status & Control -->
-        <div class="card bot-card">
-          <div class="card-title">
-            <span>🤖 AI Trading Bot Command Center</span>
-            <span class="status-badge active">ONLINE</span>
-          </div>
-
-          <div class="bot-control-row">
-            <div class="bot-control-text">
-              <div class="control-title">Automated ML Trading Execution</div>
-              <div class="control-desc" id="bot-toggle-hint">
-                Requires minimum 1.0 USDT confirmed deposit.
-              </div>
-            </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="bot-toggle-switch" disabled>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-
-          <!-- Bot Metrics -->
-          <div class="bot-metrics-grid">
-            <div class="metric-item">
-              <span class="metric-label">Execution Strategy</span>
-              <span class="metric-val">Multi-Timeframe Trend + ML Filter</span>
-            </div>
-            <div class="metric-item">
-              <span class="metric-label">Target Assets</span>
-              <span class="metric-val">BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT</span>
-            </div>
-            <div class="metric-item">
-              <span class="metric-label">Risk Protocol</span>
-              <span class="metric-val">ATR Volatility Trailing Stop (1:2.5 RR)</span>
-            </div>
-            <div class="metric-item">
-              <span class="metric-label">Model Retraining</span>
-              <span class="metric-val" style="color: var(--accent-cyan);">Daily (00:00 UTC Cycle)</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- CARD 4: Auto-Compounding Rollover Engine -->
-        <div class="card compound-card" style="border-color: rgba(0, 210, 255, 0.35);">
-          <div class="card-title">
-            <div style="display: flex; align-items: center; gap: 0.6rem;">
-              <span>🔄 Auto-Compounding Rollover Mode</span>
-              <span class="status-badge active" id="compound-status-badge">ACTIVE</span>
-            </div>
-            <span class="chain-badge" style="font-size: 0.7rem;">Continuous 24h Pools</span>
-          </div>
-
-          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-            Eliminate manual daily deposits. When enabled, your ending balance and daily returns <strong>automatically roll over into consecutive daily trading pools</strong> at 00:00 UTC.
-          </p>
-
-          <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <div class="setting-list">
+            <div class="setting-item">
               <div>
-                <div style="font-weight: 700; font-size: 0.95rem;">Continuous Daily Compounding</div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;" id="compound-status-desc">
-                  Active: Daily profits and balances automatically compound into the next 24h pool.
-                </div>
+                <div class="setting-title">Auto-Compound Daily Profits</div>
+                <div class="setting-desc">Automatically add settled trading profits back to your vault principal for exponential growth.</div>
               </div>
-              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button class="btn btn-primary btn-sm" id="btn-toggle-compound" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald)); color: #0b1120; font-weight: 800; padding: 0.5rem 1.1rem; cursor: pointer;">
-                  🔄 Compounding Settings
-                </button>
-                <button class="btn btn-secondary btn-sm" id="btn-open-withdraw" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171; font-weight: 700; padding: 0.5rem 1.1rem; cursor: pointer;">
-                  💸 Request Withdrawal
-                </button>
+              <label class="switch">
+                <input type="checkbox" id="toggle-auto-compound" checked>
+                <span class="slider round"></span>
+              </label>
+            </div>
+
+            <div class="setting-item">
+              <div>
+                <div class="setting-title">Auto-Reinvest Principal</div>
+                <div class="setting-desc">Keep your active capital enrolled in continuous 24h algorithmic trading batches.</div>
               </div>
+              <label class="switch">
+                <input type="checkbox" id="toggle-auto-reinvest" checked>
+                <span class="slider round"></span>
+              </label>
             </div>
           </div>
 
-          <div style="font-size: 0.78rem; color: var(--text-secondary);">
-            💡 <em>Withdrawal Protocol: Requests wait for that day's active pool completion (00:00 UTC) and dispatch from the System Address (0x66A06fA...) to your BEP-20 wallet upon Admin confirmation.</em>
-          </div>
-        </div>
-
-        <!-- CARD 4: Interactive Daily Profit/Loss Calculator -->
-        <div class="card">
-          <div class="card-title">
-            <span>🧮 Daily Profit / Loss Calculator</span>
-            <span class="chain-badge" style="font-size: 0.7rem;">Daily PnL Estimate</span>
-          </div>
-
-          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-            Estimate your daily returns based on deposit size and the trading bot's daily performance.
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
-            <div>
-              <label class="input-label" for="calc-deposit">Your Deposit ($ USDT)</label>
-              <input type="number" class="text-input mono" id="calc-deposit" value="100" min="1" step="10">
+          <div class="summary-box">
+            <div class="summary-row">
+              <span>Next Cycle Cutoff:</span>
+              <strong id="next-cycle-time">00:00 UTC</strong>
             </div>
-            <div>
-              <label class="input-label" for="calc-roi">Bot Daily ROI (%)</label>
-              <input type="number" class="text-input mono" id="calc-roi" value="10" step="0.5">
+            <div class="summary-row">
+              <span>Profit Share Model:</span>
+              <strong>60% User / 40% Platform</strong>
             </div>
-          </div>
-
-          <div id="calc-result-box" style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-              <span style="color: var(--text-muted); font-size: 0.85rem;">Daily Profit / Loss ($):</span>
-              <span id="calc-user-pnl" class="mono" style="font-weight: 700; color: var(--accent-emerald);">+$6.00 USDT</span>
+            <div class="summary-row">
+              <span>Loss Protection Policy:</span>
+              <strong>100% Direct to User (0% Fee)</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-              <span style="color: var(--text-muted); font-size: 0.85rem;">Your Daily Net ROI:</span>
-              <span id="calc-user-pct" class="mono" style="font-weight: 700; color: var(--accent-emerald);">+6.00%</span>
+            <div class="summary-row">
+              <span>Payout / Return Destination:</span>
+              <code id="user-destination-bep20" style="color: var(--accent-cyan); font-size: 0.8rem;">Your BEP-20 Address</code>
             </div>
-            <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid var(--border-subtle); font-size: 1rem;">
-              <span style="font-weight: 700;">Simulated Ending Balance:</span>
-              <span id="calc-ending-balance" class="mono" style="font-weight: 800; color: var(--accent-emerald);">106.00 USDT</span>
-            </div>
-          </div>
-
-          <!-- Quick Test Presets -->
-          <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
-            <button class="btn btn-secondary btn-sm" onclick="setCalcPreset(100, 10)">+10% Gain</button>
-            <button class="btn btn-secondary btn-sm" onclick="setCalcPreset(500, 8)">+8% Gain</button>
-            <button class="btn btn-secondary btn-sm" onclick="setCalcPreset(100, -5)">-5% Loss</button>
-            <button class="btn btn-secondary btn-sm" onclick="setCalcPreset(200, -3)">-3% Loss</button>
           </div>
         </div>
 
       </div>
 
-      <!-- User Settlement Receipts Ledger -->
-      <div class="card deposit-history-card">
-        <div class="card-title">
-          <span>📈 Daily Profit & Loss History Ledger</span>
-          <button class="btn btn-outline btn-sm" id="btn-refresh-settlements">↻ Refresh</button>
+      <!-- Financial Timeline & Settlements -->
+      <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+          <h3>📊 24-Hour Settlement History & Return Audits</h3>
         </div>
-
         <div class="table-responsive">
-          <table>
+          <table class="data-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Bot Daily ROI</th>
+                <th>Date / Batch</th>
                 <th>Starting Capital</th>
-                <th>Your Profit / Loss ($)</th>
-                <th>Ending Capital</th>
-                <th>Return Payout Confirmation</th>
-              </tr>
-            </thead>
-            <tbody id="settlements-history-tbody">
-              <tr>
-                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                  No daily settlements recorded yet. Active traders receive daily payouts at the end of each 24h cycle.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Deposit Ledger History -->
-      <div class="card deposit-history-card">
-        <div class="card-title">
-          <span>📜 Confirmed Deposit Ledger</span>
-          <button class="btn btn-outline btn-sm" id="btn-refresh-history">↻ Refresh</button>
-        </div>
-
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>Date / Time</th>
-                <th>Amount</th>
-                <th>Network</th>
-                <th>Transaction Hash</th>
-                <th>Block #</th>
+                <th>Daily ROI (%)</th>
+                <th>Net Settled ($)</th>
+                <th>Ending Balance</th>
+                <th>Rule Applied</th>
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody id="deposit-history-tbody">
+            <tbody id="user-settlements-tbody">
               <tr>
-                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
-                  No deposits confirmed yet. Complete your first BEP-20 USDT deposit above.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- User Withdrawals Ledger -->
-      <div class="card deposit-history-card" style="margin-top: 1.5rem;">
-        <div class="card-title">
-          <span>💸 Your Withdrawal Requests & Payout Status</span>
-          <button class="btn btn-outline btn-sm" id="btn-refresh-withdrawals">↻ Refresh</button>
-        </div>
-
-        <div class="table-responsive">
-          <table>
-            <thead>
-              <tr>
-                <th>Date / Time</th>
-                <th>Amount</th>
-                <th>Destination BEP-20</th>
-                <th>Pool Status</th>
-                <th>Admin Confirmation & Payout Tx</th>
-              </tr>
-            </thead>
-            <tbody id="withdrawal-history-tbody">
-              <tr>
-                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-                  No withdrawal requests yet. You can request a withdrawal anytime from the Compounding card.
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                  No previous settlement cycles recorded yet. Your balance will settle at the upcoming 00:00 UTC cycle.
                 </td>
               </tr>
             </tbody>
@@ -640,169 +227,71 @@
 
   </main>
 
-  <!-- AUTH MODAL (Register / Login) -->
-  <div class="modal-backdrop" id="auth-modal">
-    <div class="modal-content">
-      <button class="modal-close-btn" id="btn-close-modal">&times;</button>
+  <!-- MODALS -->
 
-      <div class="modal-tabs">
-        <button class="tab-btn active" id="tab-register">Register</button>
-        <button class="tab-btn" id="tab-login">Sign In</button>
+  <!-- 1. SIGN IN MODAL -->
+  <div class="modal" id="modal-login">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>Sign In to Orbital Trading</h3>
+        <button class="modal-close" data-close="modal-login">&times;</button>
       </div>
-
-      <div class="form-alert" id="auth-alert"></div>
-
-      <!-- REGISTER FORM -->
-      <form class="auth-form active" id="form-register">
-        <div class="input-field-group">
-          <label class="input-label" for="reg-email">Email Address</label>
-          <input type="email" class="text-input" id="reg-email" placeholder="you@example.com" required>
+      <form id="form-login" class="modal-body">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="login-email" placeholder="trade09siam@gmail.com" required>
         </div>
-
-        <div class="input-field-group">
-          <label class="input-label" for="reg-password">Password (min 6 chars)</label>
-          <input type="password" class="text-input" id="reg-password" placeholder="••••••••" required minlength="6">
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••••••" required>
         </div>
-
-        <div class="input-field-group">
-          <label class="input-label" for="reg-bep20">Your BEP-20 (BSC) Wallet Address</label>
-          <input type="text" class="text-input mono" id="reg-bep20" placeholder="0x..." required pattern="^0x[a-fA-F0-9]{40}$">
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
-            Enter the BSC wallet address you will use to send deposits and receive bot profits.
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" id="btn-submit-register">
-          Create Account & Start Trading
-        </button>
-      </form>
-
-      <!-- LOGIN FORM -->
-      <form class="auth-form" id="form-login">
-        <div class="input-field-group">
-          <label class="input-label" for="login-email">Email Address</label>
-          <input type="email" class="text-input" id="login-email" placeholder="you@example.com" required>
-        </div>
-
-        <div class="input-field-group">
-          <label class="input-label" for="login-password">Password</label>
-          <input type="password" class="text-input" id="login-password" placeholder="••••••••" required>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" id="btn-submit-login">
-          Sign In to Dashboard
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+          🔑 Access Vault Dashboard
         </button>
       </form>
     </div>
   </div>
 
-  <!-- AUTO-COMPOUNDING CONFIRMATION MODAL POP-UP -->
-  <div class="modal-backdrop" id="compounding-modal">
-    <div class="modal-card" style="max-width: 520px;">
+  <!-- 2. REGISTER MODAL -->
+  <div class="modal" id="modal-register">
+    <div class="modal-dialog">
       <div class="modal-header">
-        <div class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
-          <span>🔄</span>
-          <span id="modal-compound-title">Auto-Compounding Confirmation</span>
-        </div>
-        <button class="modal-close" id="btn-close-compound-modal">&times;</button>
+        <h3>Join Orbital Trading Vault</h3>
+        <button class="modal-close" data-close="modal-register">&times;</button>
       </div>
-
-      <div class="modal-body" style="padding: 1.5rem;">
-        <div id="modal-compound-desc" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.25rem;">
-          <p style="margin-bottom: 0.75rem; color: var(--text-primary);">
-            <strong>How Auto-Compounding Works:</strong>
-          </p>
-          <ul style="padding-left: 1.25rem; margin-bottom: 1rem; list-style-type: '⚡ ';">
-            <li style="margin-bottom: 0.5rem;"><strong>No Daily Deposits:</strong> Your money continuously participates in each consecutive 24h trading pool automatically.</li>
-            <li style="margin-bottom: 0.5rem;"><strong>Compounded Gains:</strong> Daily profits are credited to your capital and trade in the next day's pool.</li>
-            <li style="margin-bottom: 0.5rem;"><strong>Loss Handling:</strong> Any daily loss is deducted directly from that day's capital before rolling over.</li>
-            <li><strong>Full Control:</strong> You can pause or disable compounding at any time to receive payouts.</li>
-          </ul>
+      <form id="form-register" class="modal-body">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="reg-email" placeholder="trader@example.com" required>
         </div>
-
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-          <button class="btn btn-secondary" id="btn-cancel-compound">Cancel</button>
-          <button class="btn btn-primary" id="btn-confirm-compound" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald)); color: #0b1120; font-weight: 800;">
-            ✅ Confirm & Activate Compounding
-          </button>
+        <div class="form-group">
+          <label>Your BEP-20 USDT Wallet Address (For Returns & Payouts)</label>
+          <input type="text" id="reg-bep20" placeholder="0x..." required pattern="^0x[a-fA-F0-9]{40}$">
+          <small style="color: var(--text-muted);">Profits and returns will be paid out directly to this BEP-20 address.</small>
         </div>
-      </div>
+        <div class="form-group">
+          <label>Create Password</label>
+          <input type="password" id="reg-password" placeholder="••••••••••••" required minlength="6">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top: 1rem;">
+          🚀 Create Account & Get Deposit Address
+        </button>
+      </form>
     </div>
   </div>
 
-  <!-- WITHDRAWAL REQUEST MODAL POP-UP -->
-  <div class="modal-backdrop" id="withdrawal-modal">
-    <div class="modal-card" style="max-width: 520px;">
-      <div class="modal-header">
-        <div class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
-          <span>💸</span>
-          <span>Request Capital Withdrawal</span>
-        </div>
-        <button class="modal-close" id="btn-close-withdraw-modal">&times;</button>
-      </div>
-
-      <div class="modal-body" style="padding: 1.5rem;">
-        <div class="form-alert" id="withdraw-modal-alert" style="display: none;"></div>
-
-        <div class="input-field-group">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-            <label class="input-label" for="input-withdraw-amount" style="margin-bottom: 0;">Amount to Withdraw ($ USDT)</label>
-            <button type="button" class="btn btn-outline btn-sm" id="btn-withdraw-max" style="font-size: 0.75rem; padding: 0.15rem 0.5rem;">Max Available</button>
-          </div>
-          <input type="number" class="text-input mono" id="input-withdraw-amount" placeholder="e.g. 50.00" min="1" step="any">
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-            Available Balance: <strong id="withdraw-available-bal" style="color: var(--accent-cyan);">0.00</strong> USDT
-          </div>
-        </div>
-
-        <div class="input-field-group" style="margin-top: 1rem;">
-          <label class="input-label" for="input-withdraw-destination">Destination BEP-20 Address</label>
-          <input type="text" class="text-input mono" id="input-withdraw-destination" placeholder="0x..." readonly style="opacity: 0.85;">
-          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
-            Payout will be sent from System Address (0x66A06fA...) to your registered BEP-20 wallet.
-          </div>
-        </div>
-
-        <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.9rem; margin-top: 1.25rem; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
-          <strong style="color: var(--text-primary);">Withdrawal Timeline:</strong>
-          <ul style="padding-left: 1.1rem; margin-top: 0.35rem; margin-bottom: 0;">
-            <li>Your requested amount will finish the current active 24h pool cycle (at 00:00 UTC).</li>
-            <li>The Admin reviews and confirms the payout.</li>
-            <li>Funds are dispatched directly from the Master System Vault to your BEP-20 address.</li>
-          </ul>
-        </div>
-
-        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem;">
-          <button class="btn btn-secondary" id="btn-cancel-withdraw">Cancel</button>
-          <button class="btn btn-primary" id="btn-submit-withdraw" style="background: linear-gradient(135deg, #ef4444, #f59e0b); color: #fff; font-weight: 800;">
-            🚀 Submit Withdrawal Request
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="toast-container"></div>
 
   <!-- Footer -->
-  <footer>
-    <div style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
-      <a href="https://t.me/QuickMOneyq" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.85rem;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
-        </svg>
-        Telegram Channel
-      </a>
-      <a href="https://www.youtube.com/channel/UCPBmO6pr_m1XNX5PuPmQiDA" target="_blank" rel="noopener noreferrer" style="color: #f87171; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.85rem;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M21.58 7.19a2.76 2.76 0 00-1.95-1.96C17.9 4.75 12 4.75 12 4.75s-5.9 0-7.63.48c-.96.26-1.7.99-1.95 1.96C2 8.93 2 12 2 12s0 3.07.42 4.81c.25.97.99 1.7 1.95 1.96 1.73.48 7.63.48 7.63.48s5.9 0 7.63-.48c.96-.26 1.7-.99 1.95-1.96.42-1.74.42-4.81.42-4.81s0-3.07-.42-4.81zM9.75 15.02V8.98l5.5 3.02-5.5 3.02z"/>
-        </svg>
-        YouTube Channel
-      </a>
-    </div>
-    <div>ApexTrade AI &copy; 2026. Production Binance Futures Algorithmic Trading Platform.</div>
-    <div style="font-size: 0.75rem; margin-top: 0.35rem; display: flex; justify-content: center; gap: 1rem; align-items: center;">
-      <span>Smart Contract Verified &bull; BSC BEP-20 USDT Protocol</span>
-      <span>&bull;</span>
-      <a href="/admin.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: 600;">🔒 Admin Portal</a>
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <strong>ORBITAL TRADING</strong> — Autonomous Capital Management on BNB Smart Chain.
+      </div>
+      <div class="footer-links">
+        <a href="/admin" style="color: var(--text-muted); font-size: 0.85rem;">👑 Admin Payout Portal</a>
+      </div>
     </div>
   </footer>
 
