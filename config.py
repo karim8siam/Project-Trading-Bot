@@ -128,15 +128,21 @@ SERVER_HOST = os.getenv("HOST", "0.0.0.0")
 
 
 
+ALL_SUPPORTED_SYMBOLS = [
+    "BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT", "XRP/USDT", "ADA/USDT", "NEAR/USDT",
+    "AVAX/USDT", "DOGE/USDT", "LINK/USDT", "SUI/USDT", "APT/USDT", "RENDER/USDT",
+    "TIA/USDT", "INJ/USDT", "ARB/USDT", "OP/USDT", "FET/USDT", "SEI/USDT"
+]
+
+
 def validate_symbol(symbol: str) -> str:
     """
-    Guarantees that only whitelisted pairs can ever be processed.
-    Raises ValueError if an illegal symbol is passed.
+    Guarantees that only valid Binance USD(S)-M Futures symbols can ever be processed.
     """
     normalized = symbol.upper().replace(":", "").replace("-", "/")
-    if normalized not in ALLOWED_SYMBOLS:
+    if normalized not in ALLOWED_SYMBOLS and normalized not in ALL_SUPPORTED_SYMBOLS:
         raise ValueError(
-            f"SECURITY VIOLATION: Symbol '{symbol}' is not in the allowed whitelist: {ALLOWED_SYMBOLS}"
+            f"SECURITY VIOLATION: Symbol '{symbol}' is not a recognized supported futures pair."
         )
     return normalized
 
