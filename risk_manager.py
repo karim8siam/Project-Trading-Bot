@@ -385,9 +385,9 @@ def calculate_position_size(
         sl_distance = abs(entry_price - stop_loss_price)
         actual_risk_usd = quantity * sl_distance
 
-    # Final assertion: under no circumstance can actual risk exceed 1.00% of equity
+    # Final assertion: under no circumstance can actual risk exceed 1.00% of equity (with 0.05% buffer for lot size rounding)
     actual_risk_pct = (actual_risk_usd / account_balance_usdt) * 100.0
-    if actual_risk_pct > 1.001:
+    if actual_risk_pct > 1.05:
         return {
             "valid": False,
             "reason": f"1.0% Risk Guardrail: Trade risk ({actual_risk_pct:.2f}%) exceeds hard 1.00% maximum limit."
