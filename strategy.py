@@ -107,25 +107,43 @@ def evaluate_master_crypto_strategy(
     return None, int(max_score), "NONE", {"regime": regime}, neutral_desc
 
 
-def check_tron_4candle_reversal(symbol: str, df: pd.DataFrame) -> Tuple[bool, Optional[str], str]:
+def check_tron_4candle_reversal(symbol: str, df: pd.DataFrame, min_streak: int = 4) -> Tuple[bool, Optional[str], str]:
     """
     User Custom Rule for TRON (TRX/USDT):
-    When 4 consecutive candles are in the same direction (UP/DOWN):
-    - 4 consecutive UP candles -> Enter Counter-Trend SHORT.
-    - 4 consecutive DOWN candles -> Enter Counter-Trend LONG.
+    When >= 4 consecutive candles are in the same direction (UP or DOWN):
+    - >= 4 consecutive UP candles -> Enter Counter-Trend SHORT.
+    - >= 4 consecutive DOWN candles -> Enter Counter-Trend LONG.
     Bypasses standard ML/macro filters with 1% risk and defined SL/TP protection.
     """
-    if "TRX" not in symbol or df is None or len(df) < 5:
+    if "TRX" not in symbol or df is None or len(df) < min_streak:
         return False, None, ""
 
-    recent = df.iloc[-4:]
-    is_4_green = all(float(r["close"]) >= float(r["open"]) for _, r in recent.iterrows())
-    is_4_red = all(float(r["close"]) <= float(r["open"]) for _, r in recent.iterrows())
+    candles = df.to_dict("records")
 
-    if is_4_green:
-        return True, "SHORT", "TRON 4-Candle Reversal: 4 Consecutive UP Candles -> Counter-Trend SHORT Active 🔥"
-    elif is_4_red:
-        return True, "LONG", "TRON 4-Candle Reversal: 4 Consecutive DOWN Candles -> Counter-Trend LONG Active 🔥"
+    # Check both with latest active candle and completed candle
+    for offset in [0, 1]:
+        sub = candles if offset == 0 else candles[:-1]
+        if len(sub) < min_streak:
+            continue
+
+        last_c = sub[-1]
+        is_green = (float(last_c["close"]) >= float(last_c["open"]))
+        is_red = (float(last_c["close"]) <= float(last_c["open"]))
+
+        streak = 0
+        for c in reversed(sub):
+            if is_green and (float(c["close"]) >= float(c["open"])):
+                streak += 1
+            elif is_red and (float(c["close"]) <= float(c["open"])):
+                streak += 1
+            else:
+                break
+
+        if streak >= min_streak:
+            fade_dir = "SHORT" if is_green else "LONG"
+            color_name = "GREEN (UP)" if is_green else "RED (DOWN)"
+            desc = f"TRON {streak}+ Consecutive {color_name} Candles -> Counter-Trend {fade_dir} Active 🔥"
+            return True, fade_dir, desc
 
     return False, None, ""
 
@@ -163,12 +181,14 @@ def analyze_market(
     current_atr = float(latest_row.get("atr_14", current_price * 0.01))
 
     # =========================================================================
-    # 0. SPECIAL USER DIRECTIVE: TRON (TRX/USDT) 4-CANDLE COUNTER-TREND FADE
+    # 0. SPECIAL USER DIRECTIVE: TRON (TRX/USDT) >= 4 CANDLE COUNTER-TREND FADE
     # =========================================================================
     if "TRX" in symbol:
-        is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_tf)
-        if not is_tron_rev and df_micro is not None and len(df_micro) >= 5:
-            is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_micro)
+        is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_tf, min_streak=4)
+        if not is_tron_rev and df_micro is not None and len(df_micro) >= 4:
+            is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_micro, min_streak=4)
+        if not is_tron_rev and df_htf is not None and len(df_htf) >= 4:
+            is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_htf, min_streak=4)
 
         if is_tron_rev and tron_dir:
             stop_loss, tp1_partial, tp2_runner = calculate_sl_tp(
