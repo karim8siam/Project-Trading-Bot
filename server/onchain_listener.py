@@ -30,10 +30,13 @@ class OnChainDepositVerifier:
     """
 
     def __init__(self):
-        self.master_address = Web3.to_checksum_address(MASTER_METAMASK_ADDRESS)
-        self.usdt_contract = Web3.to_checksum_address(BSC_USDT_CONTRACT)
+        try:
+            self.master_address = Web3.to_checksum_address(MASTER_METAMASK_ADDRESS)
+            self.usdt_contract = Web3.to_checksum_address(BSC_USDT_CONTRACT)
+        except Exception:
+            self.master_address = MASTER_METAMASK_ADDRESS
+            self.usdt_contract = BSC_USDT_CONTRACT
         self.w3 = None
-        self._init_web3()
 
     def _init_web3(self):
         """Initializes connection to the fastest available BSC RPC node."""

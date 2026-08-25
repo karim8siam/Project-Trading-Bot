@@ -55,12 +55,16 @@ class WalletSweeper:
     """
 
     def __init__(self):
-        self.master_address = Web3.to_checksum_address(MASTER_METAMASK_ADDRESS)
-        self.binance_address = Web3.to_checksum_address(BINANCE_DEPOSIT_BEP20_ADDRESS)
-        self.usdt_contract_address = Web3.to_checksum_address(BSC_USDT_CONTRACT)
+        try:
+            self.master_address = Web3.to_checksum_address(MASTER_METAMASK_ADDRESS)
+            self.binance_address = Web3.to_checksum_address(BINANCE_DEPOSIT_BEP20_ADDRESS)
+            self.usdt_contract_address = Web3.to_checksum_address(BSC_USDT_CONTRACT)
+        except Exception:
+            self.master_address = MASTER_METAMASK_ADDRESS
+            self.binance_address = BINANCE_DEPOSIT_BEP20_ADDRESS
+            self.usdt_contract_address = BSC_USDT_CONTRACT
         self.private_key = METAMASK_PRIVATE_KEY
         self.w3 = None
-        self._init_web3()
 
     def _init_web3(self):
         for rpc in BSC_RPC_URLS:

@@ -48,8 +48,11 @@ from bridge_bot_sync import (
     get_ml_continuous_learning_summary
 )
 
-# Initialize Database
-init_platform_db()
+# Initialize Database safely
+try:
+    init_platform_db()
+except Exception as e:
+    print(f"[Startup] Database initialization notice: {e}")
 
 app = FastAPI(
     title="Orbital Trading Platform",
