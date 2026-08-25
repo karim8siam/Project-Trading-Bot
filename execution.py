@@ -466,6 +466,13 @@ class BinanceFuturesExecutor:
 
         insert_trade(trade_record, features=signal.get("features"))
 
+        # Notify Directional Streak Reversal Engine
+        try:
+            from streak_reversal_engine import streak_reversal_engine
+            streak_reversal_engine.record_trade_executed(direction)
+        except Exception:
+            pass
+
         # Real-Time Telegram Push Alert
         try:
             from telegram_notifier import notify_trade_opened

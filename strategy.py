@@ -107,47 +107,6 @@ def evaluate_master_crypto_strategy(
     return None, int(max_score), "NONE", {"regime": regime}, neutral_desc
 
 
-def check_tron_4candle_reversal(symbol: str, df: pd.DataFrame, min_streak: int = 4) -> Tuple[bool, Optional[str], str]:
-    """
-    User Custom Rule for TRON (TRX/USDT):
-    When >= 4 consecutive candles are in the same direction (UP or DOWN):
-    - >= 4 consecutive UP candles -> Enter Counter-Trend SHORT.
-    - >= 4 consecutive DOWN candles -> Enter Counter-Trend LONG.
-    Bypasses standard ML/macro filters with 1% risk and defined SL/TP protection.
-    """
-    if "TRX" not in symbol or df is None or len(df) < min_streak:
-        return False, None, ""
-
-    candles = df.to_dict("records")
-
-    # Check both with latest active candle and completed candle
-    for offset in [0, 1]:
-        sub = candles if offset == 0 else candles[:-1]
-        if len(sub) < min_streak:
-            continue
-
-        last_c = sub[-1]
-        is_green = (float(last_c["close"]) >= float(last_c["open"]))
-        is_red = (float(last_c["close"]) <= float(last_c["open"]))
-
-        streak = 0
-        for c in reversed(sub):
-            if is_green and (float(c["close"]) >= float(c["open"])):
-                streak += 1
-            elif is_red and (float(c["close"]) <= float(c["open"])):
-                streak += 1
-            else:
-                break
-
-        if streak >= min_streak:
-            fade_dir = "SHORT" if is_green else "LONG"
-            color_name = "GREEN (UP)" if is_green else "RED (DOWN)"
-            desc = f"TRON {streak}+ Consecutive {color_name} Candles -> Counter-Trend {fade_dir} Active 🔥"
-            return True, fade_dir, desc
-
-    return False, None, ""
-
-
 def analyze_market(
     symbol: str,
     df_tf: pd.DataFrame,
@@ -179,58 +138,6 @@ def analyze_market(
     latest_row = df_tf.iloc[-1]
     current_price = float(latest_row["close"])
     current_atr = float(latest_row.get("atr_14", current_price * 0.01))
-
-    # =========================================================================
-    # 0. SPECIAL USER DIRECTIVE: TRON (TRX/USDT) >= 4 CANDLE COUNTER-TREND FADE
-    # =========================================================================
-    if "TRX" in symbol:
-        is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_tf, min_streak=4)
-        if not is_tron_rev and df_micro is not None and len(df_micro) >= 4:
-            is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_micro, min_streak=4)
-        if not is_tron_rev and df_htf is not None and len(df_htf) >= 4:
-            is_tron_rev, tron_dir, tron_desc = check_tron_4candle_reversal(symbol, df_htf, min_streak=4)
-
-        if is_tron_rev and tron_dir:
-            stop_loss, tp1_partial, tp2_runner = calculate_sl_tp(
-                entry_price=current_price,
-                atr=current_atr,
-                direction=tron_dir,
-                score=95,
-                df=df_tf,
-                df_htf=df_htf,
-                df_5m=df_micro,
-                symbol=symbol
-            )
-            return {
-                "has_signal": True,
-                "symbol": symbol,
-                "direction": tron_dir,
-                "strategy": "TRON_4CANDLE_FADE",
-                "score": 95,
-                "score_breakdown": {"custom_rule": "TRON_4CANDLE_FADE", "direction": tron_dir},
-                "current_price": current_price,
-                "stop_loss": stop_loss,
-                "take_profit": tp1_partial,
-                "take_profit_2": tp2_runner,
-                "pattern": "4_CANDLE_FADE",
-                "atr": current_atr,
-                "session": session_desc,
-                "technical_reason": tron_desc,
-                "ml_result": {"is_approved": True, "ensemble_prob": 0.95, "reason": tron_desc},
-                "ml_approved": True,
-                "ml_confidence": 0.95,
-                "ml_reason": tron_desc,
-                "btc_state": "BYPASS_FOR_TRON",
-                "btc_bias": "NEUTRAL",
-                "btc_reason": "Bypassed via User Tron 4-Candle Rule",
-                "funding_rate_pct": 0.0,
-                "oi_delta_15m": 0.0,
-                "merge_result": {"composite_score_pct": 95.0, "verdict": "APPROVED"},
-                "claude_verdict": f"APPROVED 🔥 ({tron_desc})",
-                "claude_thesis": tron_desc,
-                "risk_multiplier": 1.0,
-                "features": {}
-            }
 
     direction, score, strat_name, breakdown, desc = evaluate_master_crypto_strategy(df_tf, idx=-1)
 
@@ -444,7 +351,16 @@ def analyze_market(
         claude_decision["verdict"] = f"VETO 🚫 ({oi_reason})"
         claude_decision["thesis"] = oi_reason
 
-    final_reason = oi_reason if not oi_ok else (btc_reason if not btc_aligned else ml_result["reason"])
+    # 9. Directional Streak Reversal & Anti-Clustering Gate (User 4-Trade Same-Direction Rule)
+    from streak_reversal_engine import streak_reversal_engine
+    streak_ok, streak_reason = streak_reversal_engine.evaluate_signal_filter(direction)
+
+    if is_final_approved and not streak_ok:
+        is_final_approved = False
+        claude_decision["verdict"] = f"VETO 🚫 ({streak_reason})"
+        claude_decision["thesis"] = streak_reason
+
+    final_reason = streak_reason if not streak_ok else (oi_reason if not oi_ok else (btc_reason if not btc_aligned else ml_result["reason"]))
 
     return {
         "has_signal": is_final_approved,

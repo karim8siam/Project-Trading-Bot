@@ -379,6 +379,16 @@ def get_closed_trades(limit: int = 1000) -> List[Dict[str, Any]]:
     return [dict(r) for r in rows]
 
 
+def get_recent_executed_trades(limit: int = 10) -> List[Dict[str, Any]]:
+    """Retrieves most recent executed trades (OPEN or CLOSED) ordered by entry_time DESC."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM trades ORDER BY id DESC LIMIT ?", (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
 def log_ai_trade_decision(decision: Dict[str, Any]) -> bool:
     """Logs a real-time Gemini AI active trade supervisor verdict."""
     try:
