@@ -15,7 +15,7 @@ import hmac
 import hashlib
 import requests
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 
 from config import (
     validate_symbol,
@@ -472,10 +472,35 @@ class BinanceFuturesExecutor:
 
                 for pos in live_active_positions:
                     std_sym = pos["symbol"]
-                    qty = abs(pos["amount"])
+                    spec = SYMBOL_SPECS.get(std_sym, {"amount_precision": 3})
+                    amt_prec = spec.get("amount_precision", 3)
+                    qty = round(abs(pos["amount"]), amt_prec) if amt_prec > 0 else int(abs(pos["amount"]))
                     close_side = "SELL" if pos["amount"] > 0 else "BUY"
                     print(f"    -> MKT Close All: {std_sym} {close_side} {qty} (Unrealized PnL: ${pos['unrealized_pnl']:+.4f})...")
                     self.place_futures_order(symbol=std_sym, side=close_side, quantity=qty, reduce_only=True)
+
+                # Instantly sync SQLite Database trade closures
+                try:
+                    conn = get_connection()
+                    cursor = conn.cursor()
+                    now_iso = datetime.utcnow().isoformat()
+                    for pos in live_active_positions:
+                        std_sym = pos["symbol"]
+                        pnl_val = pos["unrealized_pnl"]
+                        cursor.execute(
+                            "UPDATE trades SET status = 'CLOSED', exit_time = ?, exit_reason = 'BASKET_1PCT_HARVEST', pnl_usd = ? WHERE symbol = ? AND status = 'OPEN'",
+                            (now_iso, pnl_val, std_sym)
+                        )
+                    conn.commit()
+                    conn.close()
+                except Exception as dbe:
+                    print(f"[Basket Harvest DB Sync Warning]: {dbe}")
+
+                # Continuous Learning Retrain
+                try:
+                    ml_brain.check_and_retrain(force=True)
+                except Exception:
+                    pass
 
                 # Push real-time Telegram notification
                 try:
