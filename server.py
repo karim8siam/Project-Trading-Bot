@@ -267,12 +267,11 @@ class ApexTradeAPIHandler(BaseHTTPRequestHandler):
             primary_user = get_user_by_email("trader@apextrade.ai")
             if not primary_user:
                 pwd_h = hash_password("trader1234")
-                user_id = create_user(
+                primary_user = create_user(
                     email="trader@apextrade.ai",
                     password_hash=pwd_h,
                     bep20_address="0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0"
                 )
-                primary_user = get_user_by_id(user_id)
 
             token = create_access_token({
                 "user_id": primary_user["id"],
