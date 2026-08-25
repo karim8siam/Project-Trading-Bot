@@ -26,7 +26,8 @@ from config import (
 from database import (
     get_open_trades,
     get_closed_trades,
-    get_performance_summary
+    get_performance_summary,
+    record_daily_balance
 )
 from data_fetcher import data_fetcher
 from strategy import analyze_market
@@ -68,6 +69,11 @@ def run_single_iteration(verbose: bool = True) -> Dict[str, Any]:
 
     # Step 2: Scan Whitelisted Pairs with Multi-Regime Strategy Router
     balance = data_fetcher.fetch_balance_usdt()
+    try:
+        today_date = datetime.utcnow().strftime("%Y-%m-%d")
+        record_daily_balance(today_date, balance)
+    except Exception as e:
+        pass
     signals_processed = []
 
     for symbol in ALLOWED_SYMBOLS:

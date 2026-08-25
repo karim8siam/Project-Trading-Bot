@@ -8,32 +8,27 @@ import json
 import time
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
-import pandas as pd
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 from config import DB_PATH, validate_symbol
 
 
-_SCHEMA_INITIALIZED = False
-
 def get_connection():
     """Returns a SQLite connection with dict-like row access."""
-    global _SCHEMA_INITIALIZED
     try:
         DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     except Exception:
         pass
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
-    if not _SCHEMA_INITIALIZED:
-        try:
-            init_db_conn(conn)
-            _SCHEMA_INITIALIZED = True
-        except Exception:
-            pass
     return conn
 
 
-def init_db_conn(conn):
-    """Initializes all database tables with proper indexing on given connection."""
+def init_db():
+    """Initializes all database tables with proper indexing."""
+    conn = get_connection()
     cursor = conn.cursor()
 
     # 1. Trades table
@@ -249,15 +244,22 @@ def init_db_conn(conn):
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_batches_status ON daily_batches(status);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_settlements_user_id ON settlements(user_id);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_settlements_batch_id ON settlements(batch_id);")
+    # 11. Daily Balances Table (Initial balance & Final balance of the day)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS daily_balances (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT UNIQUE NOT NULL,
+        initial_balance REAL NOT NULL,
+        final_balance REAL NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_daily_balances_date ON daily_balances(date);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_settlements_date ON settlements(settlement_date);")
 
     conn.commit()
-
-
-def init_db():
-    """Initializes all database tables with proper indexing."""
-    conn = get_connection()
-    init_db_conn(conn)
+    conn.close()
 
 
 def clear_db():
@@ -1402,6 +1404,47 @@ def get_all_platform_users(limit: int = 100) -> List[Dict[str, Any]]:
     ORDER BY id ASC
     LIMIT ?
     """, (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def record_daily_balance(date_str: str, current_balance: float) -> Dict[str, Any]:
+    """
+    Records or updates daily balance:
+    - If date_str does not exist: initial_balance = current_balance, final_balance = current_balance.
+    - If date_str exists: final_balance = current_balance (keeps initial_balance intact).
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT initial_balance, final_balance FROM daily_balances WHERE date = ?", (date_str,))
+    row = cursor.fetchone()
+
+    current_balance = float(current_balance)
+    if row:
+        cursor.execute("""
+            UPDATE daily_balances 
+            SET final_balance = ?, updated_at = CURRENT_TIMESTAMP 
+            WHERE date = ?
+        """, (current_balance, date_str))
+    else:
+        cursor.execute("""
+            INSERT INTO daily_balances (date, initial_balance, final_balance)
+            VALUES (?, ?, ?)
+        """, (date_str, current_balance, current_balance))
+
+    conn.commit()
+    cursor.execute("SELECT * FROM daily_balances WHERE date = ?", (date_str,))
+    res = dict(cursor.fetchone())
+    conn.close()
+    return res
+
+
+def get_daily_balances(limit: int = 30) -> List[Dict[str, Any]]:
+    """Retrieves recorded daily initial and final balances."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM daily_balances ORDER BY date DESC LIMIT ?", (limit,))
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
