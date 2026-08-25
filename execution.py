@@ -34,7 +34,8 @@ from database import (
 from risk_manager import (
     calculate_position_size,
     check_3_pillar_risk_guardrails,
-    update_breakeven_and_trailing_stops
+    update_breakeven_and_trailing_stops,
+    SYMBOL_SPECS
 )
 from ml_brain import ml_brain
 from data_fetcher import data_fetcher, DEMO_FAPI_BASE_URL, PROD_FAPI_BASE_URL
