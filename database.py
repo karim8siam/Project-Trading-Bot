@@ -14,7 +14,11 @@ from config import DB_PATH, validate_symbol
 
 def get_connection():
     """Returns a SQLite connection with dict-like row access."""
-    conn = sqlite3.connect(DB_PATH)
+    try:
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -1390,8 +1394,11 @@ def get_all_platform_users(limit: int = 100) -> List[Dict[str, Any]]:
     return [dict(r) for r in rows]
 
 
-# Auto-initialize on import
-init_db()
+# Auto-initialize on import safely
+try:
+    init_db()
+except Exception as e:
+    print(f"[Database] Init notice: {e}")
 
 
 
