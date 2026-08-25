@@ -411,11 +411,102 @@ class BinanceFuturesExecutor:
             "ml_confidence": signal.get("ml_confidence", 0.5)
         }
 
+    def check_and_execute_portfolio_unrealized_pnl_harvest(
+        self,
+        account_balance: Optional[float] = None
+    ) -> Tuple[bool, float, float]:
+        """
+        PORTFOLIO UNREALIZED PNL CASH HARVEST ENGINE:
+        No matter how many trades are running, if Total Unrealized PnL of all open positions
+        is >= +1.0% of the total account balance, execute MARKET CLOSE ALL immediately,
+        banking the +1.0% cash profit into the wallet balance.
+        """
+        if self.paper_mode or not self.api_key or self.api_key == "mock_key_paper_mode":
+            return False, 0.0, 0.0
+
+        balance = account_balance or data_fetcher.fetch_balance_usdt()
+        if balance <= 0:
+            return False, 0.0, 0.0
+
+        try:
+            params = self._sign_payload({})
+            url = f"{self.base_url}/fapi/v2/positionRisk"
+            r = data_fetcher.session.get(url, headers=self._get_headers(), params=params, timeout=8)
+            if r.status_code != 200:
+                return False, 0.0, 0.0
+
+            total_unrealized_profit = 0.0
+            live_active_positions = []
+
+            for p in r.json():
+                amt = float(p.get("positionAmt", 0.0))
+                if amt != 0.0:
+                    unrealized_pnl = float(p.get("unRealizedProfit", 0.0))
+                    total_unrealized_profit += unrealized_pnl
+                    raw_sym = p.get("symbol", "")
+                    std_sym = raw_sym
+                    for s in ALLOWED_SYMBOLS:
+                        if s.replace("/", "") == raw_sym:
+                            std_sym = s
+                            break
+                    live_active_positions.append({
+                        "raw_symbol": raw_sym,
+                        "symbol": std_sym,
+                        "amount": amt,
+                        "unrealized_pnl": unrealized_pnl
+                    })
+
+            if not live_active_positions:
+                return False, 0.0, 0.0
+
+            target_profit_threshold = balance * 0.01  # Exact 1.0% of Total Balance (e.g. $0.133 on $13.27)
+
+            if total_unrealized_profit >= target_profit_threshold:
+                pnl_pct = (total_unrealized_profit / balance) * 100.0
+                print("\n" + "=" * 80)
+                print(f"  💰 [PORTFOLIO 1% CASH HARVEST ACTIVATED] 💰")
+                print(f"  • Total Unrealized PnL : +${total_unrealized_profit:,.4f} USD ({pnl_pct:+.2f}% of Total Balance)")
+                print(f"  • 1.0% Target Threshold: >= +${target_profit_threshold:,.4f} USD")
+                print(f"  • Action: Executing MKT Close All across {len(live_active_positions)} positions!")
+                print("=" * 80)
+
+                for pos in live_active_positions:
+                    std_sym = pos["symbol"]
+                    qty = abs(pos["amount"])
+                    close_side = "SELL" if pos["amount"] > 0 else "BUY"
+                    print(f"    -> MKT Close All: {std_sym} {close_side} {qty} (Unrealized PnL: ${pos['unrealized_pnl']:+.4f})...")
+                    self.place_futures_order(symbol=std_sym, side=close_side, quantity=qty, reduce_only=True)
+
+                # Push real-time Telegram notification
+                try:
+                    from telegram_notifier import send_telegram_alert
+                    pos_names = ", ".join([p["symbol"] for p in live_active_positions])
+                    send_telegram_alert(
+                        f"💰 <b>PORTFOLIO 1.0% CASH HARVEST TRIGGERED!</b>\n\n"
+                        f"• <b>Total Profit Banked:</b> +${total_unrealized_profit:,.4f} USDT (+{pnl_pct:.2f}%)\n"
+                        f"• <b>Total Wallet Balance:</b> ${balance:,.2f} USDT\n"
+                        f"• <b>Positions Closed:</b> {len(live_active_positions)} ({pos_names})\n"
+                        f"• <b>Status:</b> All positions closed at Market. Profit secured into cash!"
+                    )
+                except Exception:
+                    pass
+
+                return True, total_unrealized_profit, target_profit_threshold
+
+            return False, total_unrealized_profit, target_profit_threshold
+
+        except Exception as e:
+            print(f"[Portfolio Harvest Error]: {e}")
+            return False, 0.0, 0.0
+
     def check_and_update_positions(
         self,
         current_candle_data: Optional[Dict[str, Dict[str, float]]] = None
     ) -> List[Dict[str, Any]]:
         """Active Trade Manager: Manages SL, TP, Breakeven at 1R, and Trailing Stops."""
+        # 1. Check Portfolio Unrealized PnL 1% Basket Harvest
+        self.check_and_execute_portfolio_unrealized_pnl_harvest()
+
         open_trades = get_open_trades()
         closed_this_cycle = []
 
