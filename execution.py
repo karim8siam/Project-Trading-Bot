@@ -518,17 +518,18 @@ class BinanceFuturesExecutor:
             if not live_active_positions:
                 return False, 0.0, 0.0
 
-            target_profit_threshold = balance * 0.01  # Exact +1.0% of Total Balance (e.g. +$0.133 on $13.27)
-            target_loss_threshold = -balance * 0.01   # Exact -1.0% of Total Balance (e.g. -$0.133 on $13.27)
+            from config import BASKET_WIN_TARGET_PERCENT, BASKET_LOSS_LIMIT_PERCENT
+            target_profit_threshold = balance * (BASKET_WIN_TARGET_PERCENT / 100.0)  # +1.0% of Total Balance (e.g. +$0.133 on $13.27)
+            target_loss_threshold = -balance * (BASKET_LOSS_LIMIT_PERCENT / 100.0)   # -2.0% of Total Balance (e.g. -$0.265 on $13.27)
             pnl_pct = (total_unrealized_profit / balance) * 100.0
-            print(f"  [Basket Monitor] 📊 Open Positions: {len(live_active_positions)} | Unrealized PnL: ${total_unrealized_profit:+.4f} ({pnl_pct:+.2f}% / Bounds: -1.00% to +1.00%)")
+            print(f"  [Basket Monitor] 📊 Open Positions: {len(live_active_positions)} | Unrealized PnL: ${total_unrealized_profit:+.4f} ({pnl_pct:+.2f}% / Bounds: -{BASKET_LOSS_LIMIT_PERCENT:.2f}% to +{BASKET_WIN_TARGET_PERCENT:.2f}%)")
 
             # 1. POSITIVE HARVEST: +1.0% Aggregate Profit Target Hit
             if total_unrealized_profit >= target_profit_threshold:
                 print("\n" + "=" * 80)
                 print(f"  💰 [PORTFOLIO 1% CASH HARVEST ACTIVATED] 💰")
                 print(f"  • Total Unrealized PnL : +${total_unrealized_profit:,.4f} USD ({pnl_pct:+.2f}% of Total Balance)")
-                print(f"  • 1.0% Target Threshold: >= +${target_profit_threshold:,.4f} USD")
+                print(f"  • +1.0% Target Threshold: >= +${target_profit_threshold:,.4f} USD")
                 print(f"  • Action: Executing MKT Close All across {len(live_active_positions)} positions!")
                 print("=" * 80)
 
@@ -580,13 +581,13 @@ class BinanceFuturesExecutor:
 
                 return True, total_unrealized_profit, target_profit_threshold
 
-            # 2. NEGATIVE CIRCUIT BREAKER: -1.0% Aggregate Loss Threshold Hit
+            # 2. NEGATIVE CIRCUIT BREAKER: -2.0% Aggregate Loss Threshold Hit
             elif total_unrealized_profit <= target_loss_threshold:
                 print("\n" + "=" * 80)
-                print(f"  🛑 [PORTFOLIO 1% LOSS CIRCUIT BREAKER ACTIVATED] 🛑")
+                print(f"  🛑 [PORTFOLIO 2% LOSS CIRCUIT BREAKER ACTIVATED] 🛑")
                 print(f"  • Total Unrealized Loss: -${abs(total_unrealized_profit):,.4f} USD ({pnl_pct:+.2f}% of Total Balance)")
-                print(f"  • -1.0% Loss Threshold : <= ${target_loss_threshold:,.4f} USD")
-                print(f"  • Action: Executing MKT Close All across {len(live_active_positions)} positions to strictly cap total loss!")
+                print(f"  • -2.0% Loss Threshold : <= ${target_loss_threshold:,.4f} USD")
+                print(f"  • Action: Executing MKT Close All across {len(live_active_positions)} positions to strictly cap total loss at 2%!")
                 print("=" * 80)
 
                 for pos in live_active_positions:
@@ -607,7 +608,7 @@ class BinanceFuturesExecutor:
                         std_sym = pos["symbol"]
                         pnl_val = pos["unrealized_pnl"]
                         cursor.execute(
-                            "UPDATE trades SET status = 'CLOSED', exit_time = ?, exit_reason = 'BASKET_1PCT_LOSS_CUT', pnl_usd = ? WHERE symbol = ? AND status = 'OPEN'",
+                            "UPDATE trades SET status = 'CLOSED', exit_time = ?, exit_reason = 'BASKET_2PCT_LOSS_CUT', pnl_usd = ? WHERE symbol = ? AND status = 'OPEN'",
                             (now_iso, pnl_val, std_sym)
                         )
                     conn.commit()
@@ -626,11 +627,11 @@ class BinanceFuturesExecutor:
                     from telegram_notifier import send_telegram_alert
                     pos_names = ", ".join([p["symbol"] for p in live_active_positions])
                     send_telegram_alert(
-                        f"🛑 <b>PORTFOLIO 1.0% LOSS CIRCUIT BREAKER TRIGGERED!</b>\n\n"
+                        f"🛑 <b>PORTFOLIO 2.0% LOSS CIRCUIT BREAKER TRIGGERED!</b>\n\n"
                         f"• <b>Total Loss Capped:</b> -${abs(total_unrealized_profit):,.4f} USDT ({pnl_pct:.2f}%)\n"
                         f"• <b>Total Wallet Balance:</b> ${balance:,.2f} USDT\n"
                         f"• <b>Positions Closed:</b> {len(live_active_positions)} ({pos_names})\n"
-                        f"• <b>Status:</b> All positions closed at Market to strictly prevent drawdown exceeding 1.0%!"
+                        f"• <b>Status:</b> All positions closed at Market to strictly prevent drawdown exceeding 2.0%!"
                     )
                 except Exception:
                     pass

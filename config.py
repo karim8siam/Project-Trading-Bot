@@ -67,6 +67,8 @@ HIGHER_TIMEFRAME = os.getenv("HIGHER_TIMEFRAME", "15m")  # For macro trend confi
 # 3. RISK MANAGEMENT RULES (STRICT 1% RISK & UNCAPPED OPPORTUNITIES)
 # ==========================================
 RISK_PER_TRADE_PERCENT = float(os.getenv("RISK_PER_TRADE_PERCENT", "1.0"))  # 1.0% of total balance
+BASKET_WIN_TARGET_PERCENT = float(os.getenv("BASKET_WIN_TARGET_PERCENT", "1.0"))  # +1.0% Basket Cash Harvest
+BASKET_LOSS_LIMIT_PERCENT = float(os.getenv("BASKET_LOSS_LIMIT_PERCENT", "2.0"))  # -2.0% Basket Market Loss Cut
 DEFAULT_LEVERAGE = int(os.getenv("DEFAULT_LEVERAGE", "5"))  # 5x isolated
 MAX_OPEN_TRADES = int(os.getenv("MAX_OPEN_TRADES", "21"))  # Uncapped: Takes every qualified opportunity across all 21 pairs
 MAX_DAILY_LOSS_PERCENT = float(os.getenv("MAX_DAILY_LOSS_PERCENT", "3.0"))  # Kill switch at 3% daily drawdown
