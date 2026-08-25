@@ -22,20 +22,19 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 USE_TESTNET = os.getenv("USE_TESTNET", "true").lower() in ("true", "1", "yes")
 
 # ==========================================
-# 2. 5 CORE MAJORS (BTC, ETH, BNB, SOL, XRP) - OBSERVATION MODE
+# 2. 4 CORE MAJORS (BTC, ETH, BNB, SOL) - OBSERVATION MODE
 # ==========================================
 CORE_MAJOR_SYMBOLS = [
     "BTC/USDT",
     "ETH/USDT",
     "BNB/USDT",
-    "SOL/USDT",
-    "XRP/USDT"
+    "SOL/USDT"
 ]
 
 HIGH_RISK_SYMBOLS_80_PCT = []
 SNIPER_SYMBOLS_87_PCT = []
 
-ALLOWED_SYMBOLS = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT", "XRP/USDT"]
+ALLOWED_SYMBOLS = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT"]
 
 # Supported timeframes (1m execution with 15m macro filter)
 DEFAULT_TIMEFRAME = os.getenv("DEFAULT_TIMEFRAME", "1m")
