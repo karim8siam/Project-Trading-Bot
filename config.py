@@ -22,19 +22,40 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
 USE_TESTNET = os.getenv("USE_TESTNET", "true").lower() in ("true", "1", "yes")
 
 # ==========================================
-# 2. 4 CORE MAJORS (BTC, ETH, BNB, SOL) - OBSERVATION MODE
+# 2. 3-TIER ADAPTIVE MASTER PORTFOLIO (19 WHITELISTED PAIRS)
 # ==========================================
+# Tier 1: Core Majors (56%+ ML Threshold - Active Momentum)
 CORE_MAJOR_SYMBOLS = [
     "BTC/USDT",
     "ETH/USDT",
     "BNB/USDT",
-    "SOL/USDT"
+    "SOL/USDT",
+    "XRP/USDT",
+    "ADA/USDT",
+    "NEAR/USDT"
 ]
 
-HIGH_RISK_SYMBOLS_80_PCT = []
-SNIPER_SYMBOLS_87_PCT = []
+# Tier 2: High-Risk Altcoins (58%+ ML Threshold - High Security Filter)
+HIGH_RISK_SYMBOLS_80_PCT = [
+    "AVAX/USDT",
+    "DOGE/USDT",
+    "LINK/USDT"
+]
 
-ALLOWED_SYMBOLS = ["BTC/USDT", "ETH/USDT", "BNB/USDT", "SOL/USDT"]
+# Tier 3: Sniper Volatile Mid-Cap Tokens (60%+ ML Threshold - Ultra-Elite Grade-S+++)
+SNIPER_SYMBOLS_87_PCT = [
+    "SUI/USDT",
+    "APT/USDT",
+    "RENDER/USDT",
+    "TIA/USDT",
+    "INJ/USDT",
+    "ARB/USDT",
+    "OP/USDT",
+    "FET/USDT",
+    "SEI/USDT"
+]
+
+ALLOWED_SYMBOLS = CORE_MAJOR_SYMBOLS + HIGH_RISK_SYMBOLS_80_PCT + SNIPER_SYMBOLS_87_PCT
 
 # Supported timeframes (1m execution with 15m macro filter)
 DEFAULT_TIMEFRAME = os.getenv("DEFAULT_TIMEFRAME", "1m")
@@ -53,19 +74,19 @@ SL_ATR_MULTIPLIER = float(os.getenv("SL_ATR_MULTIPLIER", "1.5"))  # 1.5x ATR for
 TP_ATR_MULTIPLIER = float(os.getenv("TP_ATR_MULTIPLIER", "3.0"))  # 3.0x ATR for Take Profit (1:2.5 to 1:3 Asymmetric R:R)
 
 # ==========================================
-# 4. MACHINE LEARNING & GEMINI PARAMETERS (CALIBRATED TIERS)
+# 4. MACHINE LEARNING & GEMINI PARAMETERS (CALIBRATED TIERS +1%)
 # ==========================================
-# Tier 1: Core Majors: BTC, ETH, BNB, SOL, XRP, ADA, NEAR -> Calibrated to 55.0%+
-STANDARD_ML_THRESHOLD = float(os.getenv("STANDARD_ML_THRESHOLD", "0.55"))
-STANDARD_GEMINI_THRESHOLD = float(os.getenv("STANDARD_GEMINI_THRESHOLD", "55.0"))
+# Tier 1: Core Majors: BTC, ETH, BNB, SOL, XRP, ADA, NEAR -> Calibrated to 56.0%+
+STANDARD_ML_THRESHOLD = float(os.getenv("STANDARD_ML_THRESHOLD", "0.56"))
+STANDARD_GEMINI_THRESHOLD = float(os.getenv("STANDARD_GEMINI_THRESHOLD", "56.0"))
 
-# Tier 2: High-Risk Alts: AVAX, DOGE, LINK -> Calibrated to 57.0%+
-HIGH_RISK_ML_THRESHOLD = float(os.getenv("HIGH_RISK_ML_THRESHOLD", "0.57"))
-HIGH_RISK_GEMINI_THRESHOLD = float(os.getenv("HIGH_RISK_GEMINI_THRESHOLD", "57.0"))
+# Tier 2: High-Risk Alts: AVAX, DOGE, LINK -> Calibrated to 58.0%+
+HIGH_RISK_ML_THRESHOLD = float(os.getenv("HIGH_RISK_ML_THRESHOLD", "0.58"))
+HIGH_RISK_GEMINI_THRESHOLD = float(os.getenv("HIGH_RISK_GEMINI_THRESHOLD", "58.0"))
 
-# Tier 3: Sniper Tokens: SUI, APT, RENDER, TIA, INJ, ARB, OP, FET, SEI -> Calibrated to 59.0%+
-SNIPER_ML_THRESHOLD = float(os.getenv("SNIPER_ML_THRESHOLD", "0.59"))
-SNIPER_GEMINI_THRESHOLD = float(os.getenv("SNIPER_GEMINI_THRESHOLD", "59.0"))
+# Tier 3: Sniper Tokens: SUI, APT, RENDER, TIA, INJ, ARB, OP, FET, SEI -> Calibrated to 60.0%+
+SNIPER_ML_THRESHOLD = float(os.getenv("SNIPER_ML_THRESHOLD", "0.60"))
+SNIPER_GEMINI_THRESHOLD = float(os.getenv("SNIPER_GEMINI_THRESHOLD", "60.0"))
 
 ML_CONFIDENCE_THRESHOLD = STANDARD_ML_THRESHOLD
 GEMINI_CONFIDENCE_THRESHOLD = STANDARD_GEMINI_THRESHOLD

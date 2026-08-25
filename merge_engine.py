@@ -177,7 +177,7 @@ def evaluate_claude_ai_final_decision(
     gemini_risk = gemini_res.get("risk_notes", "")
 
     # 3. Final Supreme Consensus
-    if is_gemini_approved and gemini_conf >= target_gemini_thresh and rule_score >= 82:
+    if is_gemini_approved and gemini_conf >= target_gemini_thresh and rule_score >= 84:
         verdict = f"APPROVED (SUPREME ML & GEMINI GRADE-S++ 🔥 | ML: {ml_prob*100:.1f}%, AI: {gemini_conf:.0f}%)"
         is_approved = True
         risk_multiplier = 1.0

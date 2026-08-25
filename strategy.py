@@ -246,9 +246,9 @@ def analyze_market(
     breakdown["btc_rs_status"] = rs_data.get("status", "NEUTRAL")
     breakdown["btc_rs_modifier"] = rs_mod
 
-    # Minimum baseline filter: Score must be at least 82/100 (PERFECT GRADE-S+++ 🔥)
-    if score < 82:
-        v_reason = f"Confluence score {score}/100 is below minimum threshold 82 ({rs_data.get('desc', '')})"
+    # Minimum baseline filter: Score must be at least 84/100 (PERFECT GRADE-S+++ 🔥)
+    if score < 84:
+        v_reason = f"Confluence score {score}/100 is below minimum threshold 84 ({rs_data.get('desc', '')})"
         return {
             "has_signal": False,
             "symbol": symbol,
