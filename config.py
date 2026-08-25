@@ -59,6 +59,10 @@ SNIPER_SYMBOLS_87_PCT = [
 
 ALLOWED_SYMBOLS = CORE_MAJOR_SYMBOLS + HIGH_RISK_SYMBOLS_80_PCT + SNIPER_SYMBOLS_87_PCT
 
+# Master Bitcoin Sentinel Layer (Toggled OFF per user request to evaluate pure altcoin technical & ML action)
+ENABLE_BITCOIN_SENTINEL_LAYER = os.getenv("ENABLE_BITCOIN_SENTINEL_LAYER", "false").lower() == "true"
+
+# Risk Thresholds
 # Supported timeframes (1m execution with 15m macro filter)
 DEFAULT_TIMEFRAME = os.getenv("DEFAULT_TIMEFRAME", "1m")
 HIGHER_TIMEFRAME = os.getenv("HIGHER_TIMEFRAME", "15m")  # For macro trend confirmation

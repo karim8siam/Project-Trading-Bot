@@ -305,40 +305,45 @@ def analyze_market(
                 "reason": v_reason
             }
 
-    # 3. Bitcoin Relative Strength (RS) & 5M Momentum Synchronization
-    from btc_sentinel import btc_sentinel
-    rs_data = btc_sentinel.calculate_relative_strength(
-        symbol=symbol,
-        alt_df_15m=df_tf,
-        alt_df_5m=df_micro,
-        direction=direction
-    )
+    # 3. Bitcoin Relative Strength (RS) & 5M Momentum Synchronization (Toggable)
+    from config import ENABLE_BITCOIN_SENTINEL_LAYER
+    if ENABLE_BITCOIN_SENTINEL_LAYER:
+        from btc_sentinel import btc_sentinel
+        rs_data = btc_sentinel.calculate_relative_strength(
+            symbol=symbol,
+            alt_df_15m=df_tf,
+            alt_df_5m=df_micro,
+            direction=direction
+        )
 
-    # Reject altcoins exhibiting divergent weakness against Bitcoin (e.g. red candle while BTC is pumping)
-    if rs_data.get("is_divergent"):
-        v_reason = rs_data.get("divergence_reason", f"Altcoin 5M Divergence against Bitcoin momentum flow.")
-        return {
-            "has_signal": False,
-            "symbol": symbol,
-            "current_price": current_price,
-            "direction": direction,
-            "strategy": strat_name,
-            "score": score,
-            "stop_loss": current_price,
-            "take_profit": current_price,
-            "ml_approved": False,
-            "ml_confidence": 0.0,
-            "ml_reason": v_reason,
-            "session": session_desc,
-            "reason": v_reason
-        }
+        # Reject altcoins exhibiting divergent weakness against Bitcoin (e.g. red candle while BTC is pumping)
+        if rs_data.get("is_divergent"):
+            v_reason = rs_data.get("divergence_reason", f"Altcoin 5M Divergence against Bitcoin momentum flow.")
+            return {
+                "has_signal": False,
+                "symbol": symbol,
+                "current_price": current_price,
+                "direction": direction,
+                "strategy": strat_name,
+                "score": score,
+                "stop_loss": current_price,
+                "take_profit": current_price,
+                "ml_approved": False,
+                "ml_confidence": 0.0,
+                "ml_reason": v_reason,
+                "session": session_desc,
+                "reason": v_reason
+            }
 
-    # Inject Bitcoin Relative Strength Modifier directly into Confluence Score
-    rs_mod = rs_data.get("score_modifier", 0)
-    score = max(0, min(100, score + rs_mod))
-    breakdown["btc_relative_strength"] = rs_data.get("rs_pct", 0.0)
-    breakdown["btc_rs_status"] = rs_data.get("status", "NEUTRAL")
-    breakdown["btc_rs_modifier"] = rs_mod
+        # Inject Bitcoin Relative Strength Modifier directly into Confluence Score
+        rs_mod = rs_data.get("score_modifier", 0)
+        score = max(0, min(100, score + rs_mod))
+        breakdown["btc_relative_strength"] = rs_data.get("rs_pct", 0.0)
+        breakdown["btc_rs_status"] = rs_data.get("status", "NEUTRAL")
+        breakdown["btc_rs_modifier"] = rs_mod
+    else:
+        rs_data = {"desc": "Bitcoin Sentinel Layer Bypassed", "rs_pct": 0.0, "status": "BYPASSED"}
+        rs_mod = 0
 
     # Minimum baseline filter: Score must be at least 81/100 (PERFECT GRADE-S+++ 🔥)
     if score < 81:
@@ -417,14 +422,18 @@ def analyze_market(
 
     is_final_approved = claude_decision["is_approved"] and ml_result["is_approved"]
 
-    # 7. Sovereign Bitcoin Master Sentinel Check
-    from btc_sentinel import btc_sentinel
-    btc_aligned, btc_reason, btc_info = btc_sentinel.check_trade_alignment(symbol, direction)
-
-    if is_final_approved and not btc_aligned:
-        is_final_approved = False
-        claude_decision["verdict"] = f"VETO 🚫 ({btc_reason})"
-        claude_decision["thesis"] = btc_reason
+    # 7. Sovereign Bitcoin Master Sentinel Check (Toggled via ENABLE_BITCOIN_SENTINEL_LAYER)
+    if ENABLE_BITCOIN_SENTINEL_LAYER:
+        from btc_sentinel import btc_sentinel
+        btc_aligned, btc_reason, btc_info = btc_sentinel.check_trade_alignment(symbol, direction)
+        if is_final_approved and not btc_aligned:
+            is_final_approved = False
+            claude_decision["verdict"] = f"VETO 🚫 ({btc_reason})"
+            claude_decision["thesis"] = btc_reason
+    else:
+        btc_aligned = True
+        btc_reason = "Bitcoin Sentinel Layer Bypassed"
+        btc_info = {"state": "DISABLED", "bias": "NEUTRAL"}
 
     # 8. Open Interest (OI) & Funding Rate Sentiment Gate
     from oi_funding_sentinel import oi_funding_sentinel
