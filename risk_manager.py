@@ -48,10 +48,12 @@ SYMBOL_SPECS = {
     "XRP/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.0001},
     "ADA/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 5, "min_notional": 5.0, "pip_size": 0.0001},
     "NEAR/USDT":     {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.001},
+    "TRX/USDT":      {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 5, "min_notional": 5.0, "pip_size": 0.00001},
     # Tier 2: High-Risk Alts
     "AVAX/USDT":     {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 4, "min_notional": 5.0, "pip_size": 0.01},
     "DOGE/USDT":     {"amount_precision": 0, "min_qty": 1.0,   "price_precision": 6, "min_notional": 5.0, "pip_size": 0.00001},
     "LINK/USDT":     {"amount_precision": 2, "min_qty": 0.01,  "price_precision": 3, "min_notional": 20.0, "pip_size": 0.01},
+    "DOT/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 3, "min_notional": 5.0, "pip_size": 0.001},
     # Tier 3: Sniper Volatile Mid-Caps (87% Threshold)
     "SUI/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 6, "min_notional": 5.0, "pip_size": 0.0001},
     "APT/USDT":      {"amount_precision": 1, "min_qty": 0.1,   "price_precision": 5, "min_notional": 5.0, "pip_size": 0.001},
