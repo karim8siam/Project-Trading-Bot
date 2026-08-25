@@ -211,9 +211,44 @@ def analyze_market(
                 "reason": v_reason
             }
 
+    # 3. Bitcoin Relative Strength (RS) & 5M Momentum Synchronization
+    from btc_sentinel import btc_sentinel
+    rs_data = btc_sentinel.calculate_relative_strength(
+        symbol=symbol,
+        alt_df_15m=df_tf,
+        alt_df_5m=df_micro,
+        direction=direction
+    )
+
+    # Reject altcoins exhibiting divergent weakness against Bitcoin (e.g. red candle while BTC is pumping)
+    if rs_data.get("is_divergent"):
+        v_reason = rs_data.get("divergence_reason", f"Altcoin 5M Divergence against Bitcoin momentum flow.")
+        return {
+            "has_signal": False,
+            "symbol": symbol,
+            "current_price": current_price,
+            "direction": direction,
+            "strategy": strat_name,
+            "score": score,
+            "stop_loss": current_price,
+            "take_profit": current_price,
+            "ml_approved": False,
+            "ml_confidence": 0.0,
+            "ml_reason": v_reason,
+            "session": session_desc,
+            "reason": v_reason
+        }
+
+    # Inject Bitcoin Relative Strength Modifier directly into Confluence Score
+    rs_mod = rs_data.get("score_modifier", 0)
+    score = max(0, min(100, score + rs_mod))
+    breakdown["btc_relative_strength"] = rs_data.get("rs_pct", 0.0)
+    breakdown["btc_rs_status"] = rs_data.get("status", "NEUTRAL")
+    breakdown["btc_rs_modifier"] = rs_mod
+
     # Minimum baseline filter: Score must be at least 82/100 (PERFECT GRADE-S+++ 🔥)
     if score < 82:
-        v_reason = f"Confluence score {score}/100 is below minimum threshold 82"
+        v_reason = f"Confluence score {score}/100 is below minimum threshold 82 ({rs_data.get('desc', '')})"
         return {
             "has_signal": False,
             "symbol": symbol,
@@ -238,6 +273,8 @@ def analyze_market(
         higher_tf_df=df_htf
     )
     features["confluence_score"] = float(score)
+    features["btc_relative_strength"] = float(rs_data.get("rs_pct", 0.0))
+    features["btc_rs_modifier"] = float(rs_mod)
     features["is_engulfing"] = 1.0 if "ENGULFING" in active_pattern else 0.0
     features["is_pinbar"] = 1.0 if "PINBAR" in active_pattern else 0.0
     features["is_sfp"] = 1.0 if "LIQUIDITY_SWEEP" in active_pattern else 0.0

@@ -18,6 +18,7 @@ class BTCSentinelEngine:
         self.last_check_time = 0.0
         self.cache_ttl = 10.0  # 10-second fast cache
         self.cached_state: Dict[str, Any] = {}
+        self.cached_dfs: Dict[str, Optional[pd.DataFrame]] = {}
         self.flash_lockout_until = 0.0
 
     def fetch_btc_data(self) -> Dict[str, Optional[pd.DataFrame]]:
@@ -27,12 +28,14 @@ class BTCSentinelEngine:
             df_5m = data_fetcher.fetch_ohlcv(self.btc_symbol, timeframe="5m", limit=50)
             df_15m = data_fetcher.fetch_ohlcv(self.btc_symbol, timeframe="15m", limit=60)
             df_1h = data_fetcher.fetch_ohlcv(self.btc_symbol, timeframe="1h", limit=50)
-            return {
+            dfs = {
                 "1m": df_1m,
                 "5m": df_5m,
                 "15m": df_15m,
                 "1h": df_1h
             }
+            self.cached_dfs = dfs
+            return dfs
         except Exception as e:
             print(f"[BTC Sentinel] Error fetching BTC data: {e}")
             return {"1m": None, "5m": None, "15m": None, "1h": None}
@@ -194,6 +197,119 @@ class BTCSentinelEngine:
             return False, f"[BTC Sentinel VETO]: Short rejected — {reason}. Altcoin Shorts prohibited during Bitcoin Bullish flow.", btc_info
 
         return True, f"[BTC Sentinel APPROVED]: Trade direction aligned with Bitcoin {btc_info['bias']}", btc_info
+
+    def calculate_relative_strength(
+        self,
+        symbol: str,
+        alt_df_15m: pd.DataFrame,
+        alt_df_5m: Optional[pd.DataFrame] = None,
+        direction: str = "LONG"
+    ) -> Dict[str, Any]:
+        """
+        Calculates Altcoin Relative Strength (RS) vs. Bitcoin on 15M and 5M:
+        - Awards +15 bonus points to Market Leaders outperforming BTC.
+        - Awards +8 bonus points to Solid Aligned tokens.
+        - Deducts -20 points from Laggards bleeding against BTC (auto-veto).
+        - Enforces 5M Micro-Candle Flow Lock (blocks divergent red candles during bull flow).
+        """
+        if symbol == self.btc_symbol or "BTC" in symbol:
+            return {
+                "rs_pct": 0.0,
+                "score_modifier": 0,
+                "is_divergent": False,
+                "status": "BTC_BENCHMARK",
+                "desc": "Bitcoin Benchmark (Zero Drift)"
+            }
+
+        btc_15m = self.cached_dfs.get("15m")
+        if btc_15m is None or btc_15m.empty:
+            # Refresh if cache empty
+            self.fetch_btc_data()
+            btc_15m = self.cached_dfs.get("15m")
+
+        if btc_15m is None or btc_15m.empty or alt_df_15m is None or len(alt_df_15m) < 4:
+            return {
+                "rs_pct": 0.0,
+                "score_modifier": 0,
+                "is_divergent": False,
+                "status": "PARITY",
+                "desc": "Parity Baseline (Data Buffering)"
+            }
+
+        try:
+            # 1. 15M Return Calculation (Last 3 candles = 45 mins)
+            lookback = min(4, len(alt_df_15m), len(btc_15m))
+            alt_p_now = float(alt_df_15m.iloc[-1]["close"])
+            alt_p_prev = float(alt_df_15m.iloc[-lookback]["close"])
+            alt_ret_15m = ((alt_p_now - alt_p_prev) / max(1e-8, alt_p_prev)) * 100.0
+
+            btc_p_now = float(btc_15m.iloc[-1]["close"])
+            btc_p_prev = float(btc_15m.iloc[-lookback]["close"])
+            btc_ret_15m = ((btc_p_now - btc_p_prev) / max(1e-8, btc_p_prev)) * 100.0
+
+            # Net Relative Strength vs BTC in trade direction
+            if direction == "LONG":
+                net_rs = alt_ret_15m - btc_ret_15m
+            else:
+                net_rs = btc_ret_15m - alt_ret_15m
+
+            # 2. 5M Micro-Candle Divergence Guard
+            is_divergent = False
+            div_reason = ""
+            if alt_df_5m is not None and not alt_df_5m.empty and len(alt_df_5m) >= 2:
+                last_candle = alt_df_5m.iloc[-1]
+                c_open = float(last_candle["open"])
+                c_close = float(last_candle["close"])
+                btc_info = self.get_btc_state()
+                btc_state = btc_info.get("state", "")
+
+                if direction == "LONG" and "BULL" in btc_state:
+                    # If BTC is Bullish, reject altcoins making red breakdown candles
+                    if c_close < c_open * 0.998 and net_rs < -0.10:
+                        is_divergent = True
+                        div_reason = f"5M Bearish Divergence: {symbol} printing red candle while Bitcoin is pumping."
+                elif direction == "SHORT" and "BEAR" in btc_state:
+                    # If BTC is Bearish, reject altcoins making green pump candles
+                    if c_close > c_open * 1.002 and net_rs < -0.10:
+                        is_divergent = True
+                        div_reason = f"5M Bullish Divergence: {symbol} printing green candle while Bitcoin is dumping."
+
+            # 3. Score Modifier Tiering
+            if net_rs >= 0.20:
+                score_mod = 15
+                status = "LEADER 🔥"
+                desc = f"BTC Leader: Outperforming Bitcoin by {net_rs:+.2f}% (15M)"
+            elif net_rs >= 0.05:
+                score_mod = 8
+                status = "STRONG ✅"
+                desc = f"BTC Aligned: Beating Bitcoin by {net_rs:+.2f}% (15M)"
+            elif net_rs >= -0.15:
+                score_mod = 0
+                status = "NEUTRAL ⚖️"
+                desc = f"BTC Parity: Moving inline with Bitcoin ({net_rs:+.2f}%)"
+            else:
+                score_mod = -20  # Heavy penalty for lagging/bleeding tokens
+                status = "LAGGARD ⚠️"
+                desc = f"BTC Laggard: Bleeding against Bitcoin ({net_rs:+.2f}% underperformance)"
+
+            return {
+                "rs_pct": round(net_rs, 3),
+                "alt_ret": round(alt_ret_15m, 2),
+                "btc_ret": round(btc_ret_15m, 2),
+                "score_modifier": score_mod,
+                "is_divergent": is_divergent,
+                "divergence_reason": div_reason,
+                "status": status,
+                "desc": desc
+            }
+        except Exception as e:
+            return {
+                "rs_pct": 0.0,
+                "score_modifier": 0,
+                "is_divergent": False,
+                "status": "ERROR",
+                "desc": f"RS Calculation Error: {e}"
+            }
 
 
 # Global Sentinel Instance
