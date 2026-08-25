@@ -2,402 +2,135 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <meta name="theme-color" content="#050811">
-  <title>Orbital Trading | Web3 Quantitative Automated Vault</title>
-  <meta name="description" content="Decentralized quantitative futures vault platform powered by 200-Point Confluence ML Bot.">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexTrade AI | Next-Gen Binance Futures Automated Trading</title>
+  <meta name="description" content="Production-ready automated crypto futures trading bot powered by Machine Learning on Binance. Instant BEP-20 USDT deposit verification.">
+  
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- QRCode.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="/css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-  <!-- =========================================================================
-       NAVBAR
-       ========================================================================= -->
+  <!-- Navigation Bar -->
   <header class="navbar">
-    <div class="container nav-wrapper">
-      <a href="#" class="brand-logo" onclick="window.App.showDashboard(); return false;">
-        <div class="brand-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="9"></circle>
-            <path d="M12 3a9 9 0 0 0-9 9m18 0a9 9 0 0 0-9-9"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </div>
-        <span>ORBITAL<span style="color: var(--primary-cyan)">.TRADING</span></span>
-        <span class="brand-badge" style="cursor: pointer;" onclick="window.App.openAdminAuthModal();" title="Click to open Master Portal">BSC BEP-20</span>
-      </a>
+    <a href="/" class="nav-brand">
+      <div class="brand-icon">▲</div>
+      <div class="brand-name">ApexTrade<span>AI</span></div>
+    </a>
 
-      <!-- Center Navigation Tabs (Logged-in only) -->
-      <nav class="nav-center-tabs" id="navCenterTabs" style="display: none;">
-        <button class="nav-tab-btn active" id="btnTabDashboard" onclick="window.App.switchView('dashboard');">
-          📊 Vault Dashboard
-        </button>
-        <button class="nav-tab-btn" id="btnTabTrades" onclick="window.App.switchView('trades');">
-          ⚡ Live Binance Terminal
-        </button>
-        <button class="nav-tab-btn" id="btnTabHistory" onclick="window.App.switchView('history');">
-          📜 Transactions
-        </button>
-        <button class="nav-tab-btn" id="btnTabAdmin" onclick="window.App.handleAdminClick();" style="display: none !important; color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08);">
-          👑 Admin Control
-        </button>
-      </nav>
-
-      <!-- Nav Actions -->
-      <div class="nav-actions">
-        <!-- Guest State -->
-        <div id="navGuestBar" style="display: flex; align-items: center; gap: 0.5rem;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="window.App.setAuthMode('login');">
-            🔑 Member Login
-          </button>
-          <button type="button" class="btn btn-primary btn-sm" onclick="window.App.setAuthMode('register');">
-            ✨ Join Vault
-          </button>
-        </div>
-
-        <!-- Authenticated State -->
-        <div id="navUserBar" style="display: none; align-items: center; gap: 0.5rem;">
-          <div class="user-id-chip">
-            <span style="font-size: 0.7rem; color: var(--text-secondary)">ID:</span>
-            <span id="navUserUniqueId">---</span>
-          </div>
-
-          <button class="wallet-badge-btn" id="navWalletBadge" onclick="window.App.copyUserAddress();" title="Click to copy BEP-20 address">
-            <span class="wallet-status-dot"></span>
-            <span id="navWalletAddressShort">0x...</span>
-          </button>
-
-          <button type="button" class="btn btn-secondary btn-sm" onclick="window.App.handleLogout();" title="Logout" style="color: var(--accent-rose);">
-            🚪 Logout
-          </button>
-        </div>
+    <div class="nav-status">
+      <div class="chain-badge">
+        <span class="pulse-dot"></span>
+        <span>BNB Smart Chain (BEP-20)</span>
       </div>
+    </div>
+
+    <div class="nav-actions" id="nav-actions">
+      <button class="btn btn-outline btn-sm" id="btn-open-login">Sign In</button>
+      <button class="btn btn-primary btn-sm" id="btn-open-register" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald)); color: #0b1120; font-weight: 700;">Get Started</button>
     </div>
   </header>
 
-  <!-- =========================================================================
-       MAIN CONTENT CONTAINER
-       ========================================================================= -->
-  <main class="container" style="padding-top: 1.5rem; padding-bottom: 3rem;">
+  <!-- Main Content Wrapper -->
+  <main class="main-wrapper">
 
-    <!-- =======================================================================
-         VIEW 1: ONBOARDING & 2-OF-3 AUTHENTICATION (Guest View)
-         ======================================================================= -->
-    <section id="onboardingView" class="hero-section" style="display: block;">
+    <!-- 1. HERO SECTION (Shown when logged out) -->
+    <section class="hero-section" id="hero-section">
       <div class="hero-pill">
-        <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--primary-emerald);"></span>
-        Binance Smart Chain (BEP-20) • 200-Point Confluence ML Trading Bot • 24h Epoch Vaults
+        <span>⚡ Binance Futures Multi-Timeframe AI Bot</span>
       </div>
-
-      <h1 class="hero-title">
-        Automated Quantitative<br>Trading Vault
-      </h1>
+      <h1 class="hero-title">Institutional Binance Futures Algorithmic Trading</h1>
       <p class="hero-subtitle">
-        Deposit <strong>USDT (BEP-20)</strong> into the Orbital Trading Vault. Our institutional ML algorithm executes 24/7 futures trades on <strong>BTC, ETH, BNB, SOL, XRP, DOGE, AVAX, LINK, ADA, and NEAR</strong> with strict 1% risk management and daily yield distribution.
+        Automated execution powered by 1H/15M/5M Multi-Timeframe Confluence, 300-Tree ML Ensembles, 4-Pillar Structural SL Protection, and Asymmetric +1.5R to +2.5R Profit Runners.
       </p>
 
-      <div class="onboarding-card-grid">
-        <div class="glass-card highlight-cyan">
-          
-          <!-- Auth Mode Toggle Tabs -->
-          <div style="display: flex; background: var(--bg-surface-1); border-radius: var(--radius-md); padding: 4px; margin-bottom: 1.25rem; border: 1px solid var(--border-subtle);">
-            <button type="button" id="toggleBtnRegister" class="btn btn-sm" style="flex: 1; border-radius: var(--radius-sm); font-weight: 700; background: var(--primary-cyan); color: #fff;" onclick="window.App.setAuthMode('register');">
-              📝 Join Vault
-            </button>
-            <button type="button" id="toggleBtnLogin" class="btn btn-sm" style="flex: 1; border-radius: var(--radius-sm); font-weight: 700; background: transparent; color: var(--text-secondary);" onclick="window.App.setAuthMode('login');">
-              🔑 Member Login
-            </button>
-          </div>
-
-          <!-- ==========================================
-               MODE 1: REGISTRATION FORM
-               ========================================== -->
-          <div id="authRegisterContainer">
-            <h3 style="margin-bottom: 0.5rem;">Create Your Account</h3>
-            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1.25rem;">
-              Set your 3 permanent account identifiers (Email, Password, BEP-20 Address).
-            </p>
-
-            <form id="formRegister" onsubmit="return false;">
-              <div class="form-group">
-                <label class="form-label" for="regEmail">Email Address</label>
-                <input type="email" id="regEmail" class="form-input" placeholder="name@gmail.com" required>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="regPassword">Security Password</label>
-                <input type="password" id="regPassword" class="form-input" placeholder="Create a strong password" required>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="regBep20">
-                  <span>BEP-20 Wallet Address</span>
-                  <span style="color: var(--primary-emerald); font-size: 0.75rem;">BNB Smart Chain</span>
-                </label>
-                <input type="text" id="regBep20" class="form-input mono" placeholder="0x... (MetaMask / TrustWallet)" required>
-                <p class="form-hint">All payouts and deposits will be linked to this BEP-20 address.</p>
-              </div>
-
-              <button type="button" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 0.5rem;" onclick="window.App.handleRegister();">
-                ✨ Create Account & Enter Vault
-              </button>
-            </form>
-          </div>
-
-          <!-- ==========================================
-               MODE 2: 2-OF-3 LOGIN FORM
-               ========================================== -->
-          <div id="authLoginContainer" style="display: none;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-              <h3>2-of-3 Multi-Factor Login</h3>
-              <span class="badge badge-active">MFA 2-OF-3</span>
-            </div>
-            <p style="font-size: 0.78rem; color: var(--primary-cyan); margin-bottom: 1.25rem;">
-              💡 Enter <strong>ANY TWO</strong> of your three credentials to unlock your account:
-            </p>
-
-            <form id="formLogin" onsubmit="window.App.handleLogin(); return false;">
-              <div class="form-group">
-                <label class="form-label" for="loginEmail">Factor 1: Email Address</label>
-                <input type="email" id="loginEmail" class="form-input" placeholder="Enter your email (Optional if using BEP20+Pass)" onkeydown="if(event.key==='Enter') window.App.handleLogin();">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="loginPassword">Factor 2: Password</label>
-                <input type="password" id="loginPassword" class="form-input" placeholder="Enter your password (Optional if using Email+BEP20)" onkeydown="if(event.key==='Enter') window.App.handleLogin();">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label" for="loginBep20">Factor 3: BEP-20 Wallet Address</label>
-                <input type="text" id="loginBep20" class="form-input mono" placeholder="0x... (Optional if using Email+Pass)" onkeydown="if(event.key==='Enter') window.App.handleLogin();">
-              </div>
-
-              <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 1rem;">
-                🔒 <strong>Device Auto-Save:</strong> Your session will be automatically saved on this device so you won't have to log in repeatedly.
-              </div>
-
-              <button type="button" id="btnLoginSubmit" class="btn btn-emerald btn-lg" style="width: 100%; cursor: pointer;" onclick="window.App.handleLogin();">
-                🔓 Verify 2-of-3 & Enter Dashboard
-              </button>
-            </form>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- =======================================================================
-         VIEW 2: USER VAULT DASHBOARD (Authenticated)
-         ======================================================================= -->
-    <section id="dashboardView" style="display: none;">
-      
-      <!-- Top Metrics Grid -->
-      <div class="grid-3" style="margin-bottom: 1.5rem;">
-        
-        <!-- Metric 1: Total Portfolio & Withdrawable Amount -->
-        <div class="glass-card highlight-cyan">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">TOTAL PORTFOLIO VALUE</div>
-            <span class="badge badge-win">LIVE VAULT</span>
-          </div>
-          <div class="mono" style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0.4rem 0;">
-            $<span id="dashUserBalance">0.00</span> <span style="font-size: 1rem; color: var(--primary-cyan)">USDT</span>
-          </div>
-          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.6rem 0.85rem; margin-bottom: 0.85rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
-            <div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Withdrawable Amount</div>
-              <div class="mono" style="font-size: 1.2rem; font-weight: 800; color: var(--primary-emerald); margin-top: 1px;">
-                $<span id="dashWithdrawableBal">0.00</span> <span style="font-size: 0.75rem; color: var(--text-secondary)">USDT</span>
-              </div>
-            </div>
-            <button type="button" class="btn btn-emerald btn-sm" style="padding: 5px 12px; font-size: 0.75rem; flex-shrink: 0;" onclick="window.App.openReinvestModal();" title="Re-invest withdrawable returns into active 24h trading pool">
-              🔄 Re-Invest
-            </button>
-          </div>
-          <div style="display: flex; gap: 0.5rem;">
-            <button class="btn btn-primary btn-sm" style="flex: 1;" onclick="window.App.openDepositModal();">
-              📥 Deposit USDT
-            </button>
-            <button class="btn btn-secondary btn-sm" style="flex: 1;" onclick="window.App.openWithdrawModal();">
-              📤 Withdraw
-            </button>
-          </div>
-        </div>
-
-        <!-- Metric 2: Total Earned from System & Active Capital -->
-        <div class="glass-card highlight-emerald">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">TOTAL EARNED FROM SYSTEM</div>
-            <span class="badge badge-win">LIFETIME</span>
-          </div>
-          <div class="mono" style="font-size: 2rem; font-weight: 800; color: var(--primary-emerald); margin: 0.4rem 0;">
-            +$<span id="dashTotalEarned">0.00</span> <span style="font-size: 1rem; color: var(--primary-emerald)">USDT</span>
-          </div>
-          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.4rem;">
-            Active in Bot: <strong class="mono" style="color: var(--primary-cyan);">$<span id="dashActiveTradingBal">0.00</span></strong> • 
-            Queued for 12 AM: <strong class="mono" style="color: var(--accent-amber);">$<span id="dashPendingRolloverBal">0.00</span></strong>
-          </div>
-          <div style="margin-top: 0.85rem; font-size: 0.75rem; color: var(--text-muted);">
-            Next 12 AM Rollover: <span class="mono" style="color: var(--primary-cyan);" id="dashEpochCountdown">--:--:--</span>
-          </div>
-        </div>
-
-        <!-- Metric 3: 24-Hour Trading Round & Bot Performance -->
-        <div class="glass-card">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">24-HOUR TRADING POOL</div>
-            <span class="badge badge-active" id="dashBotStatus">Binance Mainnet Live 🟢</span>
-          </div>
-          <div class="mono" style="font-size: 1.75rem; font-weight: 800; color: #fff; margin: 0.4rem 0;">
-            $<span id="dashPoolTotal">0.00</span> <span style="font-size: 0.85rem; color: var(--text-secondary)">POOLED</span>
-          </div>
-          <div style="font-size: 0.78rem; color: var(--text-secondary);">
-            My Pool Share: <strong class="mono" style="color: #fff;" id="dashMyShare">0.00%</strong> • <span id="dashActiveInvestors">0</span> Investors
-          </div>
-          <div style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.6rem;">
-            Bot Win Rate: <strong class="mono" style="color: var(--primary-emerald);" id="dashWinRate">0.0%</strong> • 
-            Total PnL: <strong class="mono" style="color: var(--primary-emerald);" id="dashTotalPnL">+$0.00</strong>
-          </div>
-        </div>
-
+      <div class="hero-cta" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-lg" id="btn-hero-cta" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald)); color: #0b1120; font-weight: 800; font-size: 1.1rem; padding: 1rem 2.5rem; box-shadow: 0 4px 25px rgba(0, 210, 255, 0.4); cursor: pointer;">
+          ⚡ Launch Trading Portal
+        </button>
+        <button class="btn btn-outline btn-lg" onclick="document.getElementById('public-live-terminal').scrollIntoView({behavior: 'smooth'})" style="font-weight: 700;">
+          📊 View Real-Time Binance Ledger
+        </button>
       </div>
 
-      <!-- Auto-Compounding Controller Card -->
-      <div class="glass-card highlight-cyan" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(16, 24, 43, 0.95), rgba(6, 182, 212, 0.12));">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 1.75rem;">🔄</div>
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <h3 style="margin: 0; font-size: 1.05rem; color: #fff;">Automated Daily Compounding</h3>
-                <span class="badge badge-win" id="dashCompoundingBadge">ACTIVE</span>
-              </div>
-              <p style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px;" id="dashCompoundingDesc">
-                Your daily profits/losses and principal automatically re-invest into the next 24-hour rollover cycle without needing manual deposits.
-              </p>
-            </div>
-          </div>
-          
+      <!-- Live Performance Ticker -->
+      <div class="hero-stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Model Confidence</div>
+          <div class="stat-value gain">72.0%</div>
+          <div class="stat-detail">Optimized Meta-Filter Tier</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Asymmetric Risk:Reward</div>
+          <div class="stat-value">1 : 2.5</div>
+          <div class="stat-detail">ATR Adaptive Trailing TP/SL</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Deposit Verification</div>
+          <div class="stat-value gain">On-Chain</div>
+          <div class="stat-detail">Direct BEP-20 USDT BSC RPC</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Supported Assets</div>
+          <div class="stat-value">BTC / ETH / BNB / SOL</div>
+          <div class="stat-detail">Whitelisted High-Volume Pairs</div>
+        </div>
+      </div>
+
+      <!-- LIVE REAL-TIME BINANCE FUTURES EXECUTION TERMINAL (PUBLIC) -->
+      <div id="public-live-terminal" class="card" style="margin-top: 3.5rem; text-align: left; border-color: rgba(0, 230, 118, 0.4); background: linear-gradient(145deg, rgba(14, 22, 38, 0.95), rgba(8, 12, 20, 0.98)); box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5);">
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
           <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <button type="button" id="btnToggleCompounding" class="btn btn-secondary" style="border-color: var(--primary-cyan); color: var(--primary-cyan);" onclick="window.App.handleToggleCompounding();">
-              ⏸️ Stop Compounding
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Real-Time Binance Futures Live Execution Terminal -->
-      <div class="glass-card highlight-cyan" style="margin-bottom: 1.5rem; border-color: rgba(0, 230, 118, 0.4);">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-size: 1.4rem;">⚡</span>
-            <div>
-              <h3 style="margin: 0; font-size: 1.15rem; color: #fff;">Real-Time Binance Futures Execution Terminal</h3>
-              <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                Direct Binance Futures API Feed • Fast 3s REST Sync • Dynamic 1.0% Compounding Engine
-              </p>
-            </div>
+            <span style="font-size: 1.3rem;">⚡</span>
+            <span style="font-weight: 800; font-size: 1.15rem; letter-spacing: -0.02em;">Live Binance Futures Real-Time Execution Terminal</span>
+            <span class="status-badge active" style="background: rgba(0, 230, 118, 0.15); border-color: var(--accent-emerald); color: var(--accent-emerald);">🟢 BINANCE LIVE API CONNECTED</span>
           </div>
           <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span class="badge badge-win" style="background: rgba(0, 230, 118, 0.15); border-color: var(--primary-emerald); color: var(--primary-emerald);">🟢 BINANCE LIVE API CONNECTED</span>
-            <button class="btn btn-secondary btn-sm" onclick="window.App.syncBinanceLiveTelemetry();">
-              🔄 Sync
-            </button>
-          </div>
-        </div>
-
-        <!-- Transparent 24-Hour Capital Flow & PnL Formula Banner -->
-        <div style="background: var(--bg-surface-2); border: 1px solid rgba(6, 182, 212, 0.35); border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
-            <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-cyan); display: flex; align-items: center; gap: 6px;">
-              <span>📊</span> <span>24-HOUR CAPITAL CYCLE & NET PNL LEDGER</span>
-            </div>
-            <span class="badge badge-win" style="font-size: 0.72rem;">100% REAL-TIME VERIFIED</span>
-          </div>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: center;">
-            <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-              <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">1. Starting Day Base Capital</div>
-              <div class="mono" id="binanceStartBal" style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-top: 2px;">$13.25 <span style="font-size: 0.75rem; color: var(--text-secondary);">USDT</span></div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">Epoch Opening Balance</div>
-            </div>
-
-            <div style="display: flex; justify-content: center; align-items: center; font-size: 1.5rem; color: var(--text-muted);">
-              ➔
-            </div>
-
-            <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-              <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">2. Current / Ending Margin Capital</div>
-              <div class="mono" id="binanceEndBal" style="font-size: 1.35rem; font-weight: 800; color: var(--primary-cyan); margin-top: 2px;">$13.59 <span style="font-size: 0.75rem; color: var(--text-secondary);">USDT</span></div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">Live Binance Margin Equity</div>
-            </div>
-
-            <div style="display: flex; justify-content: center; align-items: center; font-size: 1.5rem; color: var(--text-muted);">
-              =
-            </div>
-
-            <div style="background: rgba(16, 185, 129, 0.08); padding: 0.85rem; border-radius: var(--radius-sm); border: 1px solid rgba(16, 185, 129, 0.35);">
-              <div style="font-size: 0.7rem; color: var(--primary-emerald); text-transform: uppercase; font-weight: 700;">3. Total Net Profit & ROI</div>
-              <div class="mono" id="binanceNetCalc" style="font-size: 1.35rem; font-weight: 800; color: var(--primary-emerald); margin-top: 2px;">+$0.34 <span style="font-size: 0.75rem;">USDT (+2.57%)</span></div>
-              <div style="font-size: 0.7rem; color: var(--primary-emerald); margin-top: 2px;">Net Capital Gain Banked</div>
-            </div>
-          </div>
-
-          <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
-            <div>📐 <strong>Simple Calculation:</strong> <span class="mono" id="binanceCalculationText" style="color: var(--text-secondary);">Net PnL = Ending Capital ($13.59) - Starting Capital ($13.25) = <strong style="color: var(--primary-emerald);">+$0.34 USDT (+2.57% ROI)</strong></span></div>
-            <div>⚡ <strong>Compounding Cadence:</strong> <span style="color: var(--primary-cyan);">24h Midnight Rollover (12:00 AM)</span></div>
+            <span class="mono" style="font-size: 0.75rem; color: var(--text-muted);">Sync: Fast 3s REST</span>
+            <button class="btn btn-outline btn-sm" onclick="syncBinanceLiveTelemetry()" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">↻ Sync</button>
           </div>
         </div>
 
         <!-- 4 Live Exchange Metric Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">💵 Binance Margin Balance</div>
-            <div class="mono" id="binanceLiveBal" style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-top: 0.3rem;">$13.59 <span style="font-size: 0.8rem; color: var(--text-secondary);">USDT</span></div>
-            <div style="font-size: 0.72rem; color: var(--primary-emerald); margin-top: 0.2rem;">🔒 1.0% Risk Compounding Active</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
+          <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">💵 Binance Live Balance</div>
+            <div class="mono terminal-binance-bal" style="font-size: 1.7rem; font-weight: 800; color: var(--text-primary); margin-top: 0.35rem;">$13.87 <span style="font-size: 1rem; color: var(--text-secondary);">USDT</span></div>
+            <div style="font-size: 0.75rem; color: var(--accent-emerald); margin-top: 0.25rem;">🔒 Dynamic 1.0% Compounding Active</div>
           </div>
 
-          <div style="background: var(--bg-surface-1); border: 1px solid rgba(0, 230, 118, 0.3); border-radius: var(--radius-md); padding: 1rem;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">📈 Net Banked ROI%</div>
-            <div class="mono" id="binanceLiveRoi" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-emerald); margin-top: 0.3rem;">+2.54%</div>
-            <div style="font-size: 0.72rem; color: var(--primary-emerald); margin-top: 0.2rem;" id="binanceLiveProfit">+$0.34 USDT Net Gain</div>
+          <div style="background: var(--bg-surface-raised); border: 1px solid rgba(0, 230, 118, 0.3); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">📈 Net Banked ROI%</div>
+            <div class="mono terminal-binance-roi" style="font-size: 1.7rem; font-weight: 800; color: var(--accent-emerald); margin-top: 0.35rem;">+4.71%</div>
+            <div style="font-size: 0.75rem; color: var(--accent-emerald); margin-top: 0.25rem;" class="terminal-binance-profit">+$0.62 USDT Net Gain</div>
           </div>
 
-          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">🎯 Strategy Win Rate</div>
-            <div class="mono" id="binanceLiveWinRate" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-cyan); margin-top: 0.3rem;">78.5%</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;" id="binanceLiveTotalTrades">Verified Journal Records</div>
+          <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">🎯 Trade Win Rate</div>
+            <div class="mono terminal-binance-winrate" style="font-size: 1.7rem; font-weight: 800; color: var(--accent-cyan); margin-top: 0.35rem;">78.5%</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;" class="terminal-binance-totaltrades">Verified Journal Records</div>
           </div>
 
-          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">🛡️ Risk & Exit Protocol</div>
-            <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent-amber); margin-top: 0.35rem;">Asymmetric +1.5R to +2.5R</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">4-Pillar Structural SL Anchoring</div>
+          <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">🛡️ Risk & Exit Protocol</div>
+            <div style="font-size: 0.95rem; font-weight: 700; color: var(--accent-amber); margin-top: 0.45rem;">Asymmetric +1.5R to +2.5R</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">4-Pillar Structural SL Anchoring</div>
           </div>
         </div>
 
         <!-- Real-Time Open Positions Table -->
-        <div style="margin-bottom: 1.5rem;">
-          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <span style="color: var(--primary-cyan);">🟢 Real-Time Open Binance Positions (<span id="binanceOpenPositionsCount">5</span> Active)</span>
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <span class="badge badge-win" style="font-size: 0.7rem; background: rgba(6, 182, 212, 0.15); border-color: var(--primary-cyan); color: var(--primary-cyan);">🧠 GEMINI AI SUPERVISOR ACTIVE</span>
-              <span class="mono" style="font-size: 0.78rem; color: var(--text-secondary);">Open Variance: <span id="binanceOpenTotalUnr" style="color: var(--primary-emerald); font-weight: 700;">+$0.00 USDT</span></span>
-            </div>
+        <div style="margin-top: 1.5rem;">
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>🟢 Real-Time Open Binance Positions (<span class="terminal-open-count">5</span> Active)</span>
+            <span class="mono" style="font-size: 0.8rem; color: var(--text-secondary);">Open Variance: <span class="terminal-total-unr" style="color: var(--accent-emerald); font-weight: 700;">-$0.05 USDT</span></span>
           </div>
 
           <div class="table-responsive">
-            <table class="custom-table">
+            <table>
               <thead>
                 <tr>
                   <th>Symbol & Side</th>
@@ -406,12 +139,11 @@
                   <th>Entry Price</th>
                   <th>Live Mark Price</th>
                   <th>Floating PnL (USDT)</th>
-                  <th>🧠 AI Supervisor Action</th>
                 </tr>
               </thead>
-              <tbody id="binanceOpenPositionsTbody">
+              <tbody class="terminal-positions-tbody">
                 <tr>
-                  <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                  <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
                     Syncing live exchange positions from Binance Futures API...
                   </td>
                 </tr>
@@ -420,75 +152,14 @@
           </div>
         </div>
 
-        <!-- ===================================================================
-             GEMINI AI ACTIVE SUPERVISOR & CONTINUOUS LEARNING PANEL
-             =================================================================== -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
-          
-          <!-- 1. Real-Time AI Tactical Decision Feed -->
-          <div style="background: var(--bg-surface-2); border: 1px solid rgba(6, 182, 212, 0.35); border-radius: var(--radius-md); padding: 1.15rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-              <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-cyan); display: flex; align-items: center; gap: 6px;">
-                <span>🧠</span> <span>GEMINI AI ACTIVE TRADE SUPERVISOR</span>
-              </div>
-              <span class="badge badge-win" style="font-size: 0.7rem;">ZERO-LAG OBSERVER</span>
-            </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.85rem;">
-              Continuously observes open positions every 10–30s. Dynamically locks in profits, tightens trailing stops, and cuts invalidations early.
-            </div>
-            <div id="aiSupervisorDecisionsList" style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 240px; overflow-y: auto;">
-              <div style="background: var(--bg-surface-1); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.75rem; color: var(--text-secondary);">
-                Active supervisor is monitoring positions...
-              </div>
-            </div>
-          </div>
-
-          <!-- 2. Continuous Machine Learning & Knowledge Base Feed -->
-          <div style="background: var(--bg-surface-2); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-md); padding: 1.15rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-              <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-emerald); display: flex; align-items: center; gap: 6px;">
-                <span>🚀</span> <span>CONTINUOUS SELF-LEARNING ENGINE</span>
-              </div>
-              <span class="badge badge-win" id="mlLearningStatusBadge" style="font-size: 0.7rem;">AUTO-RETRAINING ON</span>
-            </div>
-
-            <!-- ML Stats Strip -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.85rem; text-align: center;">
-              <div style="background: var(--bg-surface-1); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-                <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Dual Accuracy</div>
-                <div class="mono" id="mlEnsembleAcc" style="font-size: 1.05rem; font-weight: 800; color: var(--primary-emerald); margin-top: 2px;">56.0%</div>
-              </div>
-              <div style="background: var(--bg-surface-1); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-                <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Dataset Size</div>
-                <div class="mono" id="mlTrainedSamples" style="font-size: 1.05rem; font-weight: 800; color: #fff; margin-top: 2px;">3,120</div>
-              </div>
-              <div style="background: var(--bg-surface-1); padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-                <div style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">ROC-AUC</div>
-                <div class="mono" id="mlRocAuc" style="font-size: 1.05rem; font-weight: 800; color: var(--primary-cyan); margin-top: 2px;">0.570</div>
-              </div>
-            </div>
-
-            <!-- Recent AI Post-Mortem Lessons -->
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.4rem; font-weight: 700; text-transform: uppercase;">
-              Latest Trade Post-Mortems & Extracted Lessons:
-            </div>
-            <div id="aiPostMortemsList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 160px; overflow-y: auto;">
-              <div style="background: var(--bg-surface-1); padding: 0.65rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); font-size: 0.75rem; color: var(--text-secondary);">
-                Every closed trade automatically triggers post-trade quantitative review and ensemble weight updates.
-              </div>
-            </div>
-          </div>
-
-        </div>
-
         <!-- Recently Closed Trades Table -->
-        <div>
-          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem;">
+        <div style="margin-top: 1.5rem;">
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem;">
             📜 Recently Closed Trades Journal (Verified Real PnL)
           </div>
 
           <div class="table-responsive">
-            <table class="custom-table">
+            <table>
               <thead>
                 <tr>
                   <th>Symbol</th>
@@ -500,7 +171,7 @@
                   <th>Time (UTC)</th>
                 </tr>
               </thead>
-              <tbody id="binanceClosedTradesTbody">
+              <tbody class="terminal-closed-tbody">
                 <tr>
                   <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
                     Syncing recent trade journal...
@@ -513,290 +184,453 @@
 
       </div>
 
-    </section>
-
-    <!-- =======================================================================
-         VIEW 3: USER TRANSACTION HISTORY
-         ======================================================================= -->
-    <section id="historyView" style="display: none;">
-      <div class="glass-card">
-        <h3 style="margin-bottom: 1rem;">📜 Your Deposit & Withdrawal History</h3>
-        
-        <h4 style="font-size: 0.9rem; color: var(--primary-cyan); margin: 1rem 0 0.5rem 0;">On-Chain Deposits</h4>
-        <div class="table-responsive" style="margin-bottom: 1.5rem;">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>Deposit ID</th>
-                <th>Amount</th>
-                <th>Sender (BEP-20)</th>
-                <th>Tx Hash</th>
-                <th>Status</th>
-                <th>Date (UTC)</th>
-              </tr>
-            </thead>
-            <tbody id="depositHistoryTableBody">
-              <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No deposits yet.</td></tr>
-            </tbody>
-          </table>
+      <!-- Official Community & Social Channels Section -->
+      <div class="community-section" style="margin-top: 4rem; text-align: center;">
+        <div style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-cyan); font-weight: 700; margin-bottom: 0.5rem;">
+          🌐 Connect With Us
         </div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 0.75rem;">
+          Official Telegram & YouTube Channels
+        </h2>
+        <p style="font-size: 0.95rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto 2.5rem auto; line-height: 1.6;">
+          Join our official community for daily trading bot updates, trade execution analysis, announcements, and direct discussion.
+        </p>
 
-        <h4 style="font-size: 0.9rem; color: var(--accent-amber); margin: 1rem 0 0.5rem 0;">Withdrawal Requests</h4>
-        <div class="table-responsive">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>Withdrawal ID</th>
-                <th>Amount</th>
-                <th>Recipient (BEP-20)</th>
-                <th>Status</th>
-                <th>Date (UTC)</th>
-              </tr>
-            </thead>
-            <tbody id="withdrawHistoryTableBody">
-              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No withdrawals yet.</td></tr>
-            </tbody>
-          </table>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 780px; margin: 0 auto;">
+          
+          <!-- Telegram Channel Card -->
+          <a href="https://t.me/QuickMOneyq" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration: none; color: inherit; border-color: rgba(0, 136, 204, 0.45); background: linear-gradient(145deg, rgba(0, 136, 204, 0.08), rgba(15, 23, 42, 0.7)); transition: all 0.25s ease; display: flex; align-items: center; gap: 1.25rem; padding: 1.5rem; border-radius: var(--radius-lg);" onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='#0088cc'; this.style.boxShadow='0 8px 30px rgba(0, 136, 204, 0.25)';" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(0, 136, 204, 0.45)'; this.style.boxShadow='none';">
+            <div style="width: 58px; height: 58px; border-radius: 50%; background: #0088cc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 18px rgba(0, 136, 204, 0.45);">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" fill="#ffffff"/>
+              </svg>
+            </div>
+            <div style="text-align: left;">
+              <div style="font-weight: 800; font-size: 1.15rem; color: #38bdf8;">Telegram Channel</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">t.me/QuickMOneyq</div>
+              <div style="font-size: 0.8rem; color: var(--accent-cyan); font-weight: 700; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
+                Join Telegram Channel ↗
+              </div>
+            </div>
+          </a>
+
+          <!-- YouTube Channel Card -->
+          <a href="https://www.youtube.com/channel/UCPBmO6pr_m1XNX5PuPmQiDA" target="_blank" rel="noopener noreferrer" class="card" style="text-decoration: none; color: inherit; border-color: rgba(255, 0, 0, 0.45); background: linear-gradient(145deg, rgba(255, 0, 0, 0.08), rgba(15, 23, 42, 0.7)); transition: all 0.25s ease; display: flex; align-items: center; gap: 1.25rem; padding: 1.5rem; border-radius: var(--radius-lg);" onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='#ff0000'; this.style.boxShadow='0 8px 30px rgba(255, 0, 0, 0.25)';" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(255, 0, 0, 0.45)'; this.style.boxShadow='none';">
+            <div style="width: 58px; height: 58px; border-radius: 50%; background: #ff0000; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 18px rgba(255, 0, 0, 0.45);">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <path d="M21.58 7.19a2.76 2.76 0 00-1.95-1.96C17.9 4.75 12 4.75 12 4.75s-5.9 0-7.63.48c-.96.26-1.7.99-1.95 1.96C2 8.93 2 12 2 12s0 3.07.42 4.81c.25.97.99 1.7 1.95 1.96 1.73.48 7.63.48 7.63.48s5.9 0 7.63-.48c.96-.26 1.7-.99 1.95-1.96.42-1.74.42-4.81.42-4.81s0-3.07-.42-4.81zM9.75 15.02V8.98l5.5 3.02-5.5 3.02z" fill="#ffffff"/>
+              </svg>
+            </div>
+            <div style="text-align: left;">
+              <div style="font-weight: 800; font-size: 1.15rem; color: #f87171;">YouTube Channel</div>
+              <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">Live Bot Updates & Strategies</div>
+              <div style="font-size: 0.8rem; color: #f87171; font-weight: 700; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
+                Subscribe on YouTube ↗
+              </div>
+            </div>
+          </a>
+
         </div>
       </div>
     </section>
 
-    <!-- =======================================================================
-         VIEW 4: ADMIN MASTER CONTROL CENTER & FUND SWEEPER
-         ======================================================================= -->
-    <section id="adminView" style="display: none;">
+    <!-- 2. DASHBOARD VIEW (Shown when logged in) -->
+    <section class="dashboard-view" id="dashboard-view">
       
-      <!-- Top Epoch Collection Summary Banner -->
-      <div class="glass-card highlight-emerald" style="max-width: 1040px; margin: 0 auto 1.5rem auto; background: linear-gradient(135deg, rgba(16, 24, 43, 0.9), rgba(16, 185, 129, 0.1));">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-emerald);">
-            📊 TODAY'S 24-HOUR USER COLLECTION & POOL OVERVIEW
+      <!-- User Profile & Balance Header -->
+      <div class="dashboard-header">
+        <div class="user-profile-summary">
+          <div class="user-avatar" id="user-avatar-initials">U</div>
+          <div>
+            <div class="user-email-row">
+              <span class="user-email" id="dash-user-email">user@example.com</span>
+              <span class="status-badge pending" id="dash-status-badge">PENDING DEPOSIT</span>
+              <span class="status-badge active" id="dash-compound-badge" style="background: rgba(0, 210, 255, 0.15); border-color: var(--accent-cyan); color: var(--accent-cyan);">🔄 AUTO-COMPOUND: ON</span>
+              <span class="status-badge" id="dash-queue-badge" style="display: none; background: var(--bg-surface-raised); border: 1px solid var(--border-subtle);">QUEUED FOR 00:00 UTC BATCH</span>
+            </div>
+            <div class="user-wallet-row">
+              <span class="wallet-label">Your Registered BEP-20 Address:</span>
+              <span class="wallet-address mono" id="dash-user-bep20">0x0000000000000000000000000000000000000000</span>
+              <button class="copy-btn" id="btn-copy-user-bep20" title="Copy Address">📋</button>
+            </div>
           </div>
-          <span class="badge badge-win" id="adminEpochIdBadge">Epoch Active</span>
         </div>
 
-        <div class="grid-3" style="margin-bottom: 0.5rem;">
-          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Today's Total New Deposits</div>
-            <div class="mono" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-emerald); margin-top: 2px;">
-              $<span id="adminTodayCollection">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
-            </div>
-            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
-              <span id="adminTodayDepositCount">0</span> Deposits (<span id="adminTodayUniqueUsers">0</span> Users)
-            </div>
+        <div class="user-balance-block">
+          <div class="balance-title">Your Confirmed Deposit Balance</div>
+          <div class="balance-amount"><span id="dash-balance">0.00</span> <span style="font-size: 1.1rem; color: var(--text-secondary);">USDT</span></div>
+        </div>
+      </div>
+
+      <!-- PERSONALIZED FINANCIAL KPI OVERVIEW CARDS -->
+      <div class="financial-kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">💰 Active Trading Capital</div>
+          <div class="kpi-value mono" id="kpi-balance">0.00 <span class="kpi-currency">USDT</span></div>
+          <div class="kpi-subtext" id="kpi-total-deposited">Total Deposited: 0.00 USDT</div>
+        </div>
+
+        <div class="kpi-card gain-card">
+          <div class="kpi-label">📈 Total Profit Earned</div>
+          <div class="kpi-value mono gain" id="kpi-profit">+0.00 <span class="kpi-currency">USDT</span></div>
+          <div class="kpi-subtext">Cumulative bot profits</div>
+        </div>
+
+        <div class="kpi-card loss-card">
+          <div class="kpi-label">📉 Total Losses Incurred</div>
+          <div class="kpi-value mono loss" id="kpi-loss">-0.00 <span class="kpi-currency">USDT</span></div>
+          <div class="kpi-subtext">Cumulative bot losses</div>
+        </div>
+
+        <div class="kpi-card net-card">
+          <div class="kpi-label">💎 All-Time Net PnL</div>
+          <div class="kpi-value mono" id="kpi-net-pnl">+0.00 <span class="kpi-currency">USDT</span></div>
+          <div class="kpi-subtext" id="kpi-net-roi">Net ROI: +0.00% across cycles</div>
+        </div>
+      </div>
+
+      <!-- LAST DAY RETURN & DEPOSIT CONFIRMATION CARD -->
+      <div class="card return-confirmation-card" id="last-return-card" style="margin-bottom: 2rem;">
+        <div class="card-title">
+          <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+            <span>🛡️ Daily Return & Deposit Confirmation</span>
+            <span class="status-badge active" id="last-return-status-badge">CONFIRMED & RETURNED</span>
+          </div>
+          <span class="mono" id="last-return-date-pill" style="font-size: 0.8rem; color: var(--text-secondary);">Cycle: 2026-08-15</span>
+        </div>
+
+        <div class="return-confirmation-grid">
+          <div class="return-stat-box">
+            <div class="stat-label">Daily Bot Performance</div>
+            <div class="stat-value mono" id="last-return-roi" style="color: var(--accent-emerald);">+8.00%</div>
+            <div class="stat-detail" id="last-return-rule">Last 24h trading day</div>
           </div>
 
-          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Total Active Vault Pool</div>
-            <div class="mono" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-cyan); margin-top: 2px;">
-              $<span id="adminTotalActivePool">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
-            </div>
-            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
-              Across <span id="adminTotalInvestors">0</span> Active Depositors
-            </div>
+          <div class="return-stat-box">
+            <div class="stat-label">Daily Profit / Loss</div>
+            <div class="stat-value mono gain" id="last-return-amount">+$12.00 USDT</div>
+            <div class="stat-detail" id="last-return-fee" style="color: var(--accent-emerald); font-weight: 600;">✅ Confirmed & Credited</div>
           </div>
 
-          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Next Rollover (12:00 AM Midnight)</div>
-            <div class="mono" style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-top: 2px;">
-              <span id="adminCountdownTimer">--:--:--</span>
+          <div class="return-stat-box">
+            <div class="stat-label">Current Trading Capital</div>
+            <div class="stat-value mono" id="last-return-endbal" style="font-weight: 700;">262.00 USDT</div>
+            <div class="stat-detail">Starting cycle capital: <span id="last-return-startbal">250.00</span> USDT</div>
+          </div>
+
+          <div class="return-stat-box">
+            <div class="stat-label">Confirmation & Wallet Destination</div>
+            <div class="mono" style="font-size: 0.75rem; word-break: break-all; color: var(--accent-cyan);" id="last-return-bep20">
+              0x0000000000000000000000000000000000000000
             </div>
-            <div style="font-size: 0.72rem; color: var(--accent-amber); margin-top: 2px;">
-              Funds will trade starting 12:00 AM
+            <div class="stat-detail" id="last-return-transfer-note" style="color: var(--accent-emerald); font-weight: 700; margin-top: 0.35rem;">
+              ✅ Return Confirmed: Sent from System Address (0x66A06fA...) to your BEP-20
             </div>
           </div>
         </div>
       </div>
 
-      <div class="grid-2" style="max-width: 1040px; margin: 0 auto; gap: 1.5rem;">
-        
-        <!-- Panel 1: MetaMask to Binance Fund Sweeper -->
-        <div class="glass-card highlight-cyan">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <h3 style="color: var(--accent-amber);">👑 Move Funds: MetaMask ➔ Binance</h3>
-            <span class="badge badge-win" id="adminGasStatusBadge">Querying Gas...</span>
+      <!-- MAIN DASHBOARD GRID -->
+      <div class="dashboard-grid">
+
+        <!-- CARD 1: BEP-20 USDT Deposit Instructions -->
+        <div class="card deposit-card">
+          <div class="card-title">
+            <span>💳 Deposit BEP-20 USDT</span>
+            <span class="chain-badge">BSC BEP-20</span>
           </div>
-          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-            When users deposit on the website, USDT lands in your MetaMask. Transfer it to Binance before 12:00 AM midnight so the bot can trade with it tomorrow!
+
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+            Send USDT (BEP-20) to the platform deposit address. Deposits accumulate throughout the day and sweep to Binance at 00:00 UTC. Minimum deposit is <strong>1.0 USDT</strong>.
           </p>
 
-          <!-- Master Wallet Balance Box -->
-          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Master MetaMask Wallet</div>
-            <div class="mono" style="font-size: 0.8rem; color: var(--primary-cyan); word-break: break-all; margin: 2px 0 8px 0;">
-              0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0
-            </div>
-            <div style="display: flex; gap: 1rem; font-size: 0.82rem;">
-              <div>USDT Balance: <strong class="mono" style="color: var(--primary-emerald);">$<span id="adminMetaMaskUsdt">0.00</span></strong></div>
-              <div>BNB Gas: <strong class="mono" style="color: #fff;"><span id="adminMetaMaskBnb">0.0000</span> BNB</strong></div>
+          <!-- Deposit Address Box -->
+          <div class="deposit-address-wrapper">
+            <label class="input-label" for="platform-deposit-address">Platform Deposit Address (BEP-20 USDT Vault)</label>
+            <div class="input-with-button">
+              <input type="text" class="text-input mono" id="platform-deposit-address" readonly value="0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0">
+              <button class="btn btn-secondary" id="btn-copy-address">Copy</button>
             </div>
           </div>
 
-          <!-- Target Binance Box -->
-          <div class="form-group">
-            <label class="form-label">Official Binance BEP-20 Deposit Destination</label>
-            <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="adminBinanceAddress" class="form-input mono" value="0xf13c3ce17b921ddff8d7057e2363fc79cac1fb2b" readonly style="font-size: 0.75rem;">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.App.copyBinanceAddress();">📋 Copy</button>
+          <!-- QR Code & Token Contract Info -->
+          <div class="qr-contract-row">
+            <div class="qr-container">
+              <img id="deposit-qr-img" src="" alt="Deposit QR Code" width="130" height="130">
+            </div>
+            <div class="contract-info">
+              <div class="info-item">
+                <span class="info-label">Network:</span>
+                <span class="info-val">BNB Smart Chain (BEP-20)</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Token:</span>
+                <span class="info-val">Tether USD (USDT)</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Contract:</span>
+                <span class="info-val mono" id="usdt-contract-short">0x55d3...7955</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Min Deposit:</span>
+                <span class="info-val" style="color: var(--accent-emerald);">1.0 USDT</span>
+              </div>
             </div>
           </div>
-
-          <!-- Action 1: 1-Click Automated Web3 Sweep -->
-          <div style="margin-bottom: 1.25rem; padding-top: 0.5rem; border-top: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem;">Method A: 1-Click Automated Web3 Transfer</div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.6rem;">
-              Automatically builds, signs with private key, and broadcasts BEP-20 transfer to Binance (Requires ~0.0005 BNB gas).
-            </p>
-            <button type="button" class="btn btn-primary" style="width: 100%;" onclick="window.App.handleAutoSweep();">
-              ⚡ 1-Click Send All to Binance (Web3)
-            </button>
-          </div>
-
-          <!-- Action 2: Manual Transfer Confirmation -->
-          <div style="padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 0.3rem;">Method B: Manual MetaMask App Transfer</div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.6rem;">
-              If zero BNB gas is in MetaMask, transfer manually in your MetaMask App to Binance, then record it below:
-            </p>
-            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-              <input type="number" step="0.01" id="manualSweepAmount" class="form-input mono" placeholder="Amount (USDT)" style="flex: 1;">
-              <input type="text" id="manualSweepTx" class="form-input mono" placeholder="Optional Tx Hash" style="flex: 1.5; font-size: 0.75rem;">
-            </div>
-            <button type="button" class="btn btn-secondary" style="width: 100%; border-color: rgba(245, 158, 11, 0.4); color: var(--accent-amber);" onclick="window.App.handleManualSweep();">
-              📋 Confirm Manual Transfer to Binance
-            </button>
-          </div>
-
         </div>
 
-        <!-- Panel 2: 24-Hour Profit & Loss Distribution (Live Connected to Binance Bot) -->
-        <div class="glass-card highlight-emerald">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <h3 style="color: var(--primary-emerald);">📈 24h Profit & Loss Distribution</h3>
-            <span class="badge badge-win" id="adminBotLiveStatusBadge">Binance Bot Connected 🟢</span>
+        <!-- CARD 2: Deposit for Next Pool (On-Chain Verification) -->
+        <div class="card verify-card" style="border-color: rgba(0, 210, 255, 0.35);">
+          <div class="card-title">
+            <span>📥 Deposit for Next Pool (00:00 UTC Batch)</span>
+            <span class="status-badge active">BSC RPC VERIFIER</span>
           </div>
-          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1rem;">
-            Distribute the Binance bot's real 24-hour trading results across all active depositors (60% to users / 40% to admin).
+
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+            Submit your deposit details to verify on-chain. The system automatically inspects <strong>how much</strong> was sent, <strong>who</strong> sent it, and verifies that it is <strong>authentic BEP-20 USDT</strong>.
           </p>
 
-          <!-- Live Bot PnL Auto-Sync Box -->
-          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Real Binance Bot 24h PnL</span>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="window.App.loadLiveBotDailyPnL(true);" style="font-size: 0.72rem; padding: 2px 8px;">
-                🔄 Auto-Sync Bot PnL
-              </button>
+          <!-- 3 User Fields: Amount, Address (Who), TxHash -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+            <div>
+              <label class="input-label" for="input-deposit-amount">1. Deposit Amount ($ USDT)</label>
+              <input type="number" class="text-input mono" id="input-deposit-amount" placeholder="e.g. 100.00" min="1" step="any">
             </div>
-            <div style="display: flex; gap: 1rem; font-size: 0.82rem;">
-              <div>Closed Trades: <strong class="mono" style="color: #fff;" id="adminBotTodayTrades">0</strong></div>
-              <div>Net PnL: <strong class="mono" style="color: var(--primary-emerald);" id="adminBotTodayPnl">$0.00</strong></div>
-              <div>ROI: <strong class="mono" style="color: var(--primary-cyan);" id="adminBotTodayRoi">0.00%</strong></div>
+            <div>
+              <label class="input-label" for="input-sender-address">2. Your BEP-20 Address (Who)</label>
+              <input type="text" class="text-input mono" id="input-sender-address" placeholder="0x..." autocomplete="off">
             </div>
           </div>
 
-          <form id="formAdminSettle" onsubmit="return false;">
-            <div class="form-group">
-              <label class="form-label" for="adminDailyRoi">Daily Bot ROI Percentage (%)</label>
-              <input type="number" step="0.01" id="adminDailyRoi" class="form-input mono" placeholder="0.00" value="0.00" required>
-            </div>
+          <div class="input-field-group">
+            <label class="input-label" for="input-tx-hash">3. Transaction Hash (TxHash)</label>
+            <input type="text" class="text-input mono" id="input-tx-hash" placeholder="0x..." autocomplete="off">
+          </div>
 
-            <div class="form-group">
-              <label class="form-label" for="adminDailyPnl">Daily Bot Net PnL in Dollars ($)</label>
-              <input type="number" step="0.01" id="adminDailyPnl" class="form-input mono" placeholder="0.00" value="0.00" required>
-            </div>
-
-            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--border-glow-emerald); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 1.25rem; font-size: 0.75rem; color: var(--primary-emerald);">
-              ✨ <strong>Profit-Sharing Rule:</strong> 40% Admin Cut deducted on profit days; 60% net profit credited directly to depositors. 0% fee on loss days (exact loss % applied).
-            </div>
-
-            <button type="button" class="btn btn-emerald btn-lg" style="width: 100%;" onclick="window.App.handleAdminSettle();">
-              🚀 Finalize 24h Settlement & Credit Depositors
+          <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap;">
+            <button class="btn btn-primary" id="btn-verify-tx" style="flex: 1; min-width: 200px;">
+              ⚡ Verify & Credit to Next Pool
             </button>
-          </form>
+            <button class="btn btn-secondary btn-sm" id="btn-simulate-test" title="Quick test verification for sandbox testing">
+              🧪 Quick Simulation (+50.00 USDT)
+            </button>
+          </div>
+
+          <!-- On-Chain Security Verification Audit Box -->
+          <div class="verify-alert" id="verify-alert" style="margin-top: 1rem;"></div>
+        </div>
+
+        <!-- CARD 3: AI Trading Bot Status & Control -->
+        <div class="card bot-card">
+          <div class="card-title">
+            <span>🤖 AI Trading Bot Command Center</span>
+            <span class="status-badge active">ONLINE</span>
+          </div>
+
+          <div class="bot-control-row">
+            <div class="bot-control-text">
+              <div class="control-title">Automated ML Trading Execution</div>
+              <div class="control-desc" id="bot-toggle-hint">
+                Requires minimum 1.0 USDT confirmed deposit.
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="bot-toggle-switch" disabled>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Bot Metrics -->
+          <div class="bot-metrics-grid">
+            <div class="metric-item">
+              <span class="metric-label">Execution Strategy</span>
+              <span class="metric-val">Multi-Timeframe Trend + ML Filter</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Target Assets</span>
+              <span class="metric-val">BTCUSDT, ETHUSDT, BNBUSDT, SOLUSDT</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Risk Protocol</span>
+              <span class="metric-val">ATR Volatility Trailing Stop (1:2.5 RR)</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label">Model Retraining</span>
+              <span class="metric-val" style="color: var(--accent-cyan);">Daily (00:00 UTC Cycle)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 4: Auto-Compounding Rollover Engine -->
+        <div class="card compound-card" style="border-color: rgba(0, 210, 255, 0.35);">
+          <div class="card-title">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <span>🔄 Auto-Compounding Rollover Mode</span>
+              <span class="status-badge active" id="compound-status-badge">ACTIVE</span>
+            </div>
+            <span class="chain-badge" style="font-size: 0.7rem;">Continuous 24h Pools</span>
+          </div>
+
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+            Eliminate manual daily deposits. When enabled, your ending balance and daily returns <strong>automatically roll over into consecutive daily trading pools</strong> at 00:00 UTC.
+          </p>
+
+          <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+              <div>
+                <div style="font-weight: 700; font-size: 0.95rem;">Continuous Daily Compounding</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;" id="compound-status-desc">
+                  Active: Daily profits and balances automatically compound into the next 24h pool.
+                </div>
+              </div>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="btn btn-primary btn-sm" id="btn-toggle-compound" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald)); color: #0b1120; font-weight: 800; padding: 0.5rem 1.1rem; cursor: pointer;">
+                  🔄 Compounding Settings
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btn-open-withdraw" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171; font-weight: 700; padding: 0.5rem 1.1rem; cursor: pointer;">
+                  💸 Request Withdrawal
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.78rem; color: var(--text-secondary);">
+            💡 <em>Withdrawal Protocol: Requests wait for that day's active pool completion (00:00 UTC) and dispatch from the System Address (0x66A06fA...) to your BEP-20 wallet upon Admin confirmation.</em>
+          </div>
+        </div>
+
+        <!-- CARD 4: Interactive Daily Profit/Loss Calculator -->
+        <div class="card">
+          <div class="card-title">
+            <span>🧮 Daily Profit / Loss Calculator</span>
+            <span class="chain-badge" style="font-size: 0.7rem;">Daily PnL Estimate</span>
+          </div>
+
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+            Estimate your daily returns based on deposit size and the trading bot's daily performance.
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+            <div>
+              <label class="input-label" for="calc-deposit">Your Deposit ($ USDT)</label>
+              <input type="number" class="text-input mono" id="calc-deposit" value="100" min="1" step="10">
+            </div>
+            <div>
+              <label class="input-label" for="calc-roi">Bot Daily ROI (%)</label>
+              <input type="number" class="text-input mono" id="calc-roi" value="10" step="0.5">
+            </div>
+          </div>
+
+          <div id="calc-result-box" style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span style="color: var(--text-muted); font-size: 0.85rem;">Daily Profit / Loss ($):</span>
+              <span id="calc-user-pnl" class="mono" style="font-weight: 700; color: var(--accent-emerald);">+$6.00 USDT</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span style="color: var(--text-muted); font-size: 0.85rem;">Your Daily Net ROI:</span>
+              <span id="calc-user-pct" class="mono" style="font-weight: 700; color: var(--accent-emerald);">+6.00%</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 0.5rem; border-top: 1px solid var(--border-subtle); font-size: 1rem;">
+              <span style="font-weight: 700;">Simulated Ending Balance:</span>
+              <span id="calc-ending-balance" class="mono" style="font-weight: 800; color: var(--accent-emerald);">106.00 USDT</span>
+            </div>
+          </div>
+
+          <!-- Quick Test Presets -->
+          <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-sm" onclick="setCalcPreset(100, 10)">+10% Gain</button>
+            <button class="btn btn-secondary btn-sm" onclick="setCalcPreset(500, 8)">+8% Gain</button>
+            <button class="btn btn-secondary btn-sm" onclick="setCalcPreset(100, -5)">-5% Loss</button>
+            <button class="btn btn-secondary btn-sm" onclick="setCalcPreset(200, -3)">-3% Loss</button>
+          </div>
         </div>
 
       </div>
 
-      <!-- Section: User Withdrawal Approvals & Payout Station -->
-      <div class="glass-card highlight-cyan" style="max-width: 1040px; margin: 1.5rem auto 0 auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-          <div>
-            <h3 style="color: var(--accent-amber);">📤 User Withdrawal Approvals & Payout Station</h3>
-            <p style="font-size: 0.78rem; color: var(--text-secondary);">
-              Review pending user withdrawals and pay out via 1-Click Automated Web3 transfer OR manual MetaMask confirmation.
-            </p>
-          </div>
-          <span class="badge badge-active" id="adminPendingWithdrawalsCountBadge">0 Pending Payouts</span>
+      <!-- User Settlement Receipts Ledger -->
+      <div class="card deposit-history-card">
+        <div class="card-title">
+          <span>📈 Daily Profit & Loss History Ledger</span>
+          <button class="btn btn-outline btn-sm" id="btn-refresh-settlements">↻ Refresh</button>
         </div>
 
-        <div id="adminPendingWithdrawalsList">
-          <div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
-            ✅ No pending withdrawal requests. All payouts up to date.
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel 3: Previous Day Reconciliation & Outgoing Overview -->
-      <div class="glass-card" style="max-width: 1040px; margin: 1.5rem auto 0 auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <div>
-            <h3 style="color: var(--primary-cyan);">📅 Previous Day Reconciliation & Outgoing Archive</h3>
-            <p style="font-size: 0.78rem; color: var(--text-muted);">
-              Audited summary of previous day's user collection, transfers to Binance, and user payouts.
-            </p>
-          </div>
-          <span class="badge badge-active" id="adminPrevEpochDate">Previous Day Record</span>
-        </div>
-
-        <div class="grid-3" style="margin-bottom: 1.25rem;">
-          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">1. Previous Day Collection (In)</div>
-            <div class="mono" style="font-size: 1.4rem; font-weight: 800; color: var(--primary-emerald); margin-top: 2px;">
-              $<span id="adminPrevCollection">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
-            </div>
-            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
-              Total user deposits collected
-            </div>
-          </div>
-
-          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">2. Previous Outgoing to Binance</div>
-            <div class="mono" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-amber); margin-top: 2px;">
-              $<span id="adminPrevOutgoingBinance">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
-            </div>
-            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
-              Capital sent to Binance for bot trading
-            </div>
-          </div>
-
-          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">3. Previous Outgoing User Payouts</div>
-            <div class="mono" style="font-size: 1.4rem; font-weight: 800; color: var(--accent-rose); margin-top: 2px;">
-              $<span id="adminPrevOutgoingWithdrawals">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
-            </div>
-            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
-              Total withdrawals paid to users
-            </div>
-          </div>
-        </div>
-
-        <!-- History Ledger Table -->
-        <h4 style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.6rem;">📜 24-Hour Epoch Accounting Ledger</h4>
         <div class="table-responsive">
-          <table class="custom-table">
+          <table>
             <thead>
               <tr>
-                <th>Epoch #</th>
-                <th>Start Time (UTC)</th>
-                <th>Collection (In)</th>
-                <th>Sent to Binance</th>
-                <th>User Payouts</th>
-                <th>Bot ROI (%)</th>
+                <th>Date</th>
+                <th>Bot Daily ROI</th>
+                <th>Starting Capital</th>
+                <th>Your Profit / Loss ($)</th>
+                <th>Ending Capital</th>
+                <th>Return Payout Confirmation</th>
+              </tr>
+            </thead>
+            <tbody id="settlements-history-tbody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                  No daily settlements recorded yet. Active traders receive daily payouts at the end of each 24h cycle.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Deposit Ledger History -->
+      <div class="card deposit-history-card">
+        <div class="card-title">
+          <span>📜 Confirmed Deposit Ledger</span>
+          <button class="btn btn-outline btn-sm" id="btn-refresh-history">↻ Refresh</button>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Date / Time</th>
+                <th>Amount</th>
+                <th>Network</th>
+                <th>Transaction Hash</th>
+                <th>Block #</th>
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody id="adminEpochLedgerTableBody">
-              <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No historical epochs yet.</td></tr>
+            <tbody id="deposit-history-tbody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                  No deposits confirmed yet. Complete your first BEP-20 USDT deposit above.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- User Withdrawals Ledger -->
+      <div class="card deposit-history-card" style="margin-top: 1.5rem;">
+        <div class="card-title">
+          <span>💸 Your Withdrawal Requests & Payout Status</span>
+          <button class="btn btn-outline btn-sm" id="btn-refresh-withdrawals">↻ Refresh</button>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Date / Time</th>
+                <th>Amount</th>
+                <th>Destination BEP-20</th>
+                <th>Pool Status</th>
+                <th>Admin Confirmation & Payout Tx</th>
+              </tr>
+            </thead>
+            <tbody id="withdrawal-history-tbody">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                  No withdrawal requests yet. You can request a withdrawal anytime from the Compounding card.
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -806,183 +640,172 @@
 
   </main>
 
-  <!-- =========================================================================
-       MASTER ADMIN MULTI-LAYER SECURITY MODAL
-       ========================================================================= -->
-  <div id="modalAdminAuth" class="modal-overlay" style="display: none;">
-    <div class="modal-card highlight-cyan" style="max-width: 460px;">
-      <button class="modal-close-btn" onclick="window.App.closeAdminAuthModal();">&times;</button>
-      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.4rem;">
-        <span style="font-size: 1.25rem;">👑</span>
-        <h3 style="color: var(--accent-amber);">Master Admin Verification</h3>
+  <!-- AUTH MODAL (Register / Login) -->
+  <div class="modal-backdrop" id="auth-modal">
+    <div class="modal-content">
+      <button class="modal-close-btn" id="btn-close-modal">&times;</button>
+
+      <div class="modal-tabs">
+        <button class="tab-btn active" id="tab-register">Register</button>
+        <button class="tab-btn" id="tab-login">Sign In</button>
       </div>
-      <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-        Multi-layer security challenge required to unlock the Admin Control Center:
-      </p>
 
-      <form id="formAdminAuth" onsubmit="return false;">
-        <div class="form-group">
-          <label class="form-label" for="authAdminPin">1. Master Admin PIN</label>
-          <input type="password" id="authAdminPin" class="form-input mono" placeholder="Enter 6-digit Admin PIN (499011)" required>
+      <div class="form-alert" id="auth-alert"></div>
+
+      <!-- REGISTER FORM -->
+      <form class="auth-form active" id="form-register">
+        <div class="input-field-group">
+          <label class="input-label" for="reg-email">Email Address</label>
+          <input type="email" class="text-input" id="reg-email" placeholder="you@example.com" required>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="authAdminPass1">2. Master Password 1</label>
-          <input type="password" id="authAdminPass1" class="form-input" placeholder="Enter Master Password 1" required>
+        <div class="input-field-group">
+          <label class="input-label" for="reg-password">Password (min 6 chars)</label>
+          <input type="password" class="text-input" id="reg-password" placeholder="••••••••" required minlength="6">
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="authAdminPass2">3. Master Password 2</label>
-          <input type="password" id="authAdminPass2" class="form-input" placeholder="Enter Master Password 2" required>
+        <div class="input-field-group">
+          <label class="input-label" for="reg-bep20">Your BEP-20 (BSC) Wallet Address</label>
+          <input type="text" class="text-input mono" id="reg-bep20" placeholder="0x..." required pattern="^0x[a-fA-F0-9]{40}$">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.35rem;">
+            Enter the BSC wallet address you will use to send deposits and receive bot profits.
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="authAdminWord">4. Master Security Word</label>
-          <input type="text" id="authAdminWord" class="form-input mono" placeholder="Enter Security Word" required>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" id="btn-submit-register">
+          Create Account & Start Trading
+        </button>
+      </form>
+
+      <!-- LOGIN FORM -->
+      <form class="auth-form" id="form-login">
+        <div class="input-field-group">
+          <label class="input-label" for="login-email">Email Address</label>
+          <input type="email" class="text-input" id="login-email" placeholder="you@example.com" required>
         </div>
 
-        <button type="button" class="btn btn-emerald btn-lg" style="width: 100%; margin-top: 0.5rem;" onclick="window.App.submitMasterAdminAuth();">
-          🔓 Verify Security & Open Admin Control
+        <div class="input-field-group">
+          <label class="input-label" for="login-password">Password</label>
+          <input type="password" class="text-input" id="login-password" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;" id="btn-submit-login">
+          Sign In to Dashboard
         </button>
       </form>
     </div>
   </div>
 
-  <!-- =========================================================================
-       DEPOSIT MODAL (On-Chain BEP-20 Verifier)
-       ========================================================================= -->
-  <div id="modalDeposit" class="modal-overlay" style="display: none;">
-    <div class="modal-card">
-      <button class="modal-close-btn" onclick="window.App.closeDepositModal();">&times;</button>
-      <h3 style="margin-bottom: 0.3rem;">📥 Deposit USDT (BEP-20)</h3>
-      <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-        Send USDT on <strong>BNB Smart Chain (BEP-20)</strong> directly to our Master Vault address:
-      </p>
-
-      <!-- QR Code Container -->
-      <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
-        <div id="depositQrCode" style="background: #fff; padding: 12px; border-radius: var(--radius-md);"></div>
+  <!-- AUTO-COMPOUNDING CONFIRMATION MODAL POP-UP -->
+  <div class="modal-backdrop" id="compounding-modal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>🔄</span>
+          <span id="modal-compound-title">Auto-Compounding Confirmation</span>
+        </div>
+        <button class="modal-close" id="btn-close-compound-modal">&times;</button>
       </div>
 
-      <!-- Master Address Box -->
-      <div class="form-group">
-        <label class="form-label">Master Deposit Address (BEP-20)</label>
-        <div style="display: flex; gap: 0.5rem;">
-          <input type="text" id="depositMasterAddress" class="form-input mono" value="0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0" readonly>
-          <button type="button" class="btn btn-secondary" onclick="window.App.copyMasterAddress();">📋 Copy</button>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <div id="modal-compound-desc" style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.25rem;">
+          <p style="margin-bottom: 0.75rem; color: var(--text-primary);">
+            <strong>How Auto-Compounding Works:</strong>
+          </p>
+          <ul style="padding-left: 1.25rem; margin-bottom: 1rem; list-style-type: '⚡ ';">
+            <li style="margin-bottom: 0.5rem;"><strong>No Daily Deposits:</strong> Your money continuously participates in each consecutive 24h trading pool automatically.</li>
+            <li style="margin-bottom: 0.5rem;"><strong>Compounded Gains:</strong> Daily profits are credited to your capital and trade in the next day's pool.</li>
+            <li style="margin-bottom: 0.5rem;"><strong>Loss Handling:</strong> Any daily loss is deducted directly from that day's capital before rolling over.</li>
+            <li><strong>Full Control:</strong> You can pause or disable compounding at any time to receive payouts.</li>
+          </ul>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button class="btn btn-secondary" id="btn-cancel-compound">Cancel</button>
+          <button class="btn btn-primary" id="btn-confirm-compound" style="background: linear-gradient(135deg, var(--accent-cyan), var(--accent-emerald)); color: #0b1120; font-weight: 800;">
+            ✅ Confirm & Activate Compounding
+          </button>
         </div>
       </div>
-
-      <!-- Submit Tx Hash -->
-      <div class="form-group">
-        <label class="form-label" for="depositTxHash">
-          <span>Transaction Hash (TxID)</span>
-          <span style="color: var(--primary-emerald); font-size: 0.72rem;">Instant On-Chain Verification</span>
-        </label>
-        <input type="text" id="depositTxHash" class="form-input mono" placeholder="0x... (Paste your BSC Transaction Hash)">
-        <p class="form-hint">Once you send the transaction from your wallet, paste the transaction hash here to verify immediately.</p>
-      </div>
-
-      <button type="button" class="btn btn-emerald btn-lg" style="width: 100%;" onclick="window.App.submitDepositTx();">
-        🔍 Verify On-Chain & Credit Vault
-      </button>
     </div>
   </div>
 
-  <!-- =========================================================================
-       WITHDRAWAL MODAL
-       ========================================================================= -->
-  <div id="modalWithdraw" class="modal-overlay" style="display: none;">
-    <div class="modal-card">
-      <button class="modal-close-btn" onclick="window.App.closeWithdrawModal();">&times;</button>
-      <h3 style="margin-bottom: 0.3rem;">📤 Withdraw USDT</h3>
-      <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-        Payouts will be sent directly to your registered BEP-20 address.
-      </p>
-
-      <div class="form-group">
-        <label class="form-label">Recipient BEP-20 Address</label>
-        <input type="text" id="withdrawUserAddress" class="form-input mono" value="0x..." readonly>
+  <!-- WITHDRAWAL REQUEST MODAL POP-UP -->
+  <div class="modal-backdrop" id="withdrawal-modal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>💸</span>
+          <span>Request Capital Withdrawal</span>
+        </div>
+        <button class="modal-close" id="btn-close-withdraw-modal">&times;</button>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="withdrawAmount">Withdrawal Amount (USDT)</label>
-        <input type="number" step="0.01" id="withdrawAmount" class="form-input mono" placeholder="Enter amount (No Min / No Max Limit)">
-      </div>
+      <div class="modal-body" style="padding: 1.5rem;">
+        <div class="form-alert" id="withdraw-modal-alert" style="display: none;"></div>
 
-      <button type="button" class="btn btn-primary btn-lg" style="width: 100%;" onclick="window.App.submitWithdrawal();">
-        🚀 Confirm Withdrawal Request
-      </button>
-    </div>
-  </div>
-
-  <!-- =========================================================================
-       RE-INVEST MODAL (From Withdrawable Balance to Active 24h Pool)
-       ========================================================================= -->
-  <div id="modalReinvest" class="modal-overlay" style="display: none;">
-    <div class="modal-card">
-      <button class="modal-close-btn" onclick="window.App.closeReinvestModal();">&times;</button>
-      <h3 style="margin-bottom: 0.3rem;">🔄 Re-Invest Withdrawable Funds</h3>
-      <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-        Move liquid returns directly back into the <strong>24-Hour Active Trading Pool</strong> for automated bot trading.
-      </p>
-
-      <!-- Available Withdrawable Balance Summary -->
-      <div style="background: var(--bg-surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 0.78rem; color: var(--text-muted);">Available Withdrawable:</span>
-        <span class="mono" style="font-size: 1.2rem; font-weight: 800; color: var(--primary-emerald);">$<span id="reinvestAvailableBal">0.00</span> USDT</span>
-      </div>
-
-      <div class="form-group">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-          <label class="form-label" style="margin-bottom: 0;" for="reinvestAmount">Re-Invest Amount (USDT)</label>
-          <div style="display: flex; gap: 0.35rem;">
-            <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.7rem;" onclick="window.App.setReinvestPercent(25);">25%</button>
-            <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.7rem;" onclick="window.App.setReinvestPercent(50);">50%</button>
-            <button type="button" class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 0.7rem;" onclick="window.App.setReinvestPercent(75);">75%</button>
-            <button type="button" class="btn btn-emerald btn-sm" style="padding: 2px 8px; font-size: 0.7rem;" onclick="window.App.setReinvestPercent(100);">MAX</button>
+        <div class="input-field-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+            <label class="input-label" for="input-withdraw-amount" style="margin-bottom: 0;">Amount to Withdraw ($ USDT)</label>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-withdraw-max" style="font-size: 0.75rem; padding: 0.15rem 0.5rem;">Max Available</button>
+          </div>
+          <input type="number" class="text-input mono" id="input-withdraw-amount" placeholder="e.g. 50.00" min="1" step="any">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Available Balance: <strong id="withdraw-available-bal" style="color: var(--accent-cyan);">0.00</strong> USDT
           </div>
         </div>
-        <input type="number" step="0.01" id="reinvestAmount" class="form-input mono" placeholder="Enter USDT amount to re-invest">
-        <p class="form-hint">Selected amount will immediately join the 24-hour pool and active bot trading.</p>
-      </div>
 
-      <button type="button" id="btnConfirmReinvest" class="btn btn-emerald btn-lg" style="width: 100%; margin-top: 0.5rem;" onclick="window.App.submitReinvest();">
-        🚀 Confirm & Re-Deploy to Trading Pool
-      </button>
+        <div class="input-field-group" style="margin-top: 1rem;">
+          <label class="input-label" for="input-withdraw-destination">Destination BEP-20 Address</label>
+          <input type="text" class="text-input mono" id="input-withdraw-destination" placeholder="0x..." readonly style="opacity: 0.85;">
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Payout will be sent from System Address (0x66A06fA...) to your registered BEP-20 wallet.
+          </div>
+        </div>
+
+        <div style="background: var(--bg-surface-raised); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 0.9rem; margin-top: 1.25rem; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
+          <strong style="color: var(--text-primary);">Withdrawal Timeline:</strong>
+          <ul style="padding-left: 1.1rem; margin-top: 0.35rem; margin-bottom: 0;">
+            <li>Your requested amount will finish the current active 24h pool cycle (at 00:00 UTC).</li>
+            <li>The Admin reviews and confirms the payout.</li>
+            <li>Funds are dispatched directly from the Master System Vault to your BEP-20 address.</li>
+          </ul>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.25rem;">
+          <button class="btn btn-secondary" id="btn-cancel-withdraw">Cancel</button>
+          <button class="btn btn-primary" id="btn-submit-withdraw" style="background: linear-gradient(135deg, #ef4444, #f59e0b); color: #fff; font-weight: 800;">
+            🚀 Submit Withdrawal Request
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Platform Footer -->
-  <footer style="border-top: 1px solid var(--border-subtle); padding: 2rem 0; margin-top: 3rem; text-align: center; font-size: 0.78rem; color: var(--text-muted);">
-    <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-      <div>
-        © 2026 Orbital Trading Platform • Automated Web3 Quantitative Vaults • 24h Yield Engine
-      </div>
-      <div style="display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap;">
-        <a href="https://t.me/orbitaltradingt" target="_blank" rel="noopener noreferrer" style="color: var(--primary-cyan); text-decoration: none; display: flex; align-items: center; gap: 4px;">
-          <span>📢</span> <span>Telegram Channel</span>
-        </a>
-        <a href="https://www.youtube.com/@orbitaltradingYt" target="_blank" rel="noopener noreferrer" style="color: #ff4d4f; text-decoration: none; display: flex; align-items: center; gap: 4px;">
-          <span>🎥</span> <span>YouTube</span>
-        </a>
-        <a href="https://t.me/FRaNkIeDeJyNG" target="_blank" rel="noopener noreferrer" style="color: var(--accent-amber); text-decoration: none; display: flex; align-items: center; gap: 4px;">
-          <span>👑</span> <span>Founder (@FRaNkIeDeJyNG)</span>
-        </a>
-        <a href="https://t.me/orbitaltradingbot_bot" target="_blank" rel="noopener noreferrer" style="color: var(--primary-emerald); text-decoration: none; display: flex; align-items: center; gap: 4px;">
-          <span>🤖</span> <span>Telegram Bot</span>
-        </a>
-        <a href="#admin" onclick="window.App.openAdminAuthModal(); return false;" style="color: var(--text-secondary); text-decoration: none; display: flex; align-items: center; gap: 4px;">
-          <span>🔒</span> <span>Master Portal</span>
-        </a>
-      </div>
+  <!-- Footer -->
+  <footer>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+      <a href="https://t.me/QuickMOneyq" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.85rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+        </svg>
+        Telegram Channel
+      </a>
+      <a href="https://www.youtube.com/channel/UCPBmO6pr_m1XNX5PuPmQiDA" target="_blank" rel="noopener noreferrer" style="color: #f87171; text-decoration: none; display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: 0.85rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M21.58 7.19a2.76 2.76 0 00-1.95-1.96C17.9 4.75 12 4.75 12 4.75s-5.9 0-7.63.48c-.96.26-1.7.99-1.95 1.96C2 8.93 2 12 2 12s0 3.07.42 4.81c.25.97.99 1.7 1.95 1.96 1.73.48 7.63.48 7.63.48s5.9 0 7.63-.48c.96-.26 1.7-.99 1.95-1.96.42-1.74.42-4.81.42-4.81s0-3.07-.42-4.81zM9.75 15.02V8.98l5.5 3.02-5.5 3.02z"/>
+        </svg>
+        YouTube Channel
+      </a>
+    </div>
+    <div>ApexTrade AI &copy; 2026. Production Binance Futures Algorithmic Trading Platform.</div>
+    <div style="font-size: 0.75rem; margin-top: 0.35rem; display: flex; justify-content: center; gap: 1rem; align-items: center;">
+      <span>Smart Contract Verified &bull; BSC BEP-20 USDT Protocol</span>
+      <span>&bull;</span>
+      <a href="/admin.html" style="color: var(--accent-cyan); text-decoration: none; font-weight: 600;">🔒 Admin Portal</a>
     </div>
   </footer>
 
-  <!-- Toast Notification Container -->
-  <div id="toastContainer"></div>
-
-  <!-- App Scripts -->
   <script src="/js/app.js"></script>
 </body>
 </html>

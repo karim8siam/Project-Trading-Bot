@@ -2,581 +2,176 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <meta name="theme-color" content="#050811">
-  <title>Orbital Trading | Master Admin Command Center</title>
-
-  <!-- Google Fonts -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexTrade AI &bull; Master Admin Portal (Restricted)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="/css/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-badge {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid var(--accent-amber);
+      color: var(--accent-amber);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+    }
+    .admin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .admin-grid { grid-template-columns: 1fr; }
+    }
+    .admin-gate-card {
+      max-width: 440px;
+      margin: 4rem auto;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
 
-  <!-- NAVBAR -->
-  <header class="navbar">
-    <div class="container nav-wrapper">
-      <a href="/" class="brand-logo">
-        <div class="brand-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <circle cx="12" cy="12" r="9"></circle>
-            <path d="M12 3a9 9 0 0 0-9 9m18 0a9 9 0 0 0-9-9"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-        </div>
-        <span>ORBITAL<span style="color: var(--primary-cyan)">.ADMIN</span></span>
-        <span class="brand-badge" style="background: rgba(245, 158, 11, 0.15); border-color: var(--accent-amber); color: var(--accent-amber);">👑 MASTER PORTAL</span>
+  <!-- Top Navbar -->
+  <header>
+    <nav class="navbar">
+      <a href="/" class="logo">
+        <span class="logo-text">ApexTrade <span style="color: var(--accent-amber);">ADMIN</span></span>
       </a>
-
-      <div class="nav-actions">
-        <a href="/" class="btn btn-secondary btn-sm" style="text-decoration: none;">
-          🌐 Client Platform
-        </a>
-        <button type="button" class="btn btn-secondary btn-sm" id="btnAdminLogout" onclick="handleAdminLogout();" style="display: none; color: var(--accent-rose);">
-          🔒 Lock & Exit
-        </button>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <span class="admin-badge" id="auth-status-badge">🔒 ACCESS RESTRICTED</span>
+        <button class="btn btn-outline btn-sm" id="btn-admin-logout" style="display: none;">Log Out</button>
+        <a href="/" class="btn btn-outline btn-sm">← Back to Site</a>
       </div>
-    </div>
+    </nav>
   </header>
 
-  <!-- MAIN CONTAINER -->
-  <main class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+  <!-- ADMIN PASSKEY GATE SCREEN -->
+  <div id="admin-gate-section" style="padding: 0 1.5rem;">
+    <div class="card admin-gate-card" style="border-color: rgba(245, 158, 11, 0.4);">
+      <div style="font-size: 3rem; margin-bottom: 0.5rem;">🛡️</div>
+      <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Master Admin Authorization</h2>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+        This portal is restricted exclusively to the platform administrator. Enter your master passkey to review and authorize user withdrawal confirmations.
+      </p>
 
-    <!-- 4-LAYER SECURITY CHALLENGE (Locked State) -->
-    <section id="adminLockedView" style="display: block; max-width: 480px; margin: 2rem auto;">
-      <div class="glass-card highlight-cyan">
-        <div style="text-align: center; margin-bottom: 1.5rem;">
-          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👑</div>
-          <h2 style="color: var(--accent-amber); font-size: 1.5rem;">Master Admin Security Gate</h2>
-          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
-            Enter the 4-layer master authentication keys to unlock fund sweeping, 24h settlements, and withdrawal payouts.
-          </p>
+      <form id="form-admin-auth">
+        <div class="input-field-group" style="text-align: left;">
+          <label class="input-label" for="input-admin-passkey">Master Admin Passkey</label>
+          <input type="password" class="text-input" id="input-admin-passkey" placeholder="Enter admin passkey..." required autocomplete="current-password">
         </div>
 
-        <form id="formMasterAuth" onsubmit="return false;">
-          <div class="form-group">
-            <label class="form-label" for="adminPin">1. Master Admin PIN</label>
-            <input type="password" id="adminPin" class="form-input mono" placeholder="Enter 6-digit PIN" required>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem; background: linear-gradient(135deg, var(--accent-amber), #ef4444); color: #0b1120; font-weight: 800;" id="btn-submit-admin-auth">
+          🔓 Unlock Master Admin Console
+        </button>
+
+        <div class="form-alert" id="admin-auth-alert" style="display: none; margin-top: 1rem;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- AUTHENTICATED ADMIN DASHBOARD -->
+  <main id="admin-main-content" style="max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; display: none;">
+
+    <!-- Admin Header -->
+    <div class="dashboard-header" style="border-color: rgba(245, 158, 11, 0.3);">
+      <div class="user-profile-summary">
+        <div class="user-avatar" style="background: linear-gradient(135deg, var(--accent-amber), #ef4444); color: #0b1120;">👑</div>
+        <div>
+          <div class="user-email-row">
+            <span class="user-email">System Administrator Console</span>
+            <span class="status-badge active" style="background: rgba(245, 158, 11, 0.15); border-color: var(--accent-amber); color: var(--accent-amber);">SYSTEM OPERATOR AUTHORIZED</span>
           </div>
-
-          <div class="form-group">
-            <label class="form-label" for="adminPass1">2. Master Password 1</label>
-            <input type="password" id="adminPass1" class="form-input" placeholder="Enter Master Password 1" required>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="adminPass2">3. Master Password 2</label>
-            <input type="password" id="adminPass2" class="form-input" placeholder="Enter Master Password 2" required>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="adminWord">4. Master Security Word</label>
-            <input type="text" id="adminWord" class="form-input mono" placeholder="Enter Security Word" required>
-          </div>
-
-          <button type="button" class="btn btn-emerald btn-lg" style="width: 100%; margin-top: 0.75rem;" onclick="submitMasterAuth();">
-            🔓 Unlock Admin Command Center
-          </button>
-        </form>
-      </div>
-    </section>
-
-    <!-- UNLOCKED ADMIN CONTROL CENTER -->
-    <section id="adminUnlockedView" style="display: none;">
-      
-      <!-- Top Epoch Collection Summary Banner -->
-      <div class="glass-card highlight-emerald" style="max-width: 1040px; margin: 0 auto 1.5rem auto; background: linear-gradient(135deg, rgba(16, 24, 43, 0.9), rgba(16, 185, 129, 0.1));">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-          <div style="font-size: 0.85rem; font-weight: 800; color: var(--primary-emerald);">
-            📊 TODAY'S 24-HOUR USER COLLECTION & POOL OVERVIEW
-          </div>
-          <span class="badge badge-win" id="adminEpochIdBadge">Epoch Active</span>
-        </div>
-
-        <div class="grid-3" style="margin-bottom: 0.5rem;">
-          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Today's Total New Deposits</div>
-            <div class="mono" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-emerald); margin-top: 2px;">
-              $<span id="adminTodayCollection">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
-            </div>
-            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
-              <span id="adminTodayDepositCount">0</span> Deposits (<span id="adminTodayUniqueUsers">0</span> Users)
-            </div>
-          </div>
-
-          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Total Active Vault Pool</div>
-            <div class="mono" style="font-size: 1.6rem; font-weight: 800; color: var(--primary-cyan); margin-top: 2px;">
-              $<span id="adminTotalActivePool">0.00</span> <span style="font-size: 0.8rem; color: var(--text-secondary)">USDT</span>
-            </div>
-            <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px;">
-              Across <span id="adminTotalInvestors">0</span> Active Depositors
-            </div>
-          </div>
-
-          <div style="background: var(--bg-surface-1); padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Next Rollover (12:00 AM Midnight)</div>
-            <div class="mono" style="font-size: 1.6rem; font-weight: 800; color: #fff; margin-top: 2px;">
-              <span id="adminCountdownTimer">--:--:--</span>
-            </div>
-            <div style="font-size: 0.72rem; color: var(--accent-amber); margin-top: 2px;">
-              Funds will trade starting 12:00 AM
-            </div>
+          <div class="user-wallet-row">
+            <span class="wallet-label">Master Platform Deposit Vault Address:</span>
+            <span class="wallet-address mono" id="admin-vault-addr" style="color: var(--accent-cyan);">0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0</span>
           </div>
         </div>
       </div>
 
-      <div class="grid-2" style="max-width: 1040px; margin: 0 auto; gap: 1.5rem;">
-        
-        <!-- Panel 1: MetaMask to Binance Fund Sweeper -->
-        <div class="glass-card highlight-cyan">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <h3 style="color: var(--accent-amber);">👑 Move Funds: MetaMask ➔ Binance</h3>
-            <span class="badge badge-win" id="adminGasStatusBadge">Querying Gas...</span>
-          </div>
-          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
-            When users deposit on the website, USDT lands in your MetaMask. Transfer it to Binance before 12:00 AM midnight so the bot can trade with it tomorrow!
-          </p>
+      <div class="user-balance-block">
+        <div class="balance-title">Awaiting Withdrawals</div>
+        <div class="balance-amount" style="color: var(--accent-amber);" id="admin-header-pending-count">0 <span style="font-size: 1rem; color: var(--text-secondary);">Requests</span></div>
+      </div>
+    </div>
 
-          <!-- Master Wallet Balance Box -->
-          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Master MetaMask Wallet</div>
-            <div class="mono" style="font-size: 0.8rem; color: var(--primary-cyan); word-break: break-all; margin: 2px 0 8px 0;">
-              0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0
-            </div>
-            <div style="display: flex; gap: 1rem; font-size: 0.82rem;">
-              <div>USDT Balance: <strong class="mono" style="color: var(--primary-emerald);">$<span id="adminMetaMaskUsdt">0.00</span></strong></div>
-              <div>BNB Gas: <strong class="mono" style="color: #fff;"><span id="adminMetaMaskBnb">0.0000</span> BNB</strong></div>
-            </div>
-          </div>
-
-          <!-- Target Binance Box -->
-          <div class="form-group">
-            <label class="form-label">Official Binance BEP-20 Deposit Destination</label>
-            <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="adminBinanceAddress" class="form-input mono" value="0xf13c3ce17b921ddff8d7057e2363fc79cac1fb2b" readonly style="font-size: 0.75rem;">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="copyBinance();">📋 Copy</button>
-            </div>
-          </div>
-
-          <!-- Action 1: 1-Click Automated Web3 Sweep -->
-          <div style="margin-bottom: 1.25rem; padding-top: 0.5rem; border-top: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.8rem; font-weight: 700; color: #fff; margin-bottom: 0.3rem;">Method A: 1-Click Automated Web3 Transfer</div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.6rem;">
-              Automatically builds, signs with private key, and broadcasts BEP-20 transfer to Binance (Requires ~0.0005 BNB gas).
-            </p>
-            <button type="button" class="btn btn-primary" style="width: 100%;" onclick="handleAutoSweep();">
-              ⚡ 1-Click Send All to Binance (Web3)
-            </button>
-          </div>
-
-          <!-- Action 2: Manual Transfer Confirmation -->
-          <div style="padding-top: 0.75rem; border-top: 1px solid var(--border-subtle);">
-            <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 0.3rem;">Method B: Manual MetaMask App Transfer</div>
-            <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.6rem;">
-              If zero BNB gas is in MetaMask, transfer manually in your MetaMask App to Binance, then record it below:
-            </p>
-            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-              <input type="number" step="0.01" id="manualSweepAmount" class="form-input mono" placeholder="Amount (USDT)" style="flex: 1;">
-              <input type="text" id="manualSweepTx" class="form-input mono" placeholder="Optional Tx Hash" style="flex: 1.5; font-size: 0.75rem;">
-            </div>
-            <button type="button" class="btn btn-secondary" style="width: 100%; border-color: rgba(245, 158, 11, 0.4); color: var(--accent-amber);" onclick="handleManualSweep();">
-              📋 Confirm Manual Transfer to Binance
-            </button>
-          </div>
-
+    <!-- SECTION 1: CENTRALIZED WITHDRAWAL CONFIRMATION QUEUE (ALL USERS) -->
+    <div class="card" style="margin-top: 2rem; border-color: rgba(245, 158, 11, 0.5);">
+      <div class="card-title">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span>🛡️ Centralized User Withdrawal Confirmation Hub</span>
+          <span class="status-badge pending" id="admin-pending-badge">0 PENDING</span>
         </div>
-
-        <!-- Panel 2: 24-Hour Profit & Loss Distribution -->
-        <div class="glass-card highlight-emerald">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <h3 style="color: var(--primary-emerald);">📈 24h Profit & Loss Distribution</h3>
-            <span class="badge badge-win" id="adminBotLiveStatusBadge">Binance Bot Connected 🟢</span>
-          </div>
-          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 1rem;">
-            Distribute the Binance bot's real 24-hour trading results across all active depositors (60% to users / 40% to admin).
-          </p>
-
-          <!-- Live Bot PnL Auto-Sync Box -->
-          <div style="background: var(--bg-surface-1); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 0.85rem; margin-bottom: 1.25rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
-              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Real Binance Bot 24h PnL</span>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="loadLiveBotDailyPnL(true);" style="font-size: 0.72rem; padding: 2px 8px;">
-                🔄 Auto-Sync Bot PnL
-              </button>
-            </div>
-            <div style="display: flex; gap: 1rem; font-size: 0.82rem;">
-              <div>Closed Trades: <strong class="mono" style="color: #fff;" id="adminBotTodayTrades">0</strong></div>
-              <div>Net PnL: <strong class="mono" style="color: var(--primary-emerald);" id="adminBotTodayPnl">$0.00</strong></div>
-              <div>ROI: <strong class="mono" style="color: var(--primary-cyan);" id="adminBotTodayRoi">0.00%</strong></div>
-            </div>
-          </div>
-
-          <form id="formAdminSettle" onsubmit="return false;">
-            <div class="form-group">
-              <label class="form-label" for="adminDailyRoi">Daily Bot ROI Percentage (%)</label>
-              <input type="number" step="0.01" id="adminDailyRoi" class="form-input mono" placeholder="0.00" value="0.00" required>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="adminDailyPnl">Daily Bot Net PnL in Dollars ($)</label>
-              <input type="number" step="0.01" id="adminDailyPnl" class="form-input mono" placeholder="0.00" value="0.00" required>
-            </div>
-
-            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--border-glow-emerald); border-radius: var(--radius-md); padding: 0.75rem; margin-bottom: 1.25rem; font-size: 0.75rem; color: var(--primary-emerald);">
-              ✨ <strong>Profit-Sharing Rule:</strong> 40% Admin Cut deducted on profit days; 60% net profit credited directly to depositors. 0% fee on loss days.
-            </div>
-
-            <button type="button" class="btn btn-emerald btn-lg" style="width: 100%;" onclick="handleAdminSettle();">
-              🚀 Finalize 24h Settlement & Credit Depositors
-            </button>
-          </form>
-        </div>
-
+        <button class="btn btn-outline btn-sm" id="btn-refresh-admin-withdrawals">↻ Refresh All Requests</button>
       </div>
 
-      <!-- Section: User Withdrawal Approvals & Payout Station -->
-      <div class="glass-card highlight-cyan" style="max-width: 1040px; margin: 1.5rem auto 0 auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-          <div>
-            <h3 style="color: var(--accent-amber);">📤 User Withdrawal Approvals & Payout Station</h3>
-            <p style="font-size: 0.78rem; color: var(--text-secondary);">
-              Review pending user withdrawals and pay out via 1-Click Automated Web3 transfer OR manual MetaMask confirmation.
-            </p>
-          </div>
-          <span class="badge badge-active" id="adminPendingWithdrawalsCountBadge">0 Pending Payouts</span>
-        </div>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+        Withdrawal requests from <strong>ALL platform users</strong> aggregate here. When you click <strong>Approve</strong>, funds are dispatched directly from the <strong>Master System Address (0x66A06fA03BE98383fe4F73a5f1783332CAC0F5A0)</strong> to the user's BEP-20 address.
+      </p>
 
-        <div class="table-responsive">
-          <table class="custom-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>User / Email</th>
-                <th>Amount (USDT)</th>
-                <th>Destination BEP-20</th>
-                <th>Requested At</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="adminWithdrawalsTableBody">
-              <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading pending withdrawals...</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Req ID</th>
+              <th>User Email</th>
+              <th>Withdrawal Amount</th>
+              <th>Destination BEP-20 Wallet</th>
+              <th>Requested Date</th>
+              <th>Admin Confirmation & Payout Action</th>
+            </tr>
+          </thead>
+          <tbody id="admin-withdrawals-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                No pending withdrawal requests. All requests from all users will appear here.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 2: ALL USERS' CONFIRMED DEPOSITS LEDGER -->
+    <div class="card" style="margin-top: 2rem;">
+      <div class="card-title">
+        <span>📜 All Users' Confirmed On-Chain Deposits (Master Audit Log)</span>
+        <button class="btn btn-outline btn-sm" id="btn-refresh-admin-deposits">↻ Refresh Deposits</button>
       </div>
 
-    </section>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Date / Time</th>
+              <th>User Email</th>
+              <th>Amount ($ USDT)</th>
+              <th>Sender BEP-20</th>
+              <th>TxHash</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="admin-deposits-tbody">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">
+                No deposits loaded yet.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
   </main>
 
-  <!-- Toast Notification Container -->
-  <div id="toastContainer"></div>
+  <footer style="margin-top: 3rem;">
+    <div>ApexTrade AI Master Administration Console &bull; Confidential &bull; Authorized Operator Access Only</div>
+  </footer>
 
-  <!-- Admin Controller Script -->
-  <script>
-    let adminToken = localStorage.getItem("orbital_device_token") || "";
-
-    function showToast(msg, isError = false) {
-      const container = document.getElementById("toastContainer");
-      if (!container) return;
-      const toast = document.createElement("div");
-      toast.className = "toast";
-      toast.style.borderColor = isError ? "var(--accent-rose)" : "var(--primary-emerald)";
-      toast.innerHTML = `<span>${isError ? "❌" : "✅"}</span> <span>${msg}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => toast.remove(), 4000);
-    }
-
-    function checkAdminAuth() {
-      const isVerified = sessionStorage.getItem("orbital_master_admin_verified") === "true";
-      if (isVerified) {
-        document.getElementById("adminLockedView").style.display = "none";
-        document.getElementById("adminUnlockedView").style.display = "block";
-        document.getElementById("btnAdminLogout").style.display = "inline-flex";
-        loadAdminWalletStatus();
-        loadPendingWithdrawals();
-        loadLiveBotDailyPnL(false);
-      } else {
-        document.getElementById("adminLockedView").style.display = "block";
-        document.getElementById("adminUnlockedView").style.display = "none";
-        document.getElementById("btnAdminLogout").style.display = "none";
-      }
-    }
-
-    async function submitMasterAuth() {
-      const pin = document.getElementById("adminPin").value.trim();
-      const pass1 = document.getElementById("adminPass1").value.trim();
-      const pass2 = document.getElementById("adminPass2").value.trim();
-      const security_word = document.getElementById("adminWord").value.trim();
-
-      if (!pin || !pass1 || !pass2 || !security_word) {
-        showToast("Please fill all 4 Master Security fields.", true);
-        return;
-      }
-
-      try {
-        const res = await fetch("/api/admin/verify-master", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${adminToken}`
-          },
-          body: JSON.stringify({ pin, pass1, pass2, security_word })
-        });
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-          sessionStorage.setItem("orbital_master_admin_verified", "true");
-          if (data.token) {
-            adminToken = data.token;
-            localStorage.setItem("orbital_device_token", data.token);
-          }
-          showToast(data.message);
-          checkAdminAuth();
-        } else {
-          showToast(data.detail || data.error || "Master Admin Verification Failed.", true);
-        }
-      } catch (e) {
-        showToast("Server error: " + e.message, true);
-      }
-    }
-
-    function handleAdminLogout() {
-      sessionStorage.removeItem("orbital_master_admin_verified");
-      checkAdminAuth();
-      showToast("Admin session locked.");
-    }
-
-    async function loadAdminWalletStatus() {
-      try {
-        const res = await fetch("/api/admin/wallet-status", {
-          headers: { Authorization: `Bearer ${adminToken}` }
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        const w = data.wallet || {};
-        const c = data.collection || {};
-
-        document.getElementById("adminMetaMaskUsdt").innerText = (w.usdt_balance || 0).toFixed(2);
-        document.getElementById("adminMetaMaskBnb").innerText = (w.bnb_balance || 0).toFixed(4);
-
-        const badge = document.getElementById("adminGasStatusBadge");
-        if (badge) {
-          badge.innerText = w.gas_status || "Gas Ready";
-          badge.className = w.has_gas ? "badge badge-win" : "badge badge-active";
-        }
-
-        document.getElementById("adminTodayCollection").innerText = (c.today_collection_usdt || 0).toFixed(2);
-        document.getElementById("adminTodayDepositCount").innerText = c.today_deposit_count || 0;
-        document.getElementById("adminTodayUniqueUsers").innerText = c.today_unique_depositors || 0;
-        document.getElementById("adminTotalActivePool").innerText = (c.total_active_pool_usdt || 0).toFixed(2);
-        document.getElementById("adminTotalInvestors").innerText = c.total_active_investors || 0;
-        document.getElementById("adminCountdownTimer").innerText = c.time_remaining_formatted || "--:--:--";
-      } catch (e) {
-        console.error("Error loading admin wallet status:", e);
-      }
-    }
-
-    async function loadLiveBotDailyPnL(autoFill = false) {
-      try {
-        const res = await fetch("/api/bot/live-pnl");
-        if (!res.ok) return;
-        const data = await res.json();
-
-        document.getElementById("adminBotTodayTrades").innerText = data.today_closed_trades || 0;
-        document.getElementById("adminBotTodayPnl").innerText = `$${(data.today_pnl_usd || 0).toFixed(2)}`;
-        document.getElementById("adminBotTodayRoi").innerText = `${(data.today_roi_pct || 0).toFixed(2)}%`;
-
-        if (autoFill) {
-          document.getElementById("adminDailyRoi").value = (data.today_roi_pct || 0).toFixed(2);
-          document.getElementById("adminDailyPnl").value = (data.today_pnl_usd || 0).toFixed(2);
-          showToast(`Synced from Binance Bot: ${data.today_roi_pct}% ($${data.today_pnl_usd})`);
-        }
-      } catch (e) {
-        console.error("Error loading live bot daily PnL:", e);
-      }
-    }
-
-    async function handleAutoSweep() {
-      if (!confirm("Execute automated on-chain Web3 sweep from MetaMask to Binance?")) return;
-      try {
-        const res = await fetch("/api/admin/sweep-auto", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${adminToken}`
-          },
-          body: JSON.stringify({})
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(data.message);
-          loadAdminWalletStatus();
-        } else {
-          showToast(data.detail || data.error || "Auto sweep failed", true);
-        }
-      } catch (e) {
-        showToast("Error: " + e.message, true);
-      }
-    }
-
-    async function handleManualSweep() {
-      const amount = parseFloat(document.getElementById("manualSweepAmount").value);
-      const tx_hash = document.getElementById("manualSweepTx").value.trim();
-      if (!amount || amount <= 0) {
-        showToast("Enter a valid USDT amount.", true);
-        return;
-      }
-      try {
-        const res = await fetch("/api/admin/sweep-manual", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${adminToken}`
-          },
-          body: JSON.stringify({ amount_usdt: amount, tx_hash: tx_hash })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(data.message);
-          document.getElementById("manualSweepAmount").value = "";
-          document.getElementById("manualSweepTx").value = "";
-          loadAdminWalletStatus();
-        } else {
-          showToast(data.detail || data.error || "Manual sweep record failed", true);
-        }
-      } catch (e) {
-        showToast("Error: " + e.message, true);
-      }
-    }
-
-    async function handleAdminSettle() {
-      const roi = parseFloat(document.getElementById("adminDailyRoi").value);
-      const pnl = parseFloat(document.getElementById("adminDailyPnl").value);
-      if (isNaN(roi) || isNaN(pnl)) {
-        showToast("Please enter valid ROI (%) and Net PnL ($) values.", true);
-        return;
-      }
-      if (!confirm(`Finalize 24h settlement with ROI: ${roi}% and Net PnL: $${pnl}?`)) return;
-
-      try {
-        const res = await fetch("/api/admin/settle-epoch", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${adminToken}`
-          },
-          body: JSON.stringify({ daily_roi_pct: roi, daily_pnl_usd: pnl })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(data.message);
-          loadAdminWalletStatus();
-        } else {
-          showToast(data.detail || data.error || "Settlement failed", true);
-        }
-      } catch (e) {
-        showToast("Error: " + e.message, true);
-      }
-    }
-
-    async function loadPendingWithdrawals() {
-      try {
-        const res = await fetch("/api/admin/withdrawals/pending", {
-          headers: { Authorization: `Bearer ${adminToken}` }
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        const list = data.withdrawals || [];
-        document.getElementById("adminPendingWithdrawalsCountBadge").innerText = `${list.length} Pending Payouts`;
-
-        const tbody = document.getElementById("adminWithdrawalsTableBody");
-        if (list.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">No pending withdrawal requests.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = list.map(w => `
-          <tr>
-            <td class="mono" style="color: var(--primary-cyan);">${w.withdrawal_id}</td>
-            <td><strong>${w.email || "Anonymous"}</strong></td>
-            <td class="mono" style="font-weight: 700; color: var(--primary-emerald); font-size: 0.95rem;">$${parseFloat(w.amount_usdt).toFixed(2)}</td>
-            <td class="mono" style="font-size: 0.75rem;">${w.bep20_destination}</td>
-            <td style="font-size: 0.75rem; color: var(--text-muted);">${w.created_at}</td>
-            <td><span class="badge badge-active">${w.status}</span></td>
-            <td>
-              <div style="display: flex; gap: 0.35rem;">
-                <button class="btn btn-emerald btn-sm" onclick="payoutWithdrawalAuto('${w.withdrawal_id}');">⚡ Auto Pay</button>
-                <button class="btn btn-secondary btn-sm" style="color: var(--accent-rose);" onclick="rejectWithdrawal('${w.withdrawal_id}');">❌ Reject</button>
-              </div>
-            </td>
-          </tr>
-        `).join("");
-      } catch (e) {
-        console.error("Error loading pending withdrawals:", e);
-      }
-    }
-
-    async function payoutWithdrawalAuto(id) {
-      if (!confirm(`Execute 1-Click Automated Web3 payout for withdrawal ${id}?`)) return;
-      try {
-        const res = await fetch("/api/admin/withdrawals/payout-auto", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${adminToken}`
-          },
-          body: JSON.stringify({ withdrawal_id: id })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(data.message);
-          loadPendingWithdrawals();
-          loadAdminWalletStatus();
-        } else {
-          showToast(data.detail || data.error || "Payout failed", true);
-        }
-      } catch (e) {
-        showToast("Error: " + e.message, true);
-      }
-    }
-
-    async function rejectWithdrawal(id) {
-      const reason = prompt("Enter reason for rejection:", "Invalid transaction / Duplicate request");
-      if (!reason) return;
-      try {
-        const res = await fetch("/api/admin/withdrawals/reject", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${adminToken}`
-          },
-          body: JSON.stringify({ withdrawal_id: id, reason: reason })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          showToast(data.message);
-          loadPendingWithdrawals();
-        } else {
-          showToast(data.detail || data.error || "Reject failed", true);
-        }
-      } catch (e) {
-        showToast("Error: " + e.message, true);
-      }
-    }
-
-    function copyBinance() {
-      navigator.clipboard.writeText(document.getElementById("adminBinanceAddress").value);
-      showToast("Binance address copied!");
-    }
-
-    // Init
-    checkAdminAuth();
-  </script>
+  <script src="/js/admin.js"></script>
 </body>
 </html>

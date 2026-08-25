@@ -104,9 +104,16 @@ MIN_SAMPLES_FOR_TRAIN = int(os.getenv("MIN_SAMPLES_FOR_TRAIN", "10"))    # Activ
 # ==========================================
 # 5. DATABASE & MODEL PATHS
 # ==========================================
-DATA_DIR = BASE_DIR / "data"
-DATA_DIR.mkdir(exist_ok=True)
-DB_PATH = DATA_DIR / "trading_journal.db"
+if os.getenv("VERCEL"):
+    DATA_DIR = Path("/tmp")
+    DB_PATH = Path("/tmp/trading_journal.db")
+else:
+    DATA_DIR = BASE_DIR / "data"
+    try:
+        DATA_DIR.mkdir(exist_ok=True)
+    except Exception:
+        pass
+    DB_PATH = DATA_DIR / "trading_journal.db"
 MODEL_PATH = DATA_DIR / "meta_classifier.joblib"
 SCALER_PATH = DATA_DIR / "feature_scaler.joblib"
 
