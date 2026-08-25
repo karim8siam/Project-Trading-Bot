@@ -133,7 +133,13 @@ window.App = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, bep20_address })
       });
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (err) {
+        this.showToast(`Server returned status ${res.status}. Please check server logs.`, true);
+        return;
+      }
 
       if (res.ok && data.success) {
         this.token = data.token;
@@ -184,7 +190,13 @@ window.App = {
           bep20_address: bep20_address || null
         })
       });
-      const data = await res.json();
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (err) {
+        this.showToast(`Server returned status ${res.status}. Please check credentials.`, true);
+        return;
+      }
 
       if (res.ok && data.success) {
         this.token = data.token;

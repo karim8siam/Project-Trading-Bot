@@ -12,12 +12,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SERVER_DIR = Path(__file__).resolve().parent
 load_dotenv(BASE_DIR / ".env")
 
-DATA_DIR = BASE_DIR / "data"
-try:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-except Exception:
-    pass
-DB_PATH = DATA_DIR / "orbital_platform.db"
+if os.getenv("VERCEL"):
+    DB_PATH = Path("/tmp/orbital_platform.db")
+else:
+    DATA_DIR = BASE_DIR / "data"
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    DB_PATH = DATA_DIR / "orbital_platform.db"
 
 # Database Configuration (Neon Serverless PostgreSQL or local SQLite fallback)
 raw_db_url = os.getenv("DATABASE_URL", "").strip()

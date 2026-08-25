@@ -7,9 +7,12 @@ Universal database adapter supporting both:
 
 import os
 import sqlite3
-from typing import Dict, Any, List, Optional
-import psycopg2
-import psycopg2.extras
+try:
+    import psycopg2
+    import psycopg2.extras
+    import psycopg2.pool
+except Exception:
+    psycopg2 = None
 from config import DB_PATH, DATABASE_URL, USE_POSTGRES
 
 
@@ -57,13 +60,13 @@ class UniversalCursor:
 
 import psycopg2.pool
 
-_pg_pool: Optional[psycopg2.pool.ThreadedConnectionPool] = None
+_pg_pool: Optional[Any] = None
 
 
 def get_pg_pool():
     """Initializes and returns the persistent thread-safe connection pool."""
     global _pg_pool
-    if _pg_pool is None and USE_POSTGRES and DATABASE_URL:
+    if _pg_pool is None and USE_POSTGRES and DATABASE_URL and psycopg2:
         try:
             _pg_pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn=2,
@@ -88,7 +91,7 @@ class UniversalConnection:
         self.pool = pool
 
     def cursor(self):
-        if self.is_postgres:
+        if self.is_postgres and psycopg2:
             c = self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         else:
             c = self.conn.cursor()
@@ -112,7 +115,7 @@ class UniversalConnection:
 
 def get_db() -> UniversalConnection:
     """Returns a pre-warmed Universal database connection from pool for instant execution."""
-    if USE_POSTGRES and DATABASE_URL:
+    if USE_POSTGRES and DATABASE_URL and psycopg2:
         pool = get_pg_pool()
         if pool:
             try:
@@ -129,7 +132,11 @@ def get_db() -> UniversalConnection:
                 except Exception as de:
                     print(f"[Database] ⚠️ Direct fallback failed ({de})")
 
-    raw_conn = sqlite3.connect(DB_PATH)
+    try:
+        DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass
+    raw_conn = sqlite3.connect(str(DB_PATH))
     raw_conn.row_factory = sqlite3.Row
     return UniversalConnection(raw_conn, is_postgres=False)
 
