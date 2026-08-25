@@ -149,8 +149,12 @@ class BinanceFuturesExecutor:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    def place_market_order(self, symbol: str, side: str, quantity: float, reduce_only: bool = False) -> Dict[str, Any]:
+        """Places instant market order on Binance Futures."""
+        return self.place_futures_order(symbol=symbol, side=side, quantity=quantity, order_type="MARKET", reduce_only=reduce_only)
+
     def place_exchange_stop_loss(self, symbol: str, side: str, stop_price: float, quantity: float) -> Dict[str, Any]:
-        """Places native STOP_MARKET protection directly on Binance matching engine."""
+        """Places native STOP_MARKET protection directly on Binance matching engine via Algo Order API."""
         if self.paper_mode or not self.api_key or self.api_key == "mock_key_paper_mode":
             return {"success": True, "type": "PAPER_SL"}
 
@@ -161,52 +165,59 @@ class BinanceFuturesExecutor:
         formatted_stop_price = f"{float(stop_price):.{prec}f}"
         formatted_qty = f"{float(quantity):.{qty_prec}f}"
 
-        # Strategy 1: STOP_MARKET with closePosition="true" (Guaranteed 100% position close)
+        # Primary: Official Binance Algo Order API (/fapi/v1/algoOrder)
         params = {
             "symbol": raw_sym,
             "side": side.upper(),
+            "algoType": "CONDITIONAL",
             "type": "STOP_MARKET",
-            "stopPrice": formatted_stop_price,
-            "closePosition": "true",
+            "triggerPrice": formatted_stop_price,
+            "quantity": formatted_qty,
+            "reduceOnly": "true",
             "workingType": "MARK_PRICE"
         }
         signed_params = self._sign_payload(params)
         try:
-            r = data_fetcher.session.post(f"{self.base_url}/fapi/v1/order", headers=self._get_headers(), params=signed_params, timeout=8)
+            r = data_fetcher.session.post(f"{self.base_url}/fapi/v1/algoOrder", headers=self._get_headers(), params=signed_params, timeout=8)
             data = r.json()
-            if r.status_code == 200:
-                print(f"[Executor LIVE] 🛡️ Native Exchange Stop Loss armed on Binance matching engine @ ${formatted_stop_price} (Order ID: {data.get('orderId')})")
+            if r.status_code == 200 and ("algoId" in data or data.get("code") == "200"):
+                algo_id = data.get("algoId") or data.get("clientAlgoId")
+                print(f"[Executor LIVE] 🛡️ Native Exchange Stop Loss armed on Binance matching engine @ ${formatted_stop_price} (Algo ID: {algo_id})")
                 return {"success": True, "data": data}
+            else:
+                err_msg = data.get("msg", str(data))
+                print(f"[Executor LIVE ⚠️] Algo Stop Loss (reduceOnly) rejected: {err_msg}. Retrying closePosition...")
         except Exception as e:
-            data = {"msg": str(e)}
+            print(f"[Executor LIVE ⚠️] Algo Stop Loss exception: {e}")
 
-        # Strategy 2: If closePosition fails, retry with reduceOnly="true" and exact quantity
+        # Fallback 1: closePosition="true" Algo Order
         try:
-            params_retry = {
+            params_close = {
                 "symbol": raw_sym,
                 "side": side.upper(),
+                "algoType": "CONDITIONAL",
                 "type": "STOP_MARKET",
-                "stopPrice": formatted_stop_price,
-                "quantity": formatted_qty,
-                "reduceOnly": "true",
+                "triggerPrice": formatted_stop_price,
+                "closePosition": "true",
                 "workingType": "MARK_PRICE"
             }
-            signed_retry = self._sign_payload(params_retry)
-            r2 = data_fetcher.session.post(f"{self.base_url}/fapi/v1/order", headers=self._get_headers(), params=signed_retry, timeout=8)
-            data2 = r2.json()
-            if r2.status_code == 200:
-                print(f"[Executor LIVE] 🛡️ Native Exchange Stop Loss (reduceOnly) armed on Binance @ ${formatted_stop_price} (Order ID: {data2.get('orderId')})")
-                return {"success": True, "data": data2}
+            signed_close = self._sign_payload(params_close)
+            r_close = data_fetcher.session.post(f"{self.base_url}/fapi/v1/algoOrder", headers=self._get_headers(), params=signed_close, timeout=8)
+            data_close = r_close.json()
+            if r_close.status_code == 200 and ("algoId" in data_close or data_close.get("code") == "200"):
+                algo_id = data_close.get("algoId") or data_close.get("clientAlgoId")
+                print(f"[Executor LIVE] 🛡️ Native Exchange Stop Loss (closePosition) armed on Binance @ ${formatted_stop_price} (Algo ID: {algo_id})")
+                return {"success": True, "data": data_close}
             else:
-                err_msg = data2.get("msg", str(data2))
-                print(f"[Executor LIVE ⚠️] Native Exchange Stop Loss rejected by Binance: {err_msg}")
+                err_msg = data_close.get("msg", str(data_close))
+                print(f"[Executor LIVE ⚠️] Native Exchange Stop Loss failed on Binance: {err_msg}")
                 return {"success": False, "error": err_msg}
         except Exception as e2:
-            print(f"[Executor LIVE ⚠️] Native Exchange Stop Loss exception: {e2}")
+            print(f"[Executor LIVE ⚠️] Native Exchange Stop Loss fallback exception: {e2}")
             return {"success": False, "error": str(e2)}
 
     def place_exchange_take_profit(self, symbol: str, side: str, tp_price: float, quantity: float) -> Dict[str, Any]:
-        """Places native TAKE_PROFIT_MARKET order directly on Binance matching engine."""
+        """Places native TAKE_PROFIT_MARKET order directly on Binance matching engine via Algo Order API."""
         if self.paper_mode or not self.api_key or self.api_key == "mock_key_paper_mode":
             return {"success": True, "type": "PAPER_TP"}
 
@@ -217,45 +228,52 @@ class BinanceFuturesExecutor:
         formatted_tp_price = f"{float(tp_price):.{prec}f}"
         formatted_qty = f"{float(quantity):.{qty_prec}f}"
 
-        # Strategy 1: TAKE_PROFIT_MARKET with reduceOnly="true" and quantity
+        # Primary: Official Binance Algo Order API (/fapi/v1/algoOrder)
         params = {
             "symbol": raw_sym,
             "side": side.upper(),
+            "algoType": "CONDITIONAL",
             "type": "TAKE_PROFIT_MARKET",
-            "stopPrice": formatted_tp_price,
+            "triggerPrice": formatted_tp_price,
             "quantity": formatted_qty,
             "reduceOnly": "true",
             "workingType": "MARK_PRICE"
         }
         signed_params = self._sign_payload(params)
         try:
-            r = data_fetcher.session.post(f"{self.base_url}/fapi/v1/order", headers=self._get_headers(), params=signed_params, timeout=8)
+            r = data_fetcher.session.post(f"{self.base_url}/fapi/v1/algoOrder", headers=self._get_headers(), params=signed_params, timeout=8)
             data = r.json()
-            if r.status_code == 200:
-                print(f"[Executor LIVE] 🎯 Native Exchange Take Profit armed on Binance matching engine @ ${formatted_tp_price} (Order ID: {data.get('orderId')})")
+            if r.status_code == 200 and ("algoId" in data or data.get("code") == "200"):
+                algo_id = data.get("algoId") or data.get("clientAlgoId")
+                print(f"[Executor LIVE] 🎯 Native Exchange Take Profit armed on Binance matching engine @ ${formatted_tp_price} (Algo ID: {algo_id})")
                 return {"success": True, "data": data}
+            else:
+                err_msg = data.get("msg", str(data))
+                print(f"[Executor LIVE ⚠️] Algo Take Profit (reduceOnly) rejected: {err_msg}. Retrying closePosition...")
         except Exception as e:
-            data = {"msg": str(e)}
+            print(f"[Executor LIVE ⚠️] Algo Take Profit exception: {e}")
 
-        # Strategy 2: If reduceOnly failed, retry with closePosition="true"
+        # Fallback 1: closePosition="true" Algo Order
         try:
-            params_retry = {
+            params_close = {
                 "symbol": raw_sym,
                 "side": side.upper(),
+                "algoType": "CONDITIONAL",
                 "type": "TAKE_PROFIT_MARKET",
-                "stopPrice": formatted_tp_price,
+                "triggerPrice": formatted_tp_price,
                 "closePosition": "true",
                 "workingType": "MARK_PRICE"
             }
-            signed_retry = self._sign_payload(params_retry)
-            r2 = data_fetcher.session.post(f"{self.base_url}/fapi/v1/order", headers=self._get_headers(), params=signed_retry, timeout=8)
-            data2 = r2.json()
-            if r2.status_code == 200:
-                print(f"[Executor LIVE] 🎯 Native Exchange Take Profit (closePosition) armed on Binance @ ${formatted_tp_price} (Order ID: {data2.get('orderId')})")
-                return {"success": True, "data": data2}
+            signed_close = self._sign_payload(params_close)
+            r_close = data_fetcher.session.post(f"{self.base_url}/fapi/v1/algoOrder", headers=self._get_headers(), params=signed_close, timeout=8)
+            data_close = r_close.json()
+            if r_close.status_code == 200 and ("algoId" in data_close or data_close.get("code") == "200"):
+                algo_id = data_close.get("algoId") or data_close.get("clientAlgoId")
+                print(f"[Executor LIVE] 🎯 Native Exchange Take Profit (closePosition) armed on Binance @ ${formatted_tp_price} (Algo ID: {algo_id})")
+                return {"success": True, "data": data_close}
             else:
-                err_msg = data2.get("msg", str(data2))
-                print(f"[Executor LIVE ⚠️] Native Exchange Take Profit rejected by Binance: {err_msg}")
+                err_msg = data_close.get("msg", str(data_close))
+                print(f"[Executor LIVE ⚠️] Native Exchange Take Profit failed on Binance: {err_msg}")
                 return {"success": False, "error": err_msg}
         except Exception as e2:
             return {"success": False, "error": str(e2)}
