@@ -3,7 +3,6 @@ import hashlib
 import time
 import requests
 import sqlite3
-import pandas as pd
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 from config import TRADING_BOT_DB, USE_POSTGRES
@@ -153,12 +152,14 @@ def get_live_bot_performance_summary() -> Dict[str, Any]:
     if TRADING_BOT_DB.exists():
         try:
             conn = sqlite3.connect(TRADING_BOT_DB, timeout=3)
-            df = pd.read_sql("SELECT * FROM trades WHERE exit_price IS NOT NULL", conn)
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*), SUM(CASE WHEN is_win = 1 THEN 1 ELSE 0 END) FROM trades WHERE exit_price IS NOT NULL")
+            row = cursor.fetchone()
             conn.close()
 
-            if not df.empty:
-                total_trades = len(df)
-                wins = len(df[df["is_win"] == 1])
+            if row and row[0]:
+                total_trades = row[0]
+                wins = row[1] or 0
                 losses = total_trades - wins
                 win_rate = round((wins / total_trades * 100.0), 1) if total_trades > 0 else 78.5
         except Exception:

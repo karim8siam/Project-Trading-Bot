@@ -79,10 +79,15 @@ class WalletSweeper:
         self.w3 = Web3(Web3.HTTPProvider("https://bsc-dataseed.binance.org/"))
         self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
+    def _ensure_w3(self):
+        if self.w3 is None:
+            self._init_web3()
+
     def get_wallet_balances(self) -> Dict[str, Any]:
         """
         Fetches live BNB (gas) balance and BEP-20 USDT balance of Master MetaMask wallet.
         """
+        self._ensure_w3()
         try:
             # 1. Native BNB balance
             bnb_wei = self.w3.eth.get_balance(self.master_address)

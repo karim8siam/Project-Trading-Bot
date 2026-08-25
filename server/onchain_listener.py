@@ -51,9 +51,12 @@ class OnChainDepositVerifier:
             except Exception:
                 continue
 
-        # Fallback to public endpoint
         self.w3 = Web3(Web3.HTTPProvider("https://bsc-dataseed.binance.org/"))
         self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
+
+    def _ensure_w3(self):
+        if self.w3 is None:
+            self._init_web3()
 
     def verify_transaction_hash(
         self,
@@ -63,6 +66,7 @@ class OnChainDepositVerifier:
         """
         Queries BSC blockchain to verify transaction receipt, sender, recipient, and amount.
         """
+        self._ensure_w3()
         clean_tx = tx_hash.strip().lower()
         if not clean_tx.startswith("0x"):
             clean_tx = "0x" + clean_tx
